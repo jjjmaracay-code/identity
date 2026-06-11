@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IDENTITY">
+<meta name="theme-color" content="#080808">
+<title>IDENTITY</title>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --green: #AAFF00;
+    --green-dark: #6aaa00;
+    --green-mid: #88cc00;
+    --black: #000000;
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(170,255,0,0.12);
+    --white: #ffffff;
+    --text: #e8e8e8;
+    --muted: rgba(255,255,255,0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Grilla sutil verde sobre negro */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(170,255,0,0.03) 40px, rgba(170,255,0,0.03) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(170,255,0,0.03) 40px, rgba(170,255,0,0.03) 41px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* =================== PANTALLA PIN =================== */
+  #screen-pin {
+    position: fixed;
+    inset: 0;
+    background: #080808;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 0;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  #screen-pin > * {
+    position: relative;
+    z-index: 101;
+  }
+
+  #screen-pin.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+  }
+
+  .pin-logo {
+    font-size: clamp(90px, 22vw, 140px);
+    font-family: 'Times New Roman', Georgia, serif;
+    font-weight: 900;
+    color: #AAFF00 !important;
+    line-height: 1;
+    letter-spacing: -4px;
+    text-shadow:
+      0 0 10px #AAFF00,
+      0 0 20px #AAFF00,
+      0 0 40px rgba(170,255,0,0.8),
+      0 0 80px rgba(170,255,0,0.5),
+      0 0 120px rgba(170,255,0,0.3);
+    margin-bottom: 4px;
+    user-select: none;
+    position: relative;
+    z-index: 10;
+  }
+
+  .pin-brand {
+    font-size: clamp(11px, 3vw, 13px);
+    letter-spacing: 8px;
+    color: rgba(255,255,255,0.35) !important;
+    font-family: 'Inter', Arial, sans-serif;
+    font-weight: 300;
+    margin-bottom: 48px;
+    text-transform: uppercase;
+    user-select: none;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(255,255,255,0.35) !important;
+    margin-bottom: 20px;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-family: 'Inter', Arial, sans-serif;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-dots {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .pin-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(170,255,0,0.4);
+    background: transparent;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .pin-dot.filled {
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 8px rgba(170,255,0,0.6);
+    transform: scale(1.2);
+  }
+
+  .pin-dot.error {
+    border-color: #ff4444;
+    background: #ff4444;
+    box-shadow: 0 0 8px rgba(255,68,68,0.6);
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: min(280px, 80vw);
+  }
+
+  .pin-key {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1.5px solid rgba(170,255,0,0.2);
+    background: rgba(170,255,0,0.05);
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: clamp(20px, 6vw, 24px);
+    font-weight: 300;
+    color: #e8e8e8 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-key:active, .pin-key.pressed {
+    background: rgba(170,255,0,0.15);
+    transform: scale(0.92);
+  }
+
+  .pin-key.empty { border-color: transparent; background: transparent; pointer-events: none; }
+  .pin-key.del { font-size: 18px; color: var(--muted); }
+
+  .pin-first-time {
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* =================== PANTALLA PRINCIPAL =================== */
+  #screen-main {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 32px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease 0.1s;
+    z-index: 50;
+  }
+
+  #screen-main.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .main-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .main-logo-sm {
+    font-family: 'Times New Roman', serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: -1px;
+    text-shadow: 0 0 8px rgba(170,255,0,0.8), 0 0 20px rgba(170,255,0,0.4);
+  }
+
+  .btn-settings {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(170,255,0,0.08);
+    border: 1px solid rgba(170,255,0,0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: background 0.15s;
+  }
+
+  .btn-settings:active { background: rgba(170,255,0,0.2); }
+
+  /* CARD con flip */
+  .card-container {
+    perspective: 1000px;
+    width: min(300px, 82vw);
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 24px;
+  }
+
+  .card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  /* FRENTE: foto del usuario */
+  .card-front {
+    background: var(--black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .card-front-photo {
+    width: 100%;
+    height: 75%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card-front-photo-placeholder {
+    width: 100%;
+    height: 75%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    color: var(--green);
+  }
+
+  .card-front-info {
+    width: 100%;
+    height: 25%;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 16px;
+  }
+
+  .card-front-name {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(15px, 4vw, 18px);
+    font-weight: 500;
+    color: var(--green);
+    text-align: center;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+  }
+
+  .card-front-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.55);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .card-front-hint {
+    font-size: 9px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.35);
+    letter-spacing: 1px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* REVERSO: QR */
+  .card-back {
+    background: var(--white);
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+  }
+
+  .card-back-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    color: #555;
+    text-transform: uppercase;
+  }
+
+  #qr-canvas {
+    border-radius: 8px;
+  }
+
+  .card-back-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--black);
+    text-align: center;
+  }
+
+  .card-back-sub {
+    font-size: 9px;
+    font-weight: 300;
+    color: #888;
+    letter-spacing: 2px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .card-hint {
+    font-size: 10px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.35);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: -8px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Botones inferiores */
+  .main-actions {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .btn-action {
+    flex: 1;
+    padding: 14px 8px;
+    border-radius: 14px;
+    border: 1px solid rgba(170,255,0,0.25);
+    background: rgba(170,255,0,0.06);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: background 0.15s, transform 0.1s;
+    text-transform: uppercase;
+  }
+
+  .btn-action:active { background: rgba(170,255,0,0.15); transform: scale(0.96); }
+  .btn-action.primary { background: var(--green); color: var(--black); border-color: var(--green); font-weight: 600; }
+  .btn-action.primary:active { background: #88cc00; }
+
+  /* =================== PANTALLA EDITAR =================== */
+  #screen-edit {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 20px 48px;
+    z-index: 200;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #screen-edit.open {
+    transform: translateY(0);
+  }
+
+  .edit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .edit-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .btn-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(170,255,0,0.08);
+    border: 1px solid rgba(170,255,0,0.2);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+  }
+
+  .edit-section {
+    margin-bottom: 28px;
+  }
+
+  .edit-section-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.4);
+    font-weight: 500;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(170,255,0,0.1);
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.45);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(170,255,0,0.15);
+    background: rgba(170,255,0,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-appearance: none;
+  }
+
+  .field-input:focus {
+    border-color: rgba(170,255,0,0.5);
+    background: rgba(170,255,0,0.07);
+  }
+
+  .field-input::placeholder { color: rgba(255,255,255,0.2); font-weight: 300; }
+
+  /* Upload foto */
+  .photo-upload-area {
+    width: 100%;
+    height: 120px;
+    border: 1.5px dashed rgba(170,255,0,0.25);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    gap: 6px;
+    background: rgba(170,255,0,0.03);
+    transition: background 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .photo-upload-area:active { background: rgba(170,255,0,0.08); }
+
+  .photo-upload-area img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .photo-upload-label {
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    z-index: 1;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .photo-upload-icon { font-size: 28px; z-index: 1; }
+
+  #photo-file-input { display: none; }
+
+  /* Toggle visibilidad campos */
+  .field-toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(170,255,0,0.04);
+    border: 1px solid rgba(170,255,0,0.1);
+  }
+
+  .field-toggle-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.2);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+  }
+
+  .toggle-switch input:checked + .toggle-slider { background: var(--black); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+  .btn-save {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: var(--green);
+    color: var(--black);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 0 20px rgba(170,255,0,0.3);
+  }
+
+  .btn-save:active { background: #88cc00; transform: scale(0.98); }
+
+  /* =================== NOTIFICACIÓN =================== */
+  .toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--green);
+    color: var(--black);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    padding: 12px 24px;
+    border-radius: 30px;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 0 20px rgba(170,255,0,0.4);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Install banner */
+  .install-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid rgba(170,255,0,0.15);
+    color: var(--text);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 300;
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+  }
+
+  .install-banner.show { transform: translateY(0); }
+
+  .install-banner-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    flex: 1;
+    line-height: 1.4;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+
+  .btn-install {
+    background: var(--green);
+    color: var(--black);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  /* =================== FONDO ANIMADO =================== */
+  #bg-media {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  #bg-media img,
+  #bg-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.18;
+    filter: blur(2px) saturate(1.4);
+  }
+
+  /* =================== VIDEO EN TARJETA =================== */
+  .card-front-video {
+    width: 100%;
+    height: 75%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* =================== GALERÍA DE MEDIOS =================== */
+  .gallery-section {
+    margin-bottom: 28px;
+  }
+
+  .gallery-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .gallery-tab {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(170,255,0,0.2);
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .gallery-tab.active {
+    background: rgba(170,255,0,0.1);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .gallery-item {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s, transform 0.1s;
+    position: relative;
+    background: var(--surface2);
+  }
+
+  .gallery-item:active { transform: scale(0.95); }
+
+  .gallery-item.selected {
+    border-color: var(--green);
+    box-shadow: 0 0 12px rgba(170,255,0,0.4);
+  }
+
+  .gallery-item img,
+  .gallery-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .gallery-item .gallery-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 4px;
+    font-size: 9px;
+    padding: 2px 4px;
+    color: var(--green);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .upload-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .btn-upload-media {
+    flex: 1;
+    padding: 11px 8px;
+    border-radius: 10px;
+    border: 1.5px dashed rgba(170,255,0,0.3);
+    background: rgba(170,255,0,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.5);
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+
+  .btn-upload-media:active { background: rgba(170,255,0,0.1); }
+
+
+</head>
+<body>
+
+<!-- =================== FONDO ANIMADO =================== -->
+<div id="bg-media"></div>
+
+<!-- =================== PANTALLA PIN =================== -->
+<div id="screen-pin">
+  <div class="pin-logo">I</div>
+  <div class="pin-brand">dentity</div>
+  <div class="pin-label">Introduce tu PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-keypad">
+    <button class="pin-key" data-n="1">1</button>
+    <button class="pin-key" data-n="2">2</button>
+    <button class="pin-key" data-n="3">3</button>
+    <button class="pin-key" data-n="4">4</button>
+    <button class="pin-key" data-n="5">5</button>
+    <button class="pin-key" data-n="6">6</button>
+    <button class="pin-key" data-n="7">7</button>
+    <button class="pin-key" data-n="8">8</button>
+    <button class="pin-key" data-n="9">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" data-n="0">0</button>
+    <button class="pin-key del" id="pin-del">⌫</button>
+  </div>
+  <div class="pin-first-time" id="pin-hint">Primera vez — crea tu PIN de 4 dígitos</div>
+</div>
+
+<!-- =================== PANTALLA PRINCIPAL =================== -->
+<div id="screen-main">
+  <div class="main-header">
+    <div class="main-logo-sm">I</div>
+    <button class="btn-settings" id="btn-open-edit">⚙</button>
+  </div>
+
+  <div class="card-container" id="card-container">
+    <div class="card-inner" id="card-inner">
+      <!-- FRENTE -->
+      <div class="card-face card-front">
+        <div class="card-front-photo-placeholder" id="photo-placeholder">👤</div>
+        <img class="card-front-photo" id="card-photo" style="display:none" alt="foto">
+        <video class="card-front-video" id="card-video" style="display:none" autoplay loop muted playsinline></video>
+        <div class="card-front-info">
+          <div class="card-front-name" id="card-name">Tu Nombre</div>
+          <div class="card-front-title" id="card-job">Tu título profesional</div>
+          <div class="card-front-hint">toca para compartir</div>
+        </div>
+      </div>
+      <!-- REVERSO -->
+      <div class="card-face card-back">
+        <div class="card-back-label">Escanea para contactar</div>
+        <canvas id="qr-canvas" width="180" height="180"></canvas>
+        <div class="card-back-name" id="qr-name">—</div>
+        <div class="card-back-sub">IDENTITY · Tarjeta Digital</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-hint" id="flip-hint">↺ Toca la tarjeta para mostrar el QR</div>
+
+  <div class="main-actions">
+    <button class="btn-action" id="btn-lock">🔒 Bloquear</button>
+    <button class="btn-action primary" id="btn-share">Compartir QR</button>
+  </div>
+</div>
+
+<!-- =================== PANTALLA EDITAR =================== -->
+<div id="screen-edit">
+  <div class="edit-header">
+    <div class="edit-title">Mi Perfil</div>
+    <button class="btn-close" id="btn-close-edit">✕</button>
+  </div>
+
+  <div class="edit-section gallery-section">
+    <div class="edit-section-title">Imagen de tarjeta y fondo</div>
+
+    <!-- Tabs -->
+    <div class="gallery-tabs">
+      <button class="gallery-tab active" data-tab="gallery">Galería</button>
+      <button class="gallery-tab" data-tab="upload">Subir archivo</button>
+    </div>
+
+    <!-- Galería integrada -->
+    <div id="tab-gallery">
+      <div class="gallery-grid" id="gallery-grid">
+        <!-- Se genera dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Subir archivo propio -->
+    <div id="tab-upload" style="display:none">
+      <div class="upload-row">
+        <div class="btn-upload-media" id="btn-upload-img">📷 Imagen / GIF</div>
+        <div class="btn-upload-media" id="btn-upload-vid">🎬 Video / MP4</div>
+      </div>
+      <input type="file" id="media-file-img" accept="image/*" style="display:none">
+      <input type="file" id="media-file-vid" accept="video/*" style="display:none">
+      <div id="upload-preview-wrap" style="margin-top:12px; display:none; border-radius:12px; overflow:hidden; max-height:160px;">
+        <img id="upload-preview-img" style="width:100%;height:160px;object-fit:cover;display:none" alt="preview">
+        <video id="upload-preview-vid" style="width:100%;height:160px;object-fit:cover;display:none" autoplay loop muted playsinline></video>
+      </div>
+    </div>
+
+    <input type="file" id="photo-file-input" accept="image/*" style="display:none">
+  </div>
+
+  <div class="edit-section">
+    <div class="edit-section-title">Información personal</div>
+    <div class="field-group">
+      <div class="field-wrap">
+        <div class="field-label">Nombre completo</div>
+        <input class="field-input" id="f-name" type="text" placeholder="Juan García López" autocomplete="name">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Título / Profesión</div>
+        <input class="field-input" id="f-job" type="text" placeholder="Desarrollador Web · Madrid">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Teléfono</div>
+        <input class="field-input" id="f-phone" type="tel" placeholder="+34 600 000 000">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Email</div>
+        <input class="field-input" id="f-email" type="email" placeholder="tu@email.com">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Dirección</div>
+        <input class="field-input" id="f-address" type="text" placeholder="Madrid, España">
+      </div>
+    </div>
+  </div>
+
+  <div class="edit-section">
+    <div class="edit-section-title">Redes y perfiles</div>
+    <div class="field-group">
+      <div class="field-wrap">
+        <div class="field-label">LinkedIn</div>
+        <input class="field-input" id="f-linkedin" type="url" placeholder="linkedin.com/in/tu-perfil">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">GitHub</div>
+        <input class="field-input" id="f-github" type="url" placeholder="github.com/tu-usuario">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Web personal</div>
+        <input class="field-input" id="f-web" type="url" placeholder="tuwebpersonal.com">
+      </div>
+    </div>
+  </div>
+
+  <div class="edit-section">
+    <div class="edit-section-title">¿Qué incluir en el QR?</div>
+    <div class="field-group">
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Teléfono</div>
+        <label class="toggle-switch"><input type="checkbox" id="t-phone" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Email</div>
+        <label class="toggle-switch"><input type="checkbox" id="t-email" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Dirección</div>
+        <label class="toggle-switch"><input type="checkbox" id="t-address"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">LinkedIn</div>
+        <label class="toggle-switch"><input type="checkbox" id="t-linkedin" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">GitHub</div>
+        <label class="toggle-switch"><input type="checkbox" id="t-github" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Web personal</div>
+        <label class="toggle-switch"><input type="checkbox" id="t-web" checked><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-save" id="btn-save">Guardar identidad</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Install Banner -->
+<div class="install-banner" id="install-banner">
+  <div class="install-banner-text">Instala IDENTITY en tu pantalla de inicio para acceso rápido</div>
+  <button class="btn-install" id="btn-install-do">Instalar</button>
+  <button class="btn-install-close" id="btn-install-close">✕</button>
+</div>
+
+<!-- QRCode.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+// =================== ESTADO ===================
+const STORAGE_KEY = 'identity_data';
+const PIN_KEY = 'identity_pin';
+
+let pinBuffer = '';
+let isFirstTime = !localStorage.getItem(PIN_KEY);
+let profileData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let photoDataUrl = profileData.photo || null;
+let isFlipped = false;
+
+// =================== PIN ===================
+const pinDots = [0,1,2,3].map(i => document.getElementById('d'+i));
+const pinHint = document.getElementById('pin-hint');
+
+if (!isFirstTime) {
+  pinHint.textContent = 'Introduce tu PIN';
+}
+
+function updateDots() {
+  pinDots.forEach((d, i) => {
+    d.classList.remove('filled','error');
+    if (i < pinBuffer.length) d.classList.add('filled');
+  });
+}
+
+function pinError() {
+  pinDots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
+  setTimeout(() => {
+    pinDots.forEach(d => d.classList.remove('error'));
+    pinBuffer = '';
+    updateDots();
+  }, 600);
+}
+
+function pinSuccess() {
+  document.getElementById('screen-pin').classList.add('hidden');
+  document.getElementById('screen-main').classList.add('visible');
+  renderCard();
+  generateQR();
+}
+
+document.querySelectorAll('.pin-key[data-n]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (pinBuffer.length >= 4) return;
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 120);
+    pinBuffer += btn.dataset.n;
+    updateDots();
+
+    if (pinBuffer.length === 4) {
+      setTimeout(() => {
+        const stored = localStorage.getItem(PIN_KEY);
+        if (isFirstTime) {
+          localStorage.setItem(PIN_KEY, pinBuffer);
+          isFirstTime = false;
+          showToast('PIN guardado ✓');
+          pinSuccess();
+        } else {
+          if (pinBuffer === stored) {
+            pinSuccess();
+          } else {
+            pinError();
+          }
+        }
+      }, 150);
+    }
+  });
+});
+
+document.getElementById('pin-del').addEventListener('click', () => {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updateDots();
+});
+
+// =================== CARD ===================
+function renderCard() {
+  const name = profileData.name || 'Tu Nombre';
+  const job  = profileData.job  || 'Tu título profesional';
+
+  document.getElementById('card-name').textContent = name;
+  document.getElementById('card-job').textContent  = job;
+  document.getElementById('qr-name').textContent   = name;
+
+  const cardPhoto = document.getElementById('card-photo');
+  const cardVideo = document.getElementById('card-video');
+  const placeholder = document.getElementById('photo-placeholder');
+
+  const media = profileData.media;
+
+  if (media && media.type === 'video') {
+    cardPhoto.style.display = 'none';
+    placeholder.style.display = 'none';
+    cardVideo.src = media.src;
+    cardVideo.style.display = 'block';
+  } else if (media && media.src) {
+    cardVideo.style.display = 'none';
+    placeholder.style.display = 'none';
+    cardPhoto.src = media.src;
+    cardPhoto.style.display = 'block';
+  } else {
+    cardVideo.style.display = 'none';
+    cardPhoto.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+
+  renderBgMedia();
+}
+
+// =================== FONDO ANIMADO ===================
+function renderBgMedia() {
+  const bg = document.getElementById('bg-media');
+  bg.innerHTML = '';
+  const media = profileData.media;
+  if (!media || !media.src) return;
+
+  if (media.type === 'video') {
+    const v = document.createElement('video');
+    v.src = media.src;
+    v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+    bg.appendChild(v);
+  } else {
+    const i = document.createElement('img');
+    i.src = media.src;
+    bg.appendChild(i);
+  }
+}
+
+// =================== GALERÍA INTEGRADA — MP4 HD (Pexels) ===================
+const GALLERY_ITEMS = [
+  { id:'v1', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/3045163/pictures/preview-0.jpg', src:'https://www.pexels.com/video/3045163/download/' },
+  { id:'v2', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/1526909/pictures/preview-0.jpg', src:'https://www.pexels.com/video/1526909/download/' },
+  { id:'v3', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/2792369/pictures/preview-0.jpg', src:'https://www.pexels.com/video/2792369/download/' },
+  { id:'v4', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/3125908/pictures/preview-0.jpg', src:'https://www.pexels.com/video/3125908/download/' },
+  { id:'v5', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/2022397/pictures/preview-0.jpg', src:'https://www.pexels.com/video/2022397/download/' },
+  { id:'v6', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/1851190/pictures/preview-0.jpg', src:'https://www.pexels.com/video/1851190/download/' },
+  { id:'v7', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/3571264/pictures/preview-0.jpg', src:'https://www.pexels.com/video/3571264/download/' },
+  { id:'v8', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/2098827/pictures/preview-0.jpg', src:'https://www.pexels.com/video/2098827/download/' },
+  { id:'v9', label:'HD', type:'video', thumb:'https://images.pexels.com/videos/4763824/pictures/preview-0.jpg', src:'https://www.pexels.com/video/4763824/download/' },
+];
+
+let selectedGalleryId = profileData.media?.galleryId || null;
+let previewVideoEl = null; // video en hover dentro de la galería
+
+function buildGallery() {
+  const grid = document.getElementById('gallery-grid');
+  grid.innerHTML = '';
+
+  GALLERY_ITEMS.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'gallery-item' + (selectedGalleryId === item.id ? ' selected' : '');
+    div.dataset.id = item.id;
+
+    // Thumb imagen (siempre visible)
+    const img = document.createElement('img');
+    img.src = item.thumb;
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
+
+    // Video preview oculto (se activa al tocar)
+    const vid = document.createElement('video');
+    vid.src = item.src;
+    vid.muted = true;
+    vid.loop = true;
+    vid.playsInline = true;
+    vid.preload = 'none';
+    vid.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:none;';
+
+    const badge = document.createElement('div');
+    badge.className = 'gallery-badge';
+    badge.textContent = '▶ HD';
+
+    div.style.position = 'relative';
+    div.appendChild(img);
+    div.appendChild(vid);
+    div.appendChild(badge);
+
+    // Tap: primer tap = preview video, segundo tap = seleccionar
+    let tapped = false;
+    div.addEventListener('click', () => {
+      if (!tapped) {
+        // Primer toque: previsualizar
+        tapped = true;
+        // Parar cualquier preview anterior
+        if (previewVideoEl && previewVideoEl !== vid) {
+          previewVideoEl.pause();
+          previewVideoEl.style.display = 'none';
+          previewVideoEl.parentElement?.querySelector('img')?.style.removeProperty('display');
+        }
+        vid.style.display = 'block';
+        img.style.display = 'none';
+        vid.play().catch(()=>{});
+        previewVideoEl = vid;
+        badge.textContent = '✓ Usar';
+        setTimeout(() => { tapped = false; badge.textContent = '▶ HD'; }, 3000);
+      } else {
+        // Segundo toque o tras preview: seleccionar
+        tapped = false;
+        selectGalleryItem(item, div);
+      }
+    });
+
+    grid.appendChild(div);
+  });
+}
+
+function selectGalleryItem(item, el) {
+  document.querySelectorAll('.gallery-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGalleryId = item.id;
+  profileData.media = { src: item.src, type: 'video', galleryId: item.id, thumb: item.thumb };
+  renderCard();
+  showToast('Video seleccionado ✓');
+}
+
+// =================== TABS GALERÍA / SUBIR ===================
+document.querySelectorAll('.gallery-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.gallery-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    document.getElementById('tab-gallery').style.display = target === 'gallery' ? 'block' : 'none';
+    document.getElementById('tab-upload').style.display  = target === 'upload'  ? 'block' : 'none';
+  });
+});
+
+// =================== SUBIR IMAGEN / GIF ===================
+document.getElementById('btn-upload-img').addEventListener('click', () => {
+  document.getElementById('media-file-img').click();
+});
+
+document.getElementById('media-file-img').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const isGif = file.type === 'image/gif';
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const src = ev.target.result;
+    selectedGalleryId = null;
+    profileData.media = { src, type: 'image', galleryId: null };
+
+    const prevImg = document.getElementById('upload-preview-img');
+    const prevVid = document.getElementById('upload-preview-vid');
+    const wrap = document.getElementById('upload-preview-wrap');
+    prevImg.src = src;
+    prevImg.style.display = 'block';
+    prevVid.style.display = 'none';
+    wrap.style.display = 'block';
+
+    renderCard();
+    showToast(isGif ? 'GIF cargado ✓' : 'Imagen cargada ✓');
+  };
+  reader.readAsDataURL(file);
+});
+
+// =================== SUBIR VIDEO ===================
+document.getElementById('btn-upload-vid').addEventListener('click', () => {
+  document.getElementById('media-file-vid').click();
+});
+
+document.getElementById('media-file-vid').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  // Vídeos: usar URL objeto (no base64 — demasiado pesado para localStorage)
+  const src = URL.createObjectURL(file);
+  selectedGalleryId = null;
+  profileData.media = { src, type: 'video', galleryId: null, isObjectUrl: true };
+
+  const prevImg = document.getElementById('upload-preview-img');
+  const prevVid = document.getElementById('upload-preview-vid');
+  const wrap = document.getElementById('upload-preview-wrap');
+  prevVid.src = src;
+  prevVid.style.display = 'block';
+  prevImg.style.display = 'none';
+  wrap.style.display = 'block';
+
+  renderCard();
+  showToast('Video cargado ✓');
+});
+
+// Flip
+document.getElementById('card-container').addEventListener('click', () => {
+  isFlipped = !isFlipped;
+  document.getElementById('card-inner').classList.toggle('flipped', isFlipped);
+  document.getElementById('flip-hint').textContent = isFlipped
+    ? '↺ Toca para volver a la tarjeta'
+    : '↺ Toca la tarjeta para mostrar el QR';
+});
+
+// =================== QR (vCard) ===================
+let qrInstance = null;
+
+function buildVCard() {
+  const d = profileData;
+  const t = profileData.toggles || {};
+
+  let vc = 'BEGIN:VCARD\nVERSION:3.0\n';
+  if (d.name)                     vc += `FN:${d.name}\n`;
+  if (d.job)                      vc += `TITLE:${d.job}\n`;
+  if (d.phone  && t.phone  !== false) vc += `TEL:${d.phone}\n`;
+  if (d.email  && t.email  !== false) vc += `EMAIL:${d.email}\n`;
+  if (d.address && t.address)         vc += `ADR:;;${d.address};;;;\n`;
+  if (d.linkedin && t.linkedin !== false) vc += `URL;type=LinkedIn:${d.linkedin}\n`;
+  if (d.github   && t.github   !== false) vc += `URL;type=GitHub:${d.github}\n`;
+  if (d.web      && t.web      !== false) vc += `URL;type=Web:${d.web}\n`;
+  vc += 'END:VCARD';
+  return vc;
+}
+
+function generateQR() {
+  const canvas = document.getElementById('qr-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,180,180);
+
+  if (qrInstance) { try { qrInstance.clear(); } catch(e){} }
+
+  const vcard = buildVCard();
+
+  try {
+    qrInstance = new QRCode(canvas, {
+      text: vcard,
+      width: 180,
+      height: 180,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    // Fallback texto si vCard es muy largo
+    qrInstance = new QRCode(canvas, {
+      text: profileData.name || 'IDENTITY',
+      width: 180,
+      height: 180,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.L
+    });
+  }
+}
+
+// =================== COMPARTIR QR ===================
+document.getElementById('btn-share').addEventListener('click', async () => {
+  // Aseguramos que la card esté del lado del QR
+  if (!isFlipped) {
+    isFlipped = true;
+    document.getElementById('card-inner').classList.add('flipped');
+  }
+
+  setTimeout(async () => {
+    const canvas = document.getElementById('qr-canvas');
+    try {
+      canvas.toBlob(async (blob) => {
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob],'identity_qr.png',{type:'image/png'})] })) {
+          await navigator.share({
+            title: 'Mi IDENTITY QR',
+            text: profileData.name || 'Contacto',
+            files: [new File([blob],'identity_qr.png',{type:'image/png'})]
+          });
+        } else {
+          // Fallback: descarga
+          const url = canvas.toDataURL('image/png');
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'identity_qr.png';
+          a.click();
+          showToast('QR descargado ✓');
+        }
+      });
+    } catch(e) {
+      showToast('Descarga no disponible');
+    }
+  }, 400);
+});
+
+// =================== BLOQUEAR ===================
+document.getElementById('btn-lock').addEventListener('click', () => {
+  pinBuffer = '';
+  updateDots();
+  isFlipped = false;
+  document.getElementById('card-inner').classList.remove('flipped');
+  document.getElementById('screen-main').classList.remove('visible');
+  document.getElementById('screen-pin').classList.remove('hidden');
+});
+
+// =================== PANTALLA EDITAR ===================
+document.getElementById('btn-open-edit').addEventListener('click', openEdit);
+document.getElementById('btn-close-edit').addEventListener('click', closeEdit);
+
+function openEdit() {
+  const d = profileData;
+  const t = d.toggles || {};
+  document.getElementById('f-name').value    = d.name    || '';
+  document.getElementById('f-job').value     = d.job     || '';
+  document.getElementById('f-phone').value   = d.phone   || '';
+  document.getElementById('f-email').value   = d.email   || '';
+  document.getElementById('f-address').value = d.address || '';
+  document.getElementById('f-linkedin').value= d.linkedin|| '';
+  document.getElementById('f-github').value  = d.github  || '';
+  document.getElementById('f-web').value     = d.web     || '';
+
+  document.getElementById('t-phone').checked   = t.phone   !== false;
+  document.getElementById('t-email').checked   = t.email   !== false;
+  document.getElementById('t-address').checked = !!t.address;
+  document.getElementById('t-linkedin').checked= t.linkedin !== false;
+  document.getElementById('t-github').checked  = t.github   !== false;
+  document.getElementById('t-web').checked     = t.web      !== false;
+
+  // Inicializar galería
+  buildGallery();
+
+  // Si hay media subida previamente (imagen/gif, no video objectUrl)
+  if (d.media && d.media.src && d.media.type !== 'video' && !d.media.galleryId) {
+    const prevImg = document.getElementById('upload-preview-img');
+    const wrap = document.getElementById('upload-preview-wrap');
+    prevImg.src = d.media.src;
+    prevImg.style.display = 'block';
+    wrap.style.display = 'block';
+  }
+
+  document.getElementById('screen-edit').classList.add('open');
+}
+
+function closeEdit() {
+  document.getElementById('screen-edit').classList.remove('open');
+}
+
+// Foto file input legacy (por si acaso)
+document.getElementById('photo-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    profileData.media = { src: ev.target.result, type: 'image', galleryId: null };
+    renderCard();
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('btn-save').addEventListener('click', () => {
+  // Guardar media — los objectUrl de video no se persisten (se pierden al cerrar)
+  const mediaToSave = profileData.media && !profileData.media.isObjectUrl
+    ? profileData.media
+    : (profileData.media?.isObjectUrl ? { ...profileData.media, src: null } : null);
+
+  profileData = {
+    name:     document.getElementById('f-name').value.trim(),
+    job:      document.getElementById('f-job').value.trim(),
+    phone:    document.getElementById('f-phone').value.trim(),
+    email:    document.getElementById('f-email').value.trim(),
+    address:  document.getElementById('f-address').value.trim(),
+    linkedin: document.getElementById('f-linkedin').value.trim(),
+    github:   document.getElementById('f-github').value.trim(),
+    web:      document.getElementById('f-web').value.trim(),
+    media:    mediaToSave,
+    toggles: {
+      phone:   document.getElementById('t-phone').checked,
+      email:   document.getElementById('t-email').checked,
+      address: document.getElementById('t-address').checked,
+      linkedin:document.getElementById('t-linkedin').checked,
+      github:  document.getElementById('t-github').checked,
+      web:     document.getElementById('t-web').checked,
+    }
+  };
+
+  // Restaurar media en memoria si era video objectUrl
+  if (profileData.media?.isObjectUrl) {
+    profileData.media.src = document.getElementById('card-video').src;
+  }
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profileData));
+  } catch(e) {
+    // Si la imagen es muy grande para localStorage, guardar sin ella
+    const slim = { ...profileData, media: profileData.media?.galleryId ? profileData.media : null };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+  }
+
+  renderCard();
+  generateQR();
+  closeEdit();
+  showToast('Identidad guardada ✓');
+});
+
+// =================== TOAST ===================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =================== PWA INSTALL ===================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => {
+    document.getElementById('install-banner').classList.add('show');
+  }, 3000);
+});
+
+document.getElementById('btn-install-do').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('install-banner').classList.remove('show');
+  }
+});
+
+document.getElementById('btn-install-close').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+// =================== SERVICE WORKER (PWA) ===================
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'identity-v1';
+    const ASSETS = ['/'];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// Init
+renderCard();
+if (document.getElementById('screen-main').classList.contains('visible')) {
+  generateQR();
+}
+buildGallery();
+</script>
+</body>
+</html>
