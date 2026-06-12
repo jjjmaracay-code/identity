@@ -1610,6 +1610,24 @@
     font-weight: 600;
   }
 
+  .btn-listen-terms {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(170,255,0,0.4);
+    background: rgba(170,255,0,0.08);
+    color: var(--green);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin: 0 0 10px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .btn-listen-terms:active { background: rgba(170,255,0,0.18); }
+
   .btn-consent {
     width: 100%;
     padding: 16px;
@@ -2022,11 +2040,13 @@
 
   </div><!-- fin consent-scroll-wrap -->
 
+  <button class="btn-listen-terms" id="btn-listen-terms">▶ Escuchar términos</button>
+
   <div class="consent-footer">
     <div class="consent-checkbox-wrap">
       <div class="consent-checkbox" id="consent-check"></div>
       <div class="consent-checkbox-text">
-        He leído <strong>íntegramente</strong> la política de privacidad, los deberes de usuario y los límites de uso. Acepto el tratamiento de mis datos conforme al <strong>RGPD (UE) 2016/679</strong> y la <strong>LOPD-GDD</strong>, y me comprometo a cumplir todas las normas de uso establecidas.
+        He leído, escuchado y acepto <strong>íntegramente</strong> la política de privacidad, los deberes de usuario y los límites de uso. Acepto el tratamiento de mis datos conforme al <strong>RGPD (UE) 2016/679</strong> y la <strong>LOPD-GDD</strong>, y me comprometo a cumplir todas las normas de uso establecidas.
       </div>
     </div>
     <button class="btn-consent" id="btn-consent-accept" disabled>He leído todo — Acepto y entro</button>
@@ -2517,9 +2537,54 @@ consentCheck.addEventListener('click', () => {
 
 btnConsent.addEventListener('click', () => {
   if (!consentChecked) return;
+  window.speechSynthesis?.cancel(); // detener lectura si sigue activa
   localStorage.setItem(CONSENT_KEY, 'true');
   consentGiven = true;
   document.getElementById('screen-consent').classList.add('hidden');
+});
+
+// =================== LECTURA POR VOZ DE LOS TÉRMINOS ===================
+const btnListenTerms = document.getElementById('btn-listen-terms');
+
+btnListenTerms.addEventListener('click', () => {
+  const synth = window.speechSynthesis;
+  if (!synth) {
+    btnListenTerms.textContent = 'Lectura por voz no disponible';
+    btnListenTerms.disabled = true;
+    return;
+  }
+
+  // Pausar / reanudar si ya hay una lectura en curso
+  if (synth.speaking && !synth.paused) {
+    synth.pause();
+    btnListenTerms.textContent = '▶ Escuchar términos';
+    return;
+  }
+  if (synth.paused) {
+    synth.resume();
+    btnListenTerms.textContent = '⏸ Pausar';
+    return;
+  }
+
+  // Iniciar lectura de todos los bloques de términos en español
+  const fullText = Array.from(document.querySelectorAll('.consent-block-text'))
+    .map(el => el.textContent.replace(/\s+/g, ' ').trim())
+    .join('. ');
+
+  const utterance = new SpeechSynthesisUtterance(fullText);
+  utterance.lang = 'es-ES';
+
+  const resetButton = () => { btnListenTerms.textContent = '▶ Escuchar términos'; };
+  utterance.onend = () => {
+    resetButton();
+    // Lectura completada: equivale a haber leído todo, sin necesidad de scroll
+    scrollIndicator?.classList.add('hidden');
+  };
+  utterance.onerror = resetButton;
+
+  synth.cancel();
+  synth.speak(utterance);
+  btnListenTerms.textContent = '⏸ Pausar';
 });
 
 // =================== ESTADO ===================
@@ -3229,6 +3294,9 @@ function openEdit() {
   document.getElementById('f-job').value     = d.job     || '';
   document.getElementById('f-phone').value   = d.phone   || '';
   document.getElementById('f-email').value   = d.email   || '';
+
+  // Nombre y email verificados en el registro: prerellenar y bloquear
+  applyRegistrationLock();
   document.getElementById('f-address').value = d.address || '';
   document.getElementById('f-linkedin').value= d.linkedin|| '';
   document.getElementById('f-github').value  = d.github  || '';
@@ -3250,6 +3318,35 @@ function openEdit() {
       lbl.className = 'toggle-status ' + (chk.checked ? 'on' : 'off');
     }
   });
+
+  function applyRegistrationLock() {
+    const fName  = document.getElementById('f-name');
+    const fEmail = document.getElementById('f-email');
+    let reg = null;
+    try { reg = JSON.parse(localStorage.getItem('identity_registration')); } catch(e) {}
+
+    if (!reg || !reg.name || !reg.email) {
+      // Sin registro: campos editables con normalidad
+      fName.disabled = false;
+      fEmail.disabled = false;
+      return;
+    }
+
+    fName.value  = reg.name;
+    fEmail.value = reg.email;
+    fName.disabled  = true;
+    fEmail.disabled = true;
+
+    [fName, fEmail].forEach(input => {
+      if (!input.parentElement.querySelector('.reg-locked-note')) {
+        const note = document.createElement('div');
+        note.className = 'reg-locked-note';
+        note.textContent = 'Dato de registro · no editable';
+        note.style.cssText = 'font-size:9px;letter-spacing:1px;margin-top:3px;color:rgba(170,255,0,0.4);';
+        input.insertAdjacentElement('afterend', note);
+      }
+    });
+  }
 
   // Inicializar galería
   buildGallery();
