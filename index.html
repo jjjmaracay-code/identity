@@ -247,6 +247,27 @@
     z-index: 101;
   }
 
+  .pin-clear-all {
+    width: min(320px, 88vw);
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,100,100,0.3);
+    background: rgba(255,100,100,0.06);
+    color: rgba(255,100,100,0.7);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    z-index: 101;
+    transition: background 0.15s;
+  }
+
+  .pin-clear-all:active { background: rgba(255,100,100,0.2); }
+
   .pin-keyboard-label {
     font-size: 9px;
     font-family: 'Inter', sans-serif;
@@ -603,6 +624,24 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Fondo con el media seleccionado detrás del preview del QR */
+  #qr-designer-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.25;
+  }
+
+  #qr-designer-bg img,
+  #qr-designer-bg video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(2px);
   }
 
   .qr-preview-wrap {
@@ -610,6 +649,8 @@
     height: 120px;
     border-radius: 12px;
     overflow: hidden;
+    position: relative;
+    z-index: 1;
     box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(170,255,0,0.15);
     display: flex;
     align-items: center;
@@ -746,13 +787,13 @@
   .btn-qr-apply:active { background:#88cc00; transform:scale(0.98); }
 
   .card-hint {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 300;
-    color: rgba(170,255,0,0.5);
+    color: rgba(170,255,0,0.8);
     letter-spacing: 2px;
     text-align: center;
-    margin-top: 10px;
-    margin-bottom: 4px;
+    margin-top: 16px;
+    margin-bottom: 12px;
     font-family: 'Inter', sans-serif;
     text-transform: uppercase;
   }
@@ -828,17 +869,21 @@
   }
 
   .btn-close {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    border-radius: 12px;
+    padding: 8px 16px;
     background: rgba(170,255,0,0.08);
-    border: 1px solid rgba(170,255,0,0.2);
-    font-size: 16px;
+    border: 1.5px solid rgba(170,255,0,0.4);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted);
+    color: rgba(170,255,0,0.8);
+    transition: background 0.15s, border-color 0.15s;
   }
 
   .edit-section {
@@ -1353,7 +1398,7 @@
   .btn-action.primary:hover { background: #ccff44; box-shadow: 0 0 20px rgba(170,255,0,0.4); }
   .btn-action.primary:active { background: #88cc00 !important; }
 
-  .btn-close:hover { background: rgba(170,255,0,0.15); border-color: rgba(170,255,0,0.5); color: #AAFF00; }
+  .btn-close:hover { background: rgba(170,255,0,0.2); border-color: #AAFF00; color: #AAFF00; }
   .btn-close:active { background: #AAFF00 !important; color: #000 !important; }
 
   .btn-save:hover { background: #ccff44; box-shadow: 0 0 24px rgba(170,255,0,0.5); }
@@ -2059,6 +2104,9 @@
   <div class="pin-brand">dentity</div>
   <div class="pin-label">Crea tu contraseña de acceso</div>
   <div class="pin-sublabel">4 números · 1 letra · 1 símbolo</div>
+  <div style="font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;text-align:center;line-height:1.5;margin:-12px 24px 16px;position:relative;z-index:101;">
+    Puedes combinarlos en cualquier orden · Ej: 12@34A · 1A23$4 · No es aconsejable agruparlos todos juntos: 1234@A
+  </div>
   <div class="pin-dots">
     <div class="pin-dot" id="d0"></div>
     <div class="pin-dot" id="d1"></div>
@@ -2095,6 +2143,8 @@
     <div class="pin-keyboard-label">Símbolo</div>
     <div class="pin-symbols-row" id="pin-symbols-row"></div>
   </div>
+
+  <button class="pin-clear-all" id="pin-clear-all">✕ Borrar todo</button>
 
   <div class="pin-first-time" id="pin-hint">Primera vez — crea tu contraseña de 6 caracteres</div>
   <button class="pin-enter" id="pin-enter-btn" disabled>Entrar</button>
@@ -2143,7 +2193,7 @@
 <div id="screen-edit">
   <div class="edit-header">
     <div class="edit-title">Mi Perfil</div>
-    <button class="btn-close" id="btn-close-edit">✕</button>
+    <button class="btn-close" id="btn-close-edit">✕ Cerrar</button>
   </div>
 
   <div class="edit-section gallery-section">
@@ -2173,6 +2223,9 @@
     <input type="file" id="photo-file-input" accept="image/*" style="display:none">
 
     <!-- Extracción de datos por OCR -->
+    <div style="font-size:10px;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;line-height:1.6;letter-spacing:0.5px;margin-top:14px;">
+      Si tienes un documento personal (DNI, pasaporte, tarjeta de visita) puedes subirlo y el sistema intentará rellenar automáticamente tus datos. Recuerda revisar y completar los campos que queden vacíos — tú tienes siempre la última palabra sobre tu información.
+    </div>
     <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;">📄 Extraer datos de documento</div>
     <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf" style="display:none">
   </div>
@@ -2424,7 +2477,7 @@
 <div id="screen-totp-setup">
   <div class="totp-header">
     <div class="totp-title">Configurar TOTP</div>
-    <button class="btn-close" id="btn-close-totp">✕</button>
+    <button class="btn-close" id="btn-close-totp">✕ Cerrar</button>
   </div>
 
   <div class="totp-steps">
@@ -2484,11 +2537,12 @@
 <div id="screen-qr-designer">
   <div class="qr-designer-header">
     <div class="qr-designer-title">Diseño del QR</div>
-    <button class="btn-close" id="btn-close-qr-designer">✕</button>
+    <button class="btn-close" id="btn-close-qr-designer">✕ Cerrar</button>
   </div>
 
   <!-- Preview en tiempo real -->
   <div class="qr-preview-zone">
+    <div id="qr-designer-bg"></div>
     <div class="qr-preview-wrap" id="qr-live-preview"></div>
   </div>
 
@@ -2661,7 +2715,7 @@ const pinDots = [0,1,2,3,4,5].map(i => document.getElementById('d'+i));
 const pinHint = document.getElementById('pin-hint');
 const PIN_LENGTH = 6;
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const SYMBOLS = ['@','#','$','%','&','*','!','?'];
+const SYMBOLS = ['@','#','$','%','&','*','!','?','+','-','=','_','.',',',':',';'];
 
 // Construir teclado letras
 const lettersGrid = document.getElementById('pin-letters-grid');
@@ -2705,7 +2759,7 @@ function updateDots() {
 function validatePassword(pwd) {
   const nums    = (pwd.match(/[0-9]/g)||[]).length;
   const letters = (pwd.match(/[A-Za-z]/g)||[]).length;
-  const symbols = (pwd.match(/[@#$%&*!?]/g)||[]).length;
+  const symbols = (pwd.match(/[@#$%&*!?+\-=_.,:;]/g)||[]).length;
   return {
     hasNum: nums >= 4,
     hasLetter: letters >= 1,
@@ -2812,9 +2866,17 @@ document.getElementById('pin-del').addEventListener('click', () => {
   updateDots();
 });
 
+document.getElementById('pin-clear-all').addEventListener('click', () => {
+  pinBuffer = '';
+  updateDots();
+});
+
 // =================== CARD ===================
 function renderCard() {
-  const name = profileData.name || 'Tu Nombre';
+  // El nombre verificado del registro es el valor por defecto si el perfil no tiene nombre
+  let regName = null;
+  try { regName = JSON.parse(localStorage.getItem('identity_registration'))?.name || null; } catch(e) {}
+  const name = profileData.name || regName || 'Tu Nombre';
   const job  = profileData.job  || 'Tu título profesional';
 
   document.getElementById('card-name').textContent = name;
@@ -2828,16 +2890,17 @@ function renderCard() {
   const media = profileData.media;
 
   if (media && media.type === 'video') {
-    // El video solo se reproduce en el fondo animado (bg-media);
-    // la tarjeta muestra el thumbnail como imagen estática
-    cardVideo.style.display = 'none';
-    cardVideo.removeAttribute('src');
     if (media.thumb) {
+      // Thumbnail animado: video en bucle en la cara de la tarjeta
       placeholder.style.display = 'none';
-      cardPhoto.src = media.thumb;
-      cardPhoto.style.display = 'block';
+      cardPhoto.style.display = 'none';
+      cardVideo.poster = media.thumb;
+      cardVideo.src = media.src;
+      cardVideo.style.display = 'block';
     } else {
       // Video sin thumbnail (p. ej. subido desde archivo): mostrar placeholder
+      cardVideo.style.display = 'none';
+      cardVideo.removeAttribute('src');
       cardPhoto.style.display = 'none';
       placeholder.style.display = 'flex';
     }
@@ -3398,16 +3461,38 @@ function syncCornerSelection() {
   });
 });
 
+// Fondo del diseñador con el media seleccionado (animado si es video)
+function renderQRDesignerBg() {
+  const bg = document.getElementById('qr-designer-bg');
+  if (!bg) return;
+  bg.innerHTML = '';
+  const media = profileData.media;
+  if (!media || !media.src) return;
+
+  if (media.type === 'video') {
+    const v = document.createElement('video');
+    v.src = media.src;
+    v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+    bg.appendChild(v);
+  } else {
+    const i = document.createElement('img');
+    i.src = media.src;
+    bg.appendChild(i);
+  }
+}
+
 // Abrir / cerrar diseñador
 document.getElementById('btn-open-qr-designer').addEventListener('click', () => {
   document.getElementById('screen-qr-designer').classList.add('open');
   buildDesignerGrids();
   renderQRLive();
+  renderQRDesignerBg();
   syncColorPickers();
 });
 
 document.getElementById('btn-close-qr-designer').addEventListener('click', () => {
   document.getElementById('screen-qr-designer').classList.remove('open');
+  document.getElementById('qr-designer-bg').innerHTML = ''; // detener el video de fondo
 });
 
 // Aplicar diseño
