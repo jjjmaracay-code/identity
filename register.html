@@ -1251,6 +1251,21 @@ document.getElementById('btn-step2').addEventListener('click', () => {
   localStorage.setItem(REG_KEY, JSON.stringify(registration));
   localStorage.setItem('identity_pin', pwd1Buffer);
 
+  // Código de respaldo permanente para la recuperación de cuenta
+  const backupCode = generateCode();
+  localStorage.setItem('identity_backup_code', backupCode);
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_name:  step1Data.name,
+    to_email: step1Data.email,
+    code:     backupCode,
+    app_name: 'IDENTITY',
+    subject:  'Tu código de respaldo IDENTITY — Guárdalo en lugar seguro',
+    message:  'Este es tu código de respaldo permanente de IDENTITY: ' + backupCode + '. ' +
+              'Guárdalo de forma permanente en un lugar seguro (no lo borres de tu correo). ' +
+              'Lo necesitarás para recuperar tu cuenta si olvidas tu contraseña maestra. ' +
+              'Sin este código no será posible recuperar tu cuenta y deberás registrarte de nuevo desde cero.',
+  }).catch(e => console.error('EmailJS (código de respaldo):', e.status, e.text));
+
   // Pasar a éxito
   document.getElementById('screen-2').classList.remove('active');
   document.getElementById('screen-success').classList.add('active');

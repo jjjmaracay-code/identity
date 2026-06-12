@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080808">
+<title>IDENTITY · Recuperación</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<style>
+  :root {
+    --green: #AAFF00;
+    --bg: #080808;
+    --surface: #111111;
+    --text: #e8e8e8;
+    --muted: rgba(255,255,255,0.35);
+    --red: #ff4444;
+    --orange: #ff8800;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(170,255,0,0.02) 40px, rgba(170,255,0,0.02) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(170,255,0,0.02) 40px, rgba(170,255,0,0.02) 41px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* =================== HEADER =================== */
+  .rec-header {
+    width: 100%;
+    max-width: 480px;
+    padding: 36px 24px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rec-logo {
+    font-family: 'Times New Roman', Georgia, serif;
+    font-size: clamp(56px, 16vw, 80px);
+    font-weight: 900;
+    color: var(--red);
+    line-height: 1;
+    text-shadow:
+      0 0 10px var(--red),
+      0 0 20px var(--red),
+      0 0 40px rgba(255,68,68,0.5);
+    margin-bottom: 4px;
+  }
+
+  .rec-brand {
+    font-size: 11px;
+    letter-spacing: 8px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-weight: 300;
+    margin-bottom: 8px;
+  }
+
+  .rec-tagline {
+    font-size: 11px;
+    color: rgba(255,68,68,0.6);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    font-weight: 400;
+  }
+
+  /* =================== PASOS =================== */
+  .steps-wrap {
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 24px;
+  }
+
+  .steps-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 6px;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,68,68,0.2);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .step-dot.active { border-color: var(--red); background: var(--red); color: #fff; box-shadow: 0 0 12px rgba(255,68,68,0.5); }
+  .step-dot.done { border-color: var(--green); background: rgba(170,255,0,0.15); color: var(--green); }
+
+  .step-line { flex: 1; height: 2px; background: rgba(255,68,68,0.1); transition: background 0.3s; }
+  .step-line.done { background: rgba(170,255,0,0.4); }
+
+  .step-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    font-weight: 400;
+  }
+
+  /* =================== CONTENIDO =================== */
+  .rec-content {
+    width: 100%;
+    max-width: 480px;
+    padding: 0 24px 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rec-card {
+    background: var(--surface);
+    border: 1px solid rgba(255,68,68,0.2);
+    border-radius: 20px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+  }
+
+  .rec-card.green { border-color: rgba(170,255,0,0.2); }
+
+  .rec-card-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(255,68,68,0.7);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,68,68,0.1);
+  }
+
+  .rec-card.green .rec-card-title { color: rgba(170,255,0,0.7); border-color: rgba(170,255,0,0.1); }
+
+  /* Alerta de bloqueo */
+  .block-alert {
+    background: rgba(255,68,68,0.08);
+    border: 1.5px solid rgba(255,68,68,0.3);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .block-alert-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .block-alert-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .block-alert-text {
+    font-size: 12px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+  }
+
+  .block-timer {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--red);
+    font-family: 'Inter', monospace;
+    margin: 12px 0;
+    text-shadow: 0 0 20px rgba(255,68,68,0.4);
+  }
+
+  /* Campos */
+  .field-wrap { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .field-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,68,68,0.7); }
+  .field-label.green { color: rgba(170,255,0,0.7); }
+
+  .field-input {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,68,68,0.2);
+    background: rgba(255,68,68,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+
+  .field-input:focus { border-color: rgba(255,68,68,0.5); background: rgba(255,68,68,0.07); }
+  .field-input.green-input { border-color: rgba(170,255,0,0.2); background: rgba(170,255,0,0.04); }
+  .field-input.green-input:focus { border-color: rgba(170,255,0,0.5); background: rgba(170,255,0,0.07); }
+  .field-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  .field-hint { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1px; line-height: 1.5; }
+  .field-hint.error { color: var(--red); }
+  .field-hint.success { color: var(--green); }
+
+  /* Display código */
+  .code-display {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .code-char {
+    width: 44px;
+    height: 54px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,68,68,0.2);
+    background: rgba(255,68,68,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--red);
+    font-family: 'Inter', monospace;
+    transition: all 0.15s;
+  }
+
+  .code-char.filled { border-color: var(--red); background: rgba(255,68,68,0.1); box-shadow: 0 0 8px rgba(255,68,68,0.3); }
+  .code-char.green { border-color: rgba(170,255,0,0.2); background: rgba(170,255,0,0.04); color: var(--green); }
+  .code-char.green.filled { border-color: var(--green); background: rgba(170,255,0,0.1); box-shadow: 0 0 8px rgba(170,255,0,0.3); }
+  .code-char.error { border-color: var(--red); animation: shake 0.4s ease; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+
+  /* Teclados */
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .key-btn {
+    aspect-ratio: 1.4;
+    border-radius: 8px;
+    border: 1px solid rgba(255,68,68,0.15);
+    background: rgba(255,68,68,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s;
+    user-select: none;
+  }
+
+  .key-btn:hover { background: rgba(255,68,68,0.1); border-color: rgba(255,68,68,0.4); }
+  .key-btn:active { background: var(--red) !important; color: #fff !important; transform: scale(0.93); }
+  .key-btn.green-key { border-color: rgba(170,255,0,0.15); background: rgba(170,255,0,0.04); }
+  .key-btn.green-key:hover { background: rgba(170,255,0,0.1); border-color: rgba(170,255,0,0.4); }
+  .key-btn.green-key:active { background: var(--green) !important; color: #000 !important; }
+  .key-btn.empty { border-color: transparent; background: transparent; pointer-events: none; }
+  .key-btn.del { color: var(--muted); font-size: 14px; }
+
+  .char-keyboard { margin-bottom: 8px; }
+  .char-keyboard-label { font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: rgba(170,255,0,0.35); margin-bottom: 6px; text-align: center; }
+  .letters-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; margin-bottom: 6px; }
+  .symbols-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; }
+  .char-key { aspect-ratio: 1; border-radius: 5px; border: 1px solid rgba(170,255,0,0.12); background: rgba(170,255,0,0.03); font-family: 'Inter', sans-serif; font-size: clamp(9px, 2.5vw, 12px); font-weight: 500; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; user-select: none; }
+  .char-key:hover { background: rgba(170,255,0,0.1); border-color: rgba(170,255,0,0.3); }
+  .char-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.9); }
+
+  /* Contraseña display */
+  .pwd-display {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .pwd-char {
+    width: 36px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(170,255,0,0.2);
+    background: rgba(170,255,0,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green);
+    transition: all 0.15s;
+    font-family: 'Inter', monospace;
+  }
+
+  .pwd-char.filled { border-color: var(--green); background: rgba(170,255,0,0.1); box-shadow: 0 0 8px rgba(170,255,0,0.3); }
+
+  .pwd-validation { font-size: 10px; font-weight: 300; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 10px; letter-spacing: 1px; min-height: 16px; }
+
+  /* Temporizador código */
+  .code-timer { text-align: center; font-size: 11px; font-weight: 300; color: var(--muted); margin-bottom: 10px; letter-spacing: 1px; }
+  .code-timer span { color: var(--green); font-weight: 600; }
+  .resend-btn { background: none; border: none; font-family: 'Inter', sans-serif; font-size: 11px; color: rgba(170,255,0,0.5); cursor: pointer; text-decoration: underline; letter-spacing: 1px; display: block; margin: 0 auto 12px; }
+  .resend-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Botones principales */
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 0 24px rgba(255,68,68,0.3);
+    margin-bottom: 10px;
+  }
+
+  .btn-primary:hover { background: #ff6666; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: rgba(255,68,68,0.2); color: rgba(255,68,68,0.4); cursor: not-allowed; box-shadow: none; }
+  .btn-primary.green-btn { background: var(--green); color: #000; box-shadow: 0 0 24px rgba(170,255,0,0.3); }
+  .btn-primary.green-btn:hover { background: #ccff44; }
+  .btn-primary.green-btn:disabled { background: rgba(170,255,0,0.2); color: rgba(170,255,0,0.4); }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 10px;
+  }
+
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+
+  /* Advertencia borrado */
+  .delete-warning {
+    background: rgba(255,68,68,0.06);
+    border: 1px solid rgba(255,68,68,0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .delete-warning-title { font-size: 11px; font-weight: 700; color: var(--red); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .delete-warning-text { font-size: 11px; font-weight: 300; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    background: var(--green);
+    color: #000;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 14px 28px;
+    border-radius: 30px;
+    z-index: 999;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  .toast.error { background: var(--red); color: #fff; }
+
+  /* Éxito */
+  .success-screen { text-align: center; padding: 40px 24px; }
+  .success-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(170,255,0,0.1); border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 0 30px rgba(170,255,0,0.3); }
+  .success-title { font-family: 'Times New Roman', serif; font-size: 26px; font-weight: 900; color: var(--green); text-shadow: 0 0 20px rgba(170,255,0,0.5); margin-bottom: 8px; }
+  .success-sub { font-size: 12px; font-weight: 300; color: var(--muted); line-height: 1.6; margin-bottom: 32px; }
+
+  /* Info box */
+  .info-box {
+    background: rgba(170,255,0,0.04);
+    border: 1px solid rgba(170,255,0,0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+
+  .info-box-text { font-size: 11px; font-weight: 300; color: rgba(170,255,0,0.6); line-height: 1.6; letter-spacing: 0.5px; }
+  .info-box-text strong { color: var(--green); font-weight: 600; }
+
+  /* Pantallas */
+  .screen { width: 100%; display: none; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; }
+
+  /* Opciones de recuperación */
+  .recovery-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+
+  .recovery-option {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(170,255,0,0.2);
+    background: rgba(170,255,0,0.04);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .recovery-option:hover { border-color: rgba(170,255,0,0.5); background: rgba(170,255,0,0.08); }
+  .recovery-option.danger { border-color: rgba(255,68,68,0.2); background: rgba(255,68,68,0.04); }
+  .recovery-option.danger:hover { border-color: rgba(255,68,68,0.5); background: rgba(255,68,68,0.08); }
+
+  .recovery-option-icon { font-size: 28px; flex-shrink: 0; }
+  .recovery-option-title { font-size: 13px; font-weight: 600; color: var(--green); margin-bottom: 3px; letter-spacing: 1px; }
+  .recovery-option.danger .recovery-option-title { color: var(--red); }
+  .recovery-option-desc { font-size: 11px; font-weight: 300; color: rgba(255,255,255,0.45); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="rec-header">
+  <div class="rec-logo">I</div>
+  <div class="rec-brand">dentity</div>
+  <div class="rec-tagline">Recuperación de cuenta</div>
+
+  <div class="steps-wrap">
+    <div class="steps-row">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" id="dot-3">3</div>
+      <div class="step-line" id="line-3"></div>
+      <div class="step-dot" id="dot-4">✓</div>
+    </div>
+    <div class="step-label" id="step-label">Elige cómo recuperar tu cuenta</div>
+  </div>
+</div>
+
+<div class="rec-content">
+
+  <!-- =================== PANTALLA BLOQUEO =================== -->
+  <div class="screen active" id="screen-blocked">
+
+    <div class="block-alert">
+      <span class="block-alert-icon">🔒</span>
+      <div class="block-alert-title">Cuenta bloqueada</div>
+      <div class="block-alert-text">
+        Has introducido la contraseña incorrectamente <strong style="color:#ff8888">3 veces</strong>.<br>
+        Tu cuenta está temporalmente bloqueada por seguridad.
+      </div>
+      <div class="block-timer" id="block-timer">30:00</div>
+      <div class="block-alert-text">Puedes esperar o recuperar tu cuenta ahora</div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-card-title">¿Cómo quieres continuar?</div>
+      <div class="recovery-options">
+        <div class="recovery-option" id="opt-recover">
+          <div class="recovery-option-icon">🔑</div>
+          <div>
+            <div class="recovery-option-title">Recuperar mi cuenta</div>
+            <div class="recovery-option-desc">Usa tu código de respaldo + verificación por email para crear una nueva contraseña. Tus datos se conservan.</div>
+          </div>
+        </div>
+        <div class="recovery-option danger" id="opt-delete">
+          <div class="recovery-option-icon">🗑️</div>
+          <div>
+            <div class="recovery-option-title">Borrar todo y empezar de nuevo</div>
+            <div class="recovery-option-desc">Elimina todos tus datos permanentemente. Esta acción es irreversible.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- fin screen-blocked -->
+
+  <!-- =================== FASE 1: CÓDIGO DE RESPALDO =================== -->
+  <div class="screen" id="screen-phase1">
+
+    <div class="rec-card">
+      <div class="rec-card-title">Fase 1 — Código de respaldo</div>
+
+      <div class="info-box">
+        <div class="info-box-text">
+          Cuando activaste tu cuenta te enviamos un email con tu <strong>código de respaldo de 6 dígitos</strong>. Introdúcelo aquí para verificar tu identidad.
+        </div>
+      </div>
+
+      <div class="code-display" id="backup-display">
+        <div class="code-char" id="b0">·</div>
+        <div class="code-char" id="b1">·</div>
+        <div class="code-char" id="b2">·</div>
+        <div class="code-char" id="b3">·</div>
+        <div class="code-char" id="b4">·</div>
+        <div class="code-char" id="b5">·</div>
+      </div>
+
+      <div class="field-hint" id="backup-hint" style="text-align:center;margin-bottom:12px;">
+        Busca en tu email el mensaje "Tu código de respaldo IDENTITY"
+      </div>
+
+      <div class="pin-keypad">
+        <button class="key-btn" data-target="backup" data-val="1">1</button>
+        <button class="key-btn" data-target="backup" data-val="2">2</button>
+        <button class="key-btn" data-target="backup" data-val="3">3</button>
+        <button class="key-btn" data-target="backup" data-val="4">4</button>
+        <button class="key-btn" data-target="backup" data-val="5">5</button>
+        <button class="key-btn" data-target="backup" data-val="6">6</button>
+        <button class="key-btn" data-target="backup" data-val="7">7</button>
+        <button class="key-btn" data-target="backup" data-val="8">8</button>
+        <button class="key-btn" data-target="backup" data-val="9">9</button>
+        <button class="key-btn empty"></button>
+        <button class="key-btn" data-target="backup" data-val="0">0</button>
+        <button class="key-btn del" id="del-backup">⌫</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-phase1" disabled>Verificar código de respaldo</button>
+    <button class="btn-secondary" id="btn-back-1">← Volver</button>
+
+  </div><!-- fin screen-phase1 -->
+
+  <!-- =================== FASE 2: CÓDIGO EMAIL =================== -->
+  <div class="screen" id="screen-phase2">
+
+    <div class="rec-card green">
+      <div class="rec-card-title" style="color:rgba(170,255,0,0.7);border-color:rgba(170,255,0,0.1);">Fase 2 — Verificación por email</div>
+
+      <div class="info-box">
+        <div class="info-box-text">
+          Hemos enviado un <strong>código temporal de 6 dígitos</strong> a tu correo registrado. Introdúcelo para confirmar que eres tú.
+        </div>
+      </div>
+
+      <div class="code-display" id="temp-display">
+        <div class="code-char green" id="t0">·</div>
+        <div class="code-char green" id="t1">·</div>
+        <div class="code-char green" id="t2">·</div>
+        <div class="code-char green" id="t3">·</div>
+        <div class="code-char green" id="t4">·</div>
+        <div class="code-char green" id="t5">·</div>
+      </div>
+
+      <div class="code-timer">El código expira en <span id="temp-timer">10:00</span></div>
+      <button class="resend-btn" id="btn-resend-temp" disabled>Reenviar código</button>
+
+      <div class="pin-keypad">
+        <button class="key-btn green-key" data-target="temp" data-val="1">1</button>
+        <button class="key-btn green-key" data-target="temp" data-val="2">2</button>
+        <button class="key-btn green-key" data-target="temp" data-val="3">3</button>
+        <button class="key-btn green-key" data-target="temp" data-val="4">4</button>
+        <button class="key-btn green-key" data-target="temp" data-val="5">5</button>
+        <button class="key-btn green-key" data-target="temp" data-val="6">6</button>
+        <button class="key-btn green-key" data-target="temp" data-val="7">7</button>
+        <button class="key-btn green-key" data-target="temp" data-val="8">8</button>
+        <button class="key-btn green-key" data-target="temp" data-val="9">9</button>
+        <button class="key-btn green-key empty"></button>
+        <button class="key-btn green-key" data-target="temp" data-val="0">0</button>
+        <button class="key-btn del green-key" id="del-temp">⌫</button>
+      </div>
+    </div>
+
+    <button class="btn-primary green-btn" id="btn-phase2" disabled>Verificar código temporal</button>
+
+  </div><!-- fin screen-phase2 -->
+
+  <!-- =================== FASE 3: NUEVA CONTRASEÑA =================== -->
+  <div class="screen" id="screen-phase3">
+
+    <div class="rec-card green">
+      <div class="rec-card-title" style="color:rgba(170,255,0,0.7);border-color:rgba(170,255,0,0.1);">Fase 3 — Nueva contraseña maestra</div>
+
+      <div class="info-box">
+        <div class="info-box-text">
+          Crea tu nueva contraseña. Recuerda: <strong>4 números + 1 letra + 1 símbolo</strong>. Puedes combinarlos en cualquier orden. Ej: <strong>12@34A · 1A23$4</strong>
+        </div>
+      </div>
+
+      <div class="pwd-display">
+        <div class="pwd-char" id="np0">·</div>
+        <div class="pwd-char" id="np1">·</div>
+        <div class="pwd-char" id="np2">·</div>
+        <div class="pwd-char" id="np3">·</div>
+        <div class="pwd-char" id="np4">·</div>
+        <div class="pwd-char" id="np5">·</div>
+      </div>
+      <div class="pwd-validation" id="newpwd-hint">Introduce 4 números, 1 letra y 1 símbolo</div>
+
+      <div class="pin-keypad">
+        <button class="key-btn green-key" data-target="newpwd" data-val="1">1</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="2">2</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="3">3</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="4">4</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="5">5</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="6">6</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="7">7</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="8">8</button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="9">9</button>
+        <button class="key-btn green-key empty"></button>
+        <button class="key-btn green-key" data-target="newpwd" data-val="0">0</button>
+        <button class="key-btn del green-key" id="del-newpwd">⌫</button>
+      </div>
+
+      <div class="char-keyboard">
+        <div class="char-keyboard-label">Letra</div>
+        <div class="letters-grid" id="letters-new"></div>
+      </div>
+      <div class="char-keyboard">
+        <div class="char-keyboard-label">Símbolo</div>
+        <div class="symbols-grid" id="symbols-new"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary green-btn" id="btn-phase3" disabled>Guardar nueva contraseña</button>
+
+  </div><!-- fin screen-phase3 -->
+
+  <!-- =================== CONFIRMAR BORRADO =================== -->
+  <div class="screen" id="screen-delete">
+    <div class="block-alert" style="margin-bottom:16px;">
+      <span class="block-alert-icon">⚠️</span>
+      <div class="block-alert-title">¿Borrar todo?</div>
+      <div class="block-alert-text">
+        Esta acción eliminará <strong style="color:#ff8888">todos tus datos permanentemente</strong>:<br><br>
+        — Tu perfil e información personal<br>
+        — Tu contraseña maestra<br>
+        — Tu configuración 2FA<br>
+        — Tu diseño de QR<br>
+        — Tu registro verificado<br><br>
+        Esta acción es <strong style="color:#ff4444">irreversible</strong>.
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-confirm-delete" style="background:#cc0000;">
+      Sí, borrar todo — Empezar de nuevo
+    </button>
+    <button class="btn-secondary" id="btn-cancel-delete">← Cancelar — Recuperar mi cuenta</button>
+  </div>
+
+  <!-- =================== ÉXITO =================== -->
+  <div class="screen" id="screen-success">
+    <div class="success-screen">
+      <div class="success-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="success-title">Cuenta recuperada</div>
+      <div class="success-sub">
+        Tu nueva contraseña está activa.<br>
+        Tus datos han sido conservados.
+      </div>
+      <button class="btn-primary green-btn" id="btn-enter">Entrar a IDENTITY →</button>
+    </div>
+  </div>
+
+</div><!-- fin rec-content -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =================== CONFIG ===================
+const EMAILJS_PUBLIC_KEY  = 'OT3h9cqzHbJKpZzdv';
+const EMAILJS_SERVICE_ID  = 'service_685y0yj';
+const EMAILJS_TEMPLATE_ID = 'template_rf7v48m';
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
+const LETTERS  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const SYMBOLS  = ['@','#','$','%','&','*','!','?','+','-','=','_','.',',' ,':',';'];
+const PIN_LEN  = 6;
+
+let backupBuffer = '';
+let tempBuffer   = '';
+let newPwdBuffer = '';
+let tempCode     = '';
+let timerInterval = null;
+let blockInterval = null;
+let resendCooldown = 60;
+
+const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+const storedBackup = localStorage.getItem('identity_backup_code') || '';
+
+// =================== TECLADO LETRAS/SÍMBOLOS ===================
+function buildCharKeyboard(lettersId, symbolsId, target) {
+  const lg = document.getElementById(lettersId);
+  const sg = document.getElementById(symbolsId);
+  if (!lg || !sg) return;
+  LETTERS.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'char-key';
+    btn.textContent = l;
+    btn.addEventListener('click', () => handleInput(target, l));
+    lg.appendChild(btn);
+  });
+  SYMBOLS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'char-key';
+    btn.textContent = s;
+    btn.addEventListener('click', () => handleInput(target, s));
+    sg.appendChild(btn);
+  });
+}
+buildCharKeyboard('letters-new', 'symbols-new', 'newpwd');
+
+// =================== INPUT HANDLER ===================
+function handleInput(target, val) {
+  if (target === 'backup') {
+    if (backupBuffer.length >= PIN_LEN) return;
+    backupBuffer += val;
+    updateDisplay('backup');
+  } else if (target === 'temp') {
+    if (tempBuffer.length >= PIN_LEN) return;
+    tempBuffer += val;
+    updateDisplay('temp');
+  } else if (target === 'newpwd') {
+    if (newPwdBuffer.length >= PIN_LEN) return;
+    newPwdBuffer += val;
+    updateDisplay('newpwd');
+  }
+}
+
+document.querySelectorAll('.key-btn[data-target]').forEach(btn => {
+  btn.addEventListener('click', () => handleInput(btn.dataset.target, btn.dataset.val));
+});
+
+document.getElementById('del-backup').addEventListener('click', () => { backupBuffer = backupBuffer.slice(0,-1); updateDisplay('backup'); });
+document.getElementById('del-temp').addEventListener('click', () => { tempBuffer = tempBuffer.slice(0,-1); updateDisplay('temp'); });
+document.getElementById('del-newpwd').addEventListener('click', () => { newPwdBuffer = newPwdBuffer.slice(0,-1); updateDisplay('newpwd'); });
+
+// =================== UPDATE DISPLAYS ===================
+function updateDisplay(target) {
+  if (target === 'backup') {
+    for (let i = 0; i < PIN_LEN; i++) {
+      const el = document.getElementById('b'+i);
+      el.classList.remove('filled','error');
+      el.textContent = i < backupBuffer.length ? backupBuffer[i] : '·';
+      if (i < backupBuffer.length) el.classList.add('filled');
+    }
+    document.getElementById('btn-phase1').disabled = backupBuffer.length !== PIN_LEN;
+
+  } else if (target === 'temp') {
+    for (let i = 0; i < PIN_LEN; i++) {
+      const el = document.getElementById('t'+i);
+      el.classList.remove('filled','error');
+      el.textContent = i < tempBuffer.length ? tempBuffer[i] : '·';
+      if (i < tempBuffer.length) el.classList.add('filled');
+    }
+    document.getElementById('btn-phase2').disabled = tempBuffer.length !== PIN_LEN;
+
+  } else if (target === 'newpwd') {
+    for (let i = 0; i < PIN_LEN; i++) {
+      const el = document.getElementById('np'+i);
+      el.classList.remove('filled');
+      el.textContent = i < newPwdBuffer.length ? '●' : '·';
+      if (i < newPwdBuffer.length) el.classList.add('filled');
+    }
+    const hint = document.getElementById('newpwd-hint');
+    if (newPwdBuffer.length === 0) {
+      hint.textContent = 'Introduce 4 números, 1 letra y 1 símbolo';
+      hint.style.color = 'rgba(255,255,255,0.3)';
+    } else if (newPwdBuffer.length < PIN_LEN) {
+      const v = validatePwd(newPwdBuffer);
+      const missing = [];
+      const nums = (newPwdBuffer.match(/[0-9]/g)||[]).length;
+      if (nums < 4) missing.push((4-nums)+'número'+(4-nums>1?'s':''));
+      if (!v.hasLetter) missing.push('1 letra');
+      if (!v.hasSymbol) missing.push('1 símbolo');
+      hint.textContent = missing.length ? 'Falta: '+missing.join(', ') : '✓ Completa los 6 caracteres';
+      hint.style.color = 'rgba(255,200,100,0.7)';
+    } else {
+      const v = validatePwd(newPwdBuffer);
+      hint.textContent = v.valid ? '✓ Contraseña válida' : '✗ Revisa los requisitos';
+      hint.style.color = v.valid ? '#AAFF00' : '#ff4444';
+      document.getElementById('btn-phase3').disabled = !v.valid;
+    }
+  }
+}
+
+function validatePwd(pwd) {
+  const nums = (pwd.match(/[0-9]/g)||[]).length;
+  return {
+    valid: nums >= 4 && /[A-Za-z]/.test(pwd) && /[@#$%&*!?+\-=_.,;:]/.test(pwd) && pwd.length === PIN_LEN,
+    hasLetter: /[A-Za-z]/.test(pwd),
+    hasSymbol: /[@#$%&*!?+\-=_.,;:]/.test(pwd)
+  };
+}
+
+// =================== TEMPORIZADOR BLOQUEO ===================
+function startBlockTimer(seconds) {
+  let remaining = seconds;
+  blockInterval = setInterval(() => {
+    remaining--;
+    const m = Math.floor(remaining/60);
+    const s = remaining%60;
+    const el = document.getElementById('block-timer');
+    if (el) el.textContent = m+':'+s.toString().padStart(2,'0');
+    if (remaining <= 0) clearInterval(blockInterval);
+  }, 1000);
+}
+
+// =================== TEMPORIZADOR CÓDIGO ===================
+function startTempTimer() {
+  let secs = 600;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    secs--;
+    const m = Math.floor(secs/60);
+    const s = secs%60;
+    const el = document.getElementById('temp-timer');
+    if (el) el.textContent = m+':'+s.toString().padStart(2,'0');
+    if (secs <= 0) {
+      clearInterval(timerInterval);
+      if (el) el.textContent = 'Expirado';
+      document.getElementById('btn-resend-temp').disabled = false;
+    }
+  }, 1000);
+
+  resendCooldown = 60;
+  const btn = document.getElementById('btn-resend-temp');
+  btn.disabled = true;
+  btn.textContent = 'Reenviar en 60s';
+  const resendTimer = setInterval(() => {
+    resendCooldown--;
+    btn.textContent = resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar código';
+    if (resendCooldown <= 0) { clearInterval(resendTimer); btn.disabled = false; }
+  }, 1000);
+}
+
+// =================== ENVIAR CÓDIGO TEMPORAL ===================
+async function sendTempCode() {
+  tempCode = Math.floor(100000 + Math.random()*900000).toString();
+  const email = reg.email || '';
+  const name  = reg.name  || 'Usuario';
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_name: name, to_email: email, code: tempCode, app_name: 'IDENTITY Recovery'
+    });
+    showToast('Código enviado a ' + email);
+  } catch(e) {
+    console.error('EmailJS:', e.status, e.text);
+    console.log('🔑 Código temporal de prueba:', tempCode);
+    showToast('Modo dev — código en consola');
+  }
+  startTempTimer();
+}
+
+// =================== NAVEGACIÓN ===================
+function goToScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateSteps(active) {
+  const dots  = [1,2,3,4];
+  const lines = [1,2,3];
+  dots.forEach(i => {
+    const d = document.getElementById('dot-'+i);
+    d.classList.remove('active','done');
+    if (i < active) d.classList.add('done');
+    else if (i === active) d.classList.add('active');
+  });
+  lines.forEach(i => {
+    document.getElementById('line-'+i).classList.toggle('done', i < active);
+  });
+}
+
+// =================== OPCIONES RECUPERACIÓN ===================
+document.getElementById('opt-recover').addEventListener('click', () => {
+  goToScreen('screen-phase1');
+  updateSteps(1);
+  document.getElementById('step-label').textContent = 'Fase 1 — Código de respaldo';
+});
+
+document.getElementById('opt-delete').addEventListener('click', () => {
+  goToScreen('screen-delete');
+});
+
+document.getElementById('btn-back-1').addEventListener('click', () => {
+  goToScreen('screen-blocked');
+  updateSteps(0);
+  document.getElementById('step-label').textContent = 'Elige cómo recuperar tu cuenta';
+});
+
+// =================== FASE 1: VERIFICAR CÓDIGO RESPALDO ===================
+document.getElementById('btn-phase1').addEventListener('click', () => {
+  if (backupBuffer !== storedBackup) {
+    for (let i=0;i<6;i++) {
+      const el=document.getElementById('b'+i);
+      el.classList.add('error');
+      setTimeout(()=>el.classList.remove('error'),600);
+    }
+    backupBuffer='';
+    updateDisplay('backup');
+    showToast('Código incorrecto', true);
+    return;
+  }
+  // Correcto — pasar a fase 2
+  goToScreen('screen-phase2');
+  updateSteps(2);
+  document.getElementById('step-label').textContent = 'Fase 2 — Verificación por email';
+  sendTempCode();
+});
+
+// =================== FASE 2: VERIFICAR CÓDIGO TEMPORAL ===================
+document.getElementById('btn-phase2').addEventListener('click', () => {
+  if (tempBuffer !== tempCode) {
+    for (let i=0;i<6;i++) {
+      const el=document.getElementById('t'+i);
+      el.classList.add('error');
+      setTimeout(()=>el.classList.remove('error'),600);
+    }
+    tempBuffer='';
+    updateDisplay('temp');
+    showToast('Código incorrecto', true);
+    return;
+  }
+  clearInterval(timerInterval);
+  goToScreen('screen-phase3');
+  updateSteps(3);
+  document.getElementById('step-label').textContent = 'Fase 3 — Nueva contraseña maestra';
+});
+
+document.getElementById('btn-resend-temp').addEventListener('click', async () => {
+  tempBuffer='';
+  updateDisplay('temp');
+  await sendTempCode();
+});
+
+// =================== FASE 3: NUEVA CONTRASEÑA ===================
+document.getElementById('btn-phase3').addEventListener('click', () => {
+  if (!validatePwd(newPwdBuffer).valid) return;
+  // Guardar nueva contraseña
+  localStorage.setItem('identity_pin', newPwdBuffer);
+  // Resetear intentos fallidos
+  localStorage.removeItem('identity_failed_attempts');
+  localStorage.removeItem('identity_block_until');
+
+  goToScreen('screen-success');
+  updateSteps(4);
+  document.getElementById('step-label').textContent = '¡Cuenta recuperada!';
+  showToast('✓ Nueva contraseña guardada');
+});
+
+// =================== BORRAR TODO ===================
+document.getElementById('btn-confirm-delete').addEventListener('click', () => {
+  const keys = ['identity_data','identity_pin','identity_consent','identity_registration',
+                 'identity_totp_secret','identity_bio_credential','identity_2fa_config',
+                 'identity_backup_code','identity_failed_attempts','identity_block_until'];
+  keys.forEach(k => localStorage.removeItem(k));
+  window.location.href = 'register.html';
+});
+
+document.getElementById('btn-cancel-delete').addEventListener('click', () => {
+  goToScreen('screen-phase1');
+  updateSteps(1);
+  document.getElementById('step-label').textContent = 'Fase 1 — Código de respaldo';
+});
+
+// =================== ENTRAR ===================
+document.getElementById('btn-enter').addEventListener('click', () => {
+  window.location.href = 'index.html';
+});
+
+// =================== TOAST ===================
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// =================== INIT ===================
+window.addEventListener('load', () => {
+  // Verificar si viene de un bloqueo real
+  const blockUntil = localStorage.getItem('identity_block_until');
+  if (blockUntil) {
+    const remaining = Math.max(0, Math.floor((parseInt(blockUntil) - Date.now()) / 1000));
+    if (remaining > 0) {
+      startBlockTimer(remaining);
+    }
+  } else {
+    // Si no hay bloqueo real, iniciar con 30 minutos de demo
+    startBlockTimer(1800);
+  }
+});
+</script>
+</body>
+</html>
