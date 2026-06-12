@@ -2688,10 +2688,19 @@ function renderCard() {
   const media = profileData.media;
 
   if (media && media.type === 'video') {
-    cardPhoto.style.display = 'none';
-    placeholder.style.display = 'none';
-    cardVideo.src = media.src;
-    cardVideo.style.display = 'block';
+    // El video solo se reproduce en el fondo animado (bg-media);
+    // la tarjeta muestra el thumbnail como imagen estática
+    cardVideo.style.display = 'none';
+    cardVideo.removeAttribute('src');
+    if (media.thumb) {
+      placeholder.style.display = 'none';
+      cardPhoto.src = media.thumb;
+      cardPhoto.style.display = 'block';
+    } else {
+      // Video sin thumbnail (p. ej. subido desde archivo): mostrar placeholder
+      cardPhoto.style.display = 'none';
+      placeholder.style.display = 'flex';
+    }
   } else if (media && media.src) {
     cardVideo.style.display = 'none';
     placeholder.style.display = 'none';
