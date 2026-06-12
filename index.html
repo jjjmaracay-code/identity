@@ -2478,6 +2478,13 @@
 <script src="https://cdn.jsdelivr.net/npm/otpauth@9.3.2/dist/otpauth.umd.min.js"></script>
 
 <script>
+// =================== VERIFICACIÓN DE REGISTRO ===================
+// Si el usuario no está registrado, redirigir a register.html antes de mostrar nada
+if (!localStorage.getItem('identity_registration')) {
+  window.location.replace('register.html');
+  throw new Error('Redirigiendo a registro'); // detener el resto del script
+}
+
 // =================== INDICADOR SCROLL CONSENT ===================
 const consentScrollEl = document.getElementById('consent-scroll-inner');
 const scrollIndicator = document.getElementById('scroll-indicator');
