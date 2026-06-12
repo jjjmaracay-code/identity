@@ -90,7 +90,7 @@
   .reg-tagline {
     font-size: 11px;
     font-weight: 300;
-    color: rgba(170,255,0,0.45);
+    color: rgba(170,255,0,0.7);
     letter-spacing: 2px;
     text-transform: uppercase;
     margin-bottom: 32px;
@@ -148,7 +148,7 @@
     font-size: 9px;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--muted);
+    color: rgba(255,255,255,0.6);
     text-align: center;
     margin-bottom: 20px;
     font-weight: 400;
@@ -176,7 +176,8 @@
     font-weight: 600;
     letter-spacing: 4px;
     text-transform: uppercase;
-    color: rgba(170,255,0,0.5);
+    color: #AAFF00;
+    opacity: 1;
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(170,255,0,0.08);
@@ -193,22 +194,22 @@
 
   .field-label {
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: rgba(170,255,0,0.45);
+    color: rgba(170,255,0,0.85);
   }
 
   .field-input {
     width: 100%;
     padding: 13px 14px;
     border-radius: 10px;
-    border: 1px solid rgba(170,255,0,0.12);
-    background: rgba(170,255,0,0.04);
+    border: 1px solid rgba(170,255,0,0.3);
+    background: rgba(170,255,0,0.08);
     font-family: 'Inter', sans-serif;
     font-size: 15px;
     font-weight: 400;
-    color: var(--text);
+    color: #ffffff;
     outline: none;
     transition: border-color 0.15s, background 0.15s;
     -webkit-appearance: none;
@@ -232,7 +233,7 @@
   .field-hint {
     font-size: 10px;
     font-weight: 300;
-    color: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.6);
     letter-spacing: 1px;
     line-height: 1.5;
   }
@@ -423,7 +424,7 @@
   .checkbox-text {
     font-size: 12px;
     font-weight: 300;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.85);
     line-height: 1.6;
   }
 
@@ -669,8 +670,13 @@
       <div class="form-card-title">Identificación personal</div>
 
       <div class="field-wrap">
-        <div class="field-label">Nombre completo</div>
-        <input class="field-input" id="r-name" type="text" placeholder="Juan García López" autocomplete="name">
+        <div class="field-label">Nombre(s)</div>
+        <input class="field-input" id="r-firstname" type="text" placeholder="Juan Carlos" autocomplete="given-name">
+      </div>
+
+      <div class="field-wrap">
+        <div class="field-label">Apellidos</div>
+        <input class="field-input" id="r-lastname" type="text" placeholder="García López" autocomplete="family-name">
       </div>
 
       <div class="field-wrap">
@@ -1072,11 +1078,12 @@ document.getElementById('chk2-wrap').addEventListener('click', () => {
 
 // =================== VALIDACIÓN BOTONES ===================
 function checkStep1Ready() {
-  const name  = document.getElementById('r-name').value.trim();
+  const firstname = document.getElementById('r-firstname').value.trim();
+  const lastname  = document.getElementById('r-lastname').value.trim();
   const email = document.getElementById('r-email').value.trim();
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const pwdOk = validatePwd(pwd1Buffer).valid;
-  const ready = name.length >= 3 && emailOk && pwdOk && chk1;
+  const ready = firstname.length >= 2 && lastname.length >= 2 && emailOk && pwdOk && chk1;
   document.getElementById('btn-step1').disabled = !ready;
 }
 
@@ -1087,7 +1094,8 @@ function checkStep2Ready() {
   document.getElementById('btn-step2').disabled = !ready;
 }
 
-document.getElementById('r-name').addEventListener('input', checkStep1Ready);
+document.getElementById('r-firstname').addEventListener('input', checkStep1Ready);
+document.getElementById('r-lastname').addEventListener('input', checkStep1Ready);
 document.getElementById('r-email').addEventListener('input', checkStep1Ready);
 
 // =================== TEMPORIZADOR ===================
@@ -1129,7 +1137,7 @@ function generateCode() {
 
 // =================== PASO 1 — ENVIAR CÓDIGO ===================
 document.getElementById('btn-step1').addEventListener('click', async () => {
-  const name  = document.getElementById('r-name').value.trim();
+  const name  = document.getElementById('r-firstname').value.trim() + ' ' + document.getElementById('r-lastname').value.trim();
   const email = document.getElementById('r-email').value.trim();
   const btn   = document.getElementById('btn-step1');
 
