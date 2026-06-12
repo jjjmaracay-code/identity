@@ -1162,6 +1162,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     showToast('Código enviado a ' + email);
 
   } catch(e) {
+    console.error('EmailJS:', e.status, e.text);
     showToast('Error al enviar — configura EmailJS');
     btn.disabled = false;
     btn.textContent = 'Continuar — Enviar código al correo';
@@ -1195,6 +1196,7 @@ document.getElementById('btn-resend').addEventListener('click', async () => {
     });
     showToast('Nuevo código enviado');
   } catch(e) {
+    console.error('EmailJS:', e.status, e.text);
     console.log('🔑 Nuevo código de prueba:', emailCode);
     showToast('Modo desarrollo — código en consola');
   }
