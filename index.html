@@ -2171,6 +2171,10 @@
     </div>
 
     <input type="file" id="photo-file-input" accept="image/*" style="display:none">
+
+    <!-- Extracción de datos por OCR -->
+    <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;">📄 Extraer datos de documento</div>
+    <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf" style="display:none">
   </div>
 
   <div class="edit-section qr-style-selector">
@@ -2201,6 +2205,26 @@
       <div class="field-wrap">
         <div class="field-label">Email</div>
         <input class="field-input" id="f-email" type="email" placeholder="tu@email.com">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Teléfono móvil</div>
+        <input class="field-input" id="f-mobile" type="tel" placeholder="+34 600 000 000">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Teléfono fijo</div>
+        <input class="field-input" id="f-landline" type="tel" placeholder="+34 910 000 000">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Correo secundario</div>
+        <input class="field-input" id="f-email2" type="email" placeholder="personal@email.com">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Correo empresa</div>
+        <input class="field-input" id="f-email-work" type="email" placeholder="nombre@empresa.com">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Empresa / Organización</div>
+        <input class="field-input" id="f-company" type="text" placeholder="Mi Empresa S.L.">
       </div>
       <div class="field-wrap">
         <div class="field-label">Dirección</div>
@@ -2242,6 +2266,41 @@
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-email" checked><span class="toggle-slider"></span></label>
           <div class="toggle-status on" id="s-email">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Teléfono móvil</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-mobile" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-mobile">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Teléfono fijo</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-landline"><span class="toggle-slider"></span></label>
+          <div class="toggle-status off" id="s-landline">Bloqueado</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Correo secundario</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-email2"><span class="toggle-slider"></span></label>
+          <div class="toggle-status off" id="s-email2">Bloqueado</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Correo empresa</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-email-work"><span class="toggle-slider"></span></label>
+          <div class="toggle-status off" id="s-email-work">Bloqueado</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Empresa</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-company" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-company">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
@@ -2871,8 +2930,115 @@ function selectGalleryItem(item, el) {
   showToast('Video seleccionado ✓');
 }
 
+// =================== EXTRACCIÓN DE DOCUMENTO (OCR) ===================
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('No se pudo cargar ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+// Renderizar la primera página de un PDF a canvas para poder pasarla al OCR
+async function pdfFirstPageToCanvas(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    await loadScript('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  }
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 2 });
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  return canvas;
+}
+
+// Aplicar regex sobre el texto OCR y rellenar campos; devuelve los nombres rellenados
+function applyExtractedData(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const filled = [];
+
+  const fill = (id, value, label) => {
+    const input = document.getElementById(id);
+    if (!value || !input || input.disabled) return; // no tocar campos bloqueados por registro
+    input.value = value.trim();
+    filled.push(label);
+  };
+
+  // Nombre: primera línea con 2+ palabras en mayúsculas (ignorando cabeceras típicas de documentos)
+  const headerWords = /\b(DOCUMENTO|IDENTIDAD|NACIONAL|DNI|NIE|PASAPORTE|CARNET|CARN[EÉ]|TARJETA|REP[UÚ]BLICA|REINO|ESPA[NÑ]A|IDENTITY|CARD|PASSPORT|LICENSE|PERMISO|CONDUCIR|CURRICULUM|VITAE)\b/;
+  const nameLine = lines.find(l =>
+    /^([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ'.-]*\s+)+[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ'.-]*$/.test(l) &&
+    l.split(/\s+/).length >= 2 &&
+    !headerWords.test(l)
+  );
+  fill('f-name', nameLine, 'nombre');
+
+  // Email: patrón estándar
+  const emailMatch = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+  fill('f-email', emailMatch?.[0], 'email');
+
+  // Teléfono: +XX XXX XXX XXX o similar
+  const phoneMatch = text.match(/\+?\d{1,3}[\s.-]?\d{2,3}[\s.-]?\d{3}[\s.-]?\d{3}\b/);
+  fill('f-phone', phoneMatch?.[0], 'teléfono');
+
+  // Dirección: línea con calle, avda, plaza, c/, nº...
+  const addressLine = lines.find(l => /\b(calle|avda\.?|avenida|plaza|paseo|c\/|nº|n°)\b/i.test(l));
+  fill('f-address', addressLine, 'dirección');
+
+  // Empresa: línea después de palabras clave
+  const companyRegex = /(?:empresa|company|organizaci[oó]n|trabajo en)[:\s]*(.+)/i;
+  let companyValue = null;
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(companyRegex);
+    if (m) {
+      companyValue = m[1].trim() || lines[i + 1] || null;
+      break;
+    }
+  }
+  fill('f-company', companyValue, 'empresa');
+
+  return filled;
+}
+
+document.getElementById('btn-ocr-doc').addEventListener('click', () => {
+  document.getElementById('ocr-file-input').click();
+});
+
+document.getElementById('ocr-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = ''; // permitir volver a elegir el mismo archivo
+
+  const btn = document.getElementById('btn-ocr-doc');
+  btn.textContent = '⏳ Analizando documento...';
+  showToast('Procesando documento — puede tardar unos segundos');
+
+  try {
+    if (typeof Tesseract === 'undefined') {
+      await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    }
+    const source = file.type === 'application/pdf' ? await pdfFirstPageToCanvas(file) : file;
+    const { data } = await Tesseract.recognize(source, 'spa+eng');
+    const filled = applyExtractedData(data.text || '');
+    showToast(filled.length
+      ? 'Detectado automáticamente: ' + filled.join(', ') + ' ✓'
+      : 'No se detectaron datos — rellénalos manualmente');
+  } catch (err) {
+    console.error('OCR:', err);
+    showToast('Error al procesar el documento');
+  } finally {
+    btn.textContent = '📄 Extraer datos de documento';
+  }
+});
+
 // =================== TOGGLES — etiquetas en tiempo real ===================
-['phone','email','address','linkedin','github','web'].forEach(field => {
+['phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web'].forEach(field => {
   const chk = document.getElementById('t-'+field);
   const lbl = document.getElementById('s-'+field);
   if (!chk || !lbl) return;
@@ -2958,7 +3124,12 @@ function buildVCard() {
   if (d.name)                     vc += `FN:${d.name}\n`;
   if (d.job)                      vc += `TITLE:${d.job}\n`;
   if (d.phone  && t.phone  !== false) vc += `TEL:${d.phone}\n`;
+  if (d.mobile    && t.mobile !== false)  vc += `TEL;type=CELL:${d.mobile}\n`;
+  if (d.landline  && t.landline)          vc += `TEL;type=HOME:${d.landline}\n`;
   if (d.email  && t.email  !== false) vc += `EMAIL:${d.email}\n`;
+  if (d.email2    && t.email2)            vc += `EMAIL;type=HOME:${d.email2}\n`;
+  if (d.emailWork && t.emailWork)         vc += `EMAIL;type=WORK:${d.emailWork}\n`;
+  if (d.company   && t.company !== false) vc += `ORG:${d.company}\n`;
   if (d.address && t.address)         vc += `ADR:;;${d.address};;;;\n`;
   if (d.linkedin && t.linkedin !== false) vc += `URL;type=LinkedIn:${d.linkedin}\n`;
   if (d.github   && t.github   !== false) vc += `URL;type=GitHub:${d.github}\n`;
@@ -3297,6 +3468,11 @@ function openEdit() {
 
   // Nombre y email verificados en el registro: prerellenar y bloquear
   applyRegistrationLock();
+  document.getElementById('f-mobile').value     = d.mobile    || '';
+  document.getElementById('f-landline').value   = d.landline  || '';
+  document.getElementById('f-email2').value     = d.email2    || '';
+  document.getElementById('f-email-work').value = d.emailWork || '';
+  document.getElementById('f-company').value    = d.company   || '';
   document.getElementById('f-address').value = d.address || '';
   document.getElementById('f-linkedin').value= d.linkedin|| '';
   document.getElementById('f-github').value  = d.github  || '';
@@ -3304,13 +3480,18 @@ function openEdit() {
 
   document.getElementById('t-phone').checked   = t.phone   !== false;
   document.getElementById('t-email').checked   = t.email   !== false;
+  document.getElementById('t-mobile').checked     = t.mobile  !== false;
+  document.getElementById('t-landline').checked   = !!t.landline;
+  document.getElementById('t-email2').checked     = !!t.email2;
+  document.getElementById('t-email-work').checked = !!t.emailWork;
+  document.getElementById('t-company').checked    = t.company !== false;
   document.getElementById('t-address').checked = !!t.address;
   document.getElementById('t-linkedin').checked= t.linkedin !== false;
   document.getElementById('t-github').checked  = t.github   !== false;
   document.getElementById('t-web').checked     = t.web      !== false;
 
   // Sincronizar etiquetas
-  ['phone','email','address','linkedin','github','web'].forEach(field => {
+  ['phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web'].forEach(field => {
     const chk = document.getElementById('t-'+field);
     const lbl = document.getElementById('s-'+field);
     if (chk && lbl) {
@@ -3394,6 +3575,11 @@ document.getElementById('btn-save').addEventListener('click', () => {
     job:      document.getElementById('f-job').value.trim(),
     phone:    document.getElementById('f-phone').value.trim(),
     email:    document.getElementById('f-email').value.trim(),
+    mobile:    document.getElementById('f-mobile').value.trim(),
+    landline:  document.getElementById('f-landline').value.trim(),
+    email2:    document.getElementById('f-email2').value.trim(),
+    emailWork: document.getElementById('f-email-work').value.trim(),
+    company:   document.getElementById('f-company').value.trim(),
     address:  document.getElementById('f-address').value.trim(),
     linkedin: document.getElementById('f-linkedin').value.trim(),
     github:   document.getElementById('f-github').value.trim(),
@@ -3402,6 +3588,11 @@ document.getElementById('btn-save').addEventListener('click', () => {
     toggles: {
       phone:   document.getElementById('t-phone').checked,
       email:   document.getElementById('t-email').checked,
+      mobile:    document.getElementById('t-mobile').checked,
+      landline:  document.getElementById('t-landline').checked,
+      email2:    document.getElementById('t-email2').checked,
+      emailWork: document.getElementById('t-email-work').checked,
+      company:   document.getElementById('t-company').checked,
       address: document.getElementById('t-address').checked,
       linkedin:document.getElementById('t-linkedin').checked,
       github:  document.getElementById('t-github').checked,
