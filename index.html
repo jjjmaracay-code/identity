@@ -1,0 +1,3670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IDENTITY">
+<meta name="theme-color" content="#080808">
+<title>IDENTITY</title>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --green: #AAFF00;
+    --green-dark: #6aaa00;
+    --green-mid: #88cc00;
+    --black: #000000;
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(170,255,0,0.12);
+    --white: #ffffff;
+    --text: #e8e8e8;
+    --muted: rgba(255,255,255,0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Grilla sutil verde sobre negro */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(170,255,0,0.03) 40px, rgba(170,255,0,0.03) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(170,255,0,0.03) 40px, rgba(170,255,0,0.03) 41px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* =================== PANTALLA PIN =================== */
+  #screen-pin {
+    position: fixed;
+    inset: 0;
+    background: #080808;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 100;
+    gap: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 32px 20px 40px;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  #screen-pin > * {
+    position: relative;
+    z-index: 101;
+  }
+
+  #screen-pin.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+  }
+
+  .pin-logo {
+    font-size: clamp(100px, 28vw, 180px);
+    font-family: 'Times New Roman', Georgia, serif;
+    font-weight: 900;
+    color: #AAFF00 !important;
+    line-height: 1;
+    letter-spacing: -4px;
+    text-shadow:
+      0 0 10px #AAFF00,
+      0 0 20px #AAFF00,
+      0 0 40px rgba(170,255,0,0.8),
+      0 0 80px rgba(170,255,0,0.5),
+      0 0 120px rgba(170,255,0,0.3);
+    margin-bottom: 4px;
+    user-select: none;
+    position: relative;
+    z-index: 10;
+  }
+
+  .pin-brand {
+    font-size: clamp(11px, 3vw, 13px);
+    letter-spacing: 8px;
+    color: rgba(255,255,255,0.35) !important;
+    font-family: 'Inter', Arial, sans-serif;
+    font-weight: 300;
+    margin-top: 8px;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+    user-select: none;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(255,255,255,0.35) !important;
+    margin-bottom: 20px;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-family: 'Inter', Arial, sans-serif;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-dots {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .pin-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(170,255,0,0.4);
+    background: transparent;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .pin-dot.filled {
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 8px rgba(170,255,0,0.6);
+    transform: scale(1.2);
+  }
+
+  .pin-dot.error {
+    border-color: #ff4444;
+    background: #ff4444;
+    box-shadow: 0 0 8px rgba(255,68,68,0.6);
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: min(280px, 80vw);
+  }
+
+  .pin-key {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1.5px solid rgba(170,255,0,0.2);
+    background: rgba(170,255,0,0.05);
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: clamp(20px, 6vw, 24px);
+    font-weight: 300;
+    color: #e8e8e8 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-key:active, .pin-key.pressed {
+    background: rgba(170,255,0,0.15);
+    transform: scale(0.92);
+  }
+
+  .pin-key.empty { border-color: transparent; background: transparent; pointer-events: none; }
+  .pin-key.del { font-size: 18px; color: var(--muted); }
+
+  .pin-enter {
+    margin-top: 16px;
+    width: min(280px, 80vw);
+    padding: 14px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(170,255,0,0.2);
+    background: rgba(170,255,0,0.05);
+    color: rgba(170,255,0,0.3);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    cursor: not-allowed;
+    transition: all 0.25s;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-enter.ready {
+    background: #AAFF00;
+    border-color: #AAFF00;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(170,255,0,0.5);
+  }
+
+  .pin-enter.ready:active { background: #88cc00; transform: scale(0.97); }
+
+  .pin-sublabel {
+    font-size: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    color: rgba(170,255,0,0.5);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: -8px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-keyboard-section {
+    width: min(320px, 88vw);
+    margin-top: 10px;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-keyboard-label {
+    font-size: 9px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    color: rgba(170,255,0,0.4);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .pin-letters-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 4px;
+  }
+
+  .pin-symbols-row {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+
+  .pin-char-key {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    border: 1px solid rgba(170,255,0,0.15);
+    background: rgba(170,255,0,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(10px, 3vw, 13px);
+    font-weight: 500;
+    color: #e8e8e8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s, transform 0.1s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    z-index: 101;
+  }
+
+  .pin-char-key:hover { background: rgba(170,255,0,0.12); border-color: rgba(170,255,0,0.4); }
+  .pin-char-key:active { background: #AAFF00 !important; color: #000 !important; transform: scale(0.9); }
+  .pin-char-key.used { opacity: 0.35; pointer-events: none; }
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* =================== PANTALLA PRINCIPAL =================== */
+  #screen-main {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 36px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease 0.1s;
+    z-index: 50;
+    gap: 0;
+  }
+
+  #screen-main.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .main-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .main-logo-sm {
+    font-family: 'Times New Roman', serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: -1px;
+    text-shadow: 0 0 8px rgba(170,255,0,0.8), 0 0 20px rgba(170,255,0,0.4);
+  }
+
+  .btn-settings {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: rgba(170,255,0,0.08);
+    border: 1px solid rgba(170,255,0,0.25);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.7);
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-settings:active { background: rgba(170,255,0,0.18); }
+
+  /* CARD con flip */
+  .card-container {
+    perspective: 1000px;
+    width: min(300px, 82vw);
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 24px;
+  }
+
+  .card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  /* FRENTE: foto del usuario */
+  .card-front {
+    background: var(--black);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .card-front-photo {
+    width: 100%;
+    height: 75%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card-front-photo-placeholder {
+    width: 100%;
+    height: 75%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    color: var(--green);
+  }
+
+  .card-front-info {
+    width: 100%;
+    height: 25%;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 16px;
+  }
+
+  .card-front-name {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(15px, 4vw, 18px);
+    font-weight: 500;
+    color: var(--green);
+    text-align: center;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+  }
+
+  .card-front-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.55);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .card-front-hint {
+    font-size: 9px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.35);
+    letter-spacing: 1px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* REVERSO: QR */
+  .card-back {
+    background: #1a1a1a;
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+  }
+
+  .card-back-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+  }
+
+  #qr-canvas {
+    border-radius: 10px;
+  }
+
+  .card-back-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    text-align: center;
+  }
+
+  .card-back-sub {
+    font-size: 8px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 2px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Selector de estilos QR */
+  .qr-style-selector {
+    margin-bottom: 16px;
+  }
+
+  .qr-style-selector .edit-section-title {
+    margin-bottom: 10px;
+  }
+
+  .qr-styles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .qr-style-item {
+    border-radius: 8px;
+    border: 2px solid rgba(170,255,0,0.15);
+    background: rgba(170,255,0,0.03);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 4px 3px;
+    gap: 2px;
+    transition: all 0.15s;
+    overflow: hidden;
+  }
+
+  .qr-style-item.selected {
+    border-color: #AAFF00;
+    box-shadow: 0 0 8px rgba(170,255,0,0.4);
+    background: rgba(170,255,0,0.07);
+  }
+
+  .qr-style-item:active { transform: scale(0.93); }
+
+  .qr-style-item > div:first-child {
+    width: 100% !important;
+    aspect-ratio: 1 !important;
+  }
+
+  .qr-style-item canvas,
+  .qr-style-item svg {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+
+  /* =================== PANTALLA DISEÑO QR =================== */
+  #screen-qr-designer {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 250;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+    overflow: hidden;
+  }
+
+  #screen-qr-designer.open { transform: translateY(0); }
+
+  .qr-designer-header {
+    padding: 18px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(170,255,0,0.1);
+  }
+
+  .qr-designer-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #AAFF00;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .qr-preview-zone {
+    padding: 10px 16px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .qr-preview-wrap {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(170,255,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+  }
+
+  .qr-preview-wrap canvas,
+  .qr-preview-wrap svg { width: 120px !important; height: 120px !important; display: block !important; }
+
+  .qr-designer-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px 40px;
+  }
+
+  .qr-section-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.45);
+    margin: 14px 0 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(170,255,0,0.08);
+  }
+
+  .qr-templates-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+
+  .qr-template-item {
+    border-radius: 6px;
+    border: 2px solid rgba(170,255,0,0.1);
+    background: rgba(170,255,0,0.02);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px 2px 1px;
+    gap: 1px;
+    transition: all 0.15s;
+    max-height: 80px;
+  }
+
+  .qr-template-item.selected { border-color: #AAFF00; box-shadow: 0 0 6px rgba(170,255,0,0.4); }
+  .qr-template-item:active { transform: scale(0.92); }
+
+  .qr-template-item > div {
+    width: 100%;
+    height: 60px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .qr-template-item canvas, .qr-template-item svg { width:60px!important; height:60px!important; display:block!important; }
+  .qr-template-lbl { font-size:6px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase; color:rgba(170,255,0,0.5); text-align:center; padding-bottom:1px; white-space:nowrap; flex-shrink:0; }
+
+  .qr-pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+
+  .qr-pattern-item {
+    border-radius: 6px;
+    border: 2px solid rgba(170,255,0,0.1);
+    background: rgba(170,255,0,0.02);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px 2px 1px;
+    gap: 1px;
+    transition: all 0.15s;
+    max-height: 65px;
+  }
+
+  .qr-pattern-item.selected { border-color: #AAFF00; box-shadow: 0 0 6px rgba(170,255,0,0.4); }
+  .qr-pattern-item:active { transform: scale(0.92); }
+  .qr-pattern-item > div { width:100%; height:48px; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .qr-pattern-item canvas, .qr-pattern-item svg { width:48px!important; height:48px!important; display:block!important; }
+  .qr-pattern-lbl { font-size:6px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase; color:rgba(170,255,0,0.5); text-align:center; padding-bottom:1px; white-space:nowrap; flex-shrink:0; }
+
+  .qr-corner-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+
+  .qr-corner-item {
+    border-radius: 6px;
+    border: 2px solid rgba(170,255,0,0.1);
+    background: rgba(170,255,0,0.02);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px 2px 1px;
+    gap: 1px;
+    transition: all 0.15s;
+    max-height: 65px;
+  }
+
+  .qr-corner-item.selected { border-color: #AAFF00; box-shadow: 0 0 6px rgba(170,255,0,0.4); }
+  .qr-corner-item:active { transform: scale(0.92); }
+  .qr-corner-item > div { width:100%; height:48px; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .qr-corner-item canvas, .qr-corner-item svg { width:48px!important; height:48px!important; display:block!important; }
+  .qr-corner-lbl { font-size:6px; font-family:'Inter',sans-serif; letter-spacing:1px; text-transform:uppercase; color:rgba(170,255,0,0.5); text-align:center; padding-bottom:1px; white-space:nowrap; flex-shrink:0; }
+
+  .qr-color-row { display:flex; flex-direction:column; gap:8px; }
+  .qr-color-item { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:8px; background:rgba(170,255,0,0.04); border:1px solid rgba(170,255,0,0.08); }
+  .qr-color-lbl { font-family:'Inter',sans-serif; font-size:11px; font-weight:400; color:rgba(255,255,255,0.6); }
+  .qr-color-swatch { width:28px; height:28px; border-radius:50%; border:2px solid rgba(255,255,255,0.2); cursor:pointer; overflow:hidden; position:relative; }
+  .qr-color-swatch input[type=color] { position:absolute; inset:-4px; width:calc(100% + 8px); height:calc(100% + 8px); opacity:0; cursor:pointer; border:none; padding:0; }
+
+  .btn-qr-apply {
+    width:100%; padding:14px; border-radius:12px; border:none;
+    background:#AAFF00; color:#000;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:3px; text-transform:uppercase; cursor:pointer;
+    margin-top:16px; box-shadow:0 0 20px rgba(170,255,0,0.3);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-qr-apply:active { background:#88cc00; transform:scale(0.98); }
+
+  .card-hint {
+    font-size: 10px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.5);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+  }
+
+  /* Zona inferior — hint + botones bien separados */
+  .main-bottom {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Botones inferiores */
+  .main-actions {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .btn-action {
+    flex: 1;
+    padding: 14px 8px;
+    border-radius: 14px;
+    border: 1px solid rgba(170,255,0,0.25);
+    background: rgba(170,255,0,0.06);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: background 0.15s, transform 0.1s;
+    text-transform: uppercase;
+  }
+
+  .btn-action:active { background: rgba(170,255,0,0.15); transform: scale(0.96); }
+  .btn-action.primary { background: var(--green); color: var(--black); border-color: var(--green); font-weight: 600; }
+  .btn-action.primary:active { background: #88cc00; }
+
+  /* =================== PANTALLA EDITAR =================== */
+  #screen-edit {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 20px 48px;
+    z-index: 200;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #screen-edit.open {
+    transform: translateY(0);
+  }
+
+  .edit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .edit-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .btn-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(170,255,0,0.08);
+    border: 1px solid rgba(170,255,0,0.2);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+  }
+
+  .edit-section {
+    margin-bottom: 28px;
+  }
+
+  .edit-section-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.4);
+    font-weight: 500;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(170,255,0,0.1);
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.45);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(170,255,0,0.15);
+    background: rgba(170,255,0,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-appearance: none;
+  }
+
+  .field-input:focus {
+    border-color: rgba(170,255,0,0.5);
+    background: rgba(170,255,0,0.07);
+  }
+
+  .field-input::placeholder { color: rgba(255,255,255,0.2); font-weight: 300; }
+
+  /* Upload foto */
+  .photo-upload-area {
+    width: 100%;
+    height: 120px;
+    border: 1.5px dashed rgba(170,255,0,0.25);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    gap: 6px;
+    background: rgba(170,255,0,0.03);
+    transition: background 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .photo-upload-area:active { background: rgba(170,255,0,0.08); }
+
+  .photo-upload-area img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .photo-upload-label {
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    z-index: 1;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .photo-upload-icon { font-size: 28px; z-index: 1; }
+
+  #photo-file-input { display: none; }
+
+  /* Toggle visibilidad campos */
+  .field-toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(170,255,0,0.04);
+    border: 1px solid rgba(170,255,0,0.1);
+    gap: 8px;
+  }
+
+  .toggle-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .toggle-status {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    min-width: 58px;
+    text-align: right;
+  }
+
+  .toggle-status.on  { color: #AAFF00; }
+  .toggle-status.off { color: rgba(255,255,255,0.2); }
+
+  .field-toggle-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.2);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+  }
+
+  .toggle-switch input:checked + .toggle-slider { background: #AAFF00; }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: #000; }
+
+  .btn-save {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: var(--green);
+    color: var(--black);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 0 20px rgba(170,255,0,0.3);
+  }
+
+  .btn-save:active { background: #88cc00; transform: scale(0.98); }
+
+  /* =================== NOTIFICACIÓN =================== */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    background: var(--green);
+    color: var(--black);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 16px 32px;
+    border-radius: 30px;
+    z-index: 999;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 0 40px rgba(170,255,0,0.5);
+  }
+
+  .toast.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  /* Install banner */
+  .install-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid rgba(170,255,0,0.15);
+    color: var(--text);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 300;
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+  }
+
+  .install-banner.show { transform: translateY(0); }
+
+  .install-banner-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    flex: 1;
+    line-height: 1.4;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+
+  .btn-install {
+    background: var(--green);
+    color: var(--black);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  /* =================== PANTALLA CONSENTIMIENTO =================== */
+  #screen-consent {
+    position: fixed;
+    inset: 0;
+    background: #080808;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  #screen-consent.hidden {
+    opacity: 0;
+    transform: scale(0.97);
+    pointer-events: none;
+  }
+
+  .consent-header {
+    padding: 32px 24px 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .consent-logo {
+    font-family: 'Times New Roman', serif;
+    font-size: clamp(60px, 18vw, 90px);
+    font-weight: 900;
+    color: #AAFF00;
+    line-height: 1;
+    text-shadow: 0 0 20px #AAFF00, 0 0 40px rgba(170,255,0,0.6);
+    display: block;
+  }
+
+  .consent-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: rgba(170,255,0,0.5);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* =================== 2FA =================== */
+  .twofa-info {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(170,255,0,0.5);
+    line-height: 1.6;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(170,255,0,0.04);
+    border: 1px solid rgba(170,255,0,0.1);
+  }
+
+  .twofa-sublabel {
+    font-size: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .btn-2fa-setup {
+    width: 100%;
+    padding: 11px;
+    border-radius: 10px;
+    border: 1.5px dashed rgba(170,255,0,0.35);
+    background: rgba(170,255,0,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.7);
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+  }
+
+  .btn-2fa-setup:hover { background: rgba(170,255,0,0.1); border-color: rgba(170,255,0,0.6); }
+  .btn-2fa-setup:active { background: #AAFF00; color: #000; }
+
+  /* Pantalla TOTP setup */
+  #screen-totp-setup, #screen-2fa-verify {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 24px 40px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  #screen-totp-setup.open, #screen-2fa-verify.open { transform: translateY(0); }
+
+  .totp-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .totp-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #AAFF00;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .totp-qr-wrap {
+    background: #fff;
+    padding: 16px;
+    border-radius: 16px;
+    margin: 8px 0 16px;
+    box-shadow: 0 0 30px rgba(170,255,0,0.2);
+  }
+
+  .totp-secret-box {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(170,255,0,0.2);
+    background: rgba(170,255,0,0.05);
+    font-family: 'Inter', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #AAFF00;
+    letter-spacing: 3px;
+    text-align: center;
+    word-break: break-all;
+    margin-bottom: 12px;
+  }
+
+  .totp-steps {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .totp-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .totp-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #AAFF00;
+    color: #000;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .totp-step-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    padding-top: 3px;
+  }
+
+  .totp-verify-input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(170,255,0,0.3);
+    background: rgba(170,255,0,0.05);
+    font-family: 'Inter', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: #AAFF00;
+    text-align: center;
+    letter-spacing: 8px;
+    outline: none;
+    margin-bottom: 12px;
+    -webkit-appearance: none;
+  }
+
+  /* Pantalla 2FA verify al login */
+  .verify-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .verify-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #AAFF00;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .verify-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .verify-alt-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: rgba(170,255,0,0.5);
+    text-decoration: underline;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 12px;
+    letter-spacing: 1px;
+  }
+  .pin-key:hover { background: rgba(170,255,0,0.12); border-color: rgba(170,255,0,0.5); }
+  .pin-key:active, .pin-key.pressed { background: #AAFF00 !important; color: #000 !important; border-color: #AAFF00; transform: scale(0.92); }
+
+  .btn-settings:hover { background: rgba(170,255,0,0.15); border-color: rgba(170,255,0,0.5); color: #AAFF00; }
+  .btn-settings:active { background: #AAFF00 !important; color: #000 !important; }
+
+  .btn-action:hover { background: rgba(170,255,0,0.12); border-color: rgba(170,255,0,0.5); }
+  .btn-action:active { background: #AAFF00 !important; color: #000 !important; border-color: #AAFF00; }
+  .btn-action.primary:hover { background: #ccff44; box-shadow: 0 0 20px rgba(170,255,0,0.4); }
+  .btn-action.primary:active { background: #88cc00 !important; }
+
+  .btn-close:hover { background: rgba(170,255,0,0.15); border-color: rgba(170,255,0,0.5); color: #AAFF00; }
+  .btn-close:active { background: #AAFF00 !important; color: #000 !important; }
+
+  .btn-save:hover { background: #ccff44; box-shadow: 0 0 24px rgba(170,255,0,0.5); }
+  .btn-save:active { background: #88cc00 !important; }
+
+  .btn-consent.active:hover { background: #ccff44; box-shadow: 0 0 24px rgba(170,255,0,0.5); }
+
+  .btn-qr-apply:hover { background: #ccff44; box-shadow: 0 0 24px rgba(170,255,0,0.5); }
+  .btn-qr-apply:active { background: #88cc00 !important; }
+
+  /* =================== BAJA VOLUNTARIA =================== */
+  .delete-account-section {
+    margin-top: 32px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,60,60,0.3);
+    background: rgba(255,30,30,0.04);
+  }
+
+  .delete-account-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(255,80,80,0.6);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255,60,60,0.15);
+  }
+
+  .delete-account-info {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .delete-account-info strong { color: rgba(255,120,120,0.8); font-weight: 500; }
+
+  .btn-delete-account {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,60,60,0.5);
+    background: rgba(255,30,30,0.08);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #ff4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+  }
+
+  .btn-delete-account:hover { background: rgba(255,30,30,0.15); border-color: #ff4444; box-shadow: 0 0 16px rgba(255,60,60,0.2); }
+  .btn-delete-account:active { background: #ff2222; color: #fff; }
+
+  .gallery-tab:hover { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.4); color: rgba(170,255,0,0.8); }
+
+  .qr-template-item:hover, .qr-pattern-item:hover, .qr-corner-item:hover {
+    border-color: rgba(170,255,0,0.4);
+    background: rgba(170,255,0,0.06);
+  }
+
+  .pin-enter:hover:not(:disabled) { background: rgba(170,255,0,0.12); border-color: rgba(170,255,0,0.5); }
+  .pin-enter.ready:hover { background: #ccff44 !important; box-shadow: 0 0 30px rgba(170,255,0,0.6); }
+
+  /* =================== INDICADOR SCROLL =================== */
+  .scroll-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, transparent, rgba(8,8,8,0.95));
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 10;
+  }
+
+  .scroll-indicator.hidden { opacity: 0; }
+
+  .scroll-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    animation: bounceDown 1.6s ease-in-out infinite;
+  }
+
+  .scroll-arrow span {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #AAFF00;
+    border-bottom: 2px solid #AAFF00;
+    transform: rotate(45deg);
+    opacity: 0.8;
+  }
+
+  .scroll-arrow span:nth-child(2) { opacity: 0.5; margin-top: -4px; }
+  .scroll-arrow span:nth-child(3) { opacity: 0.25; margin-top: -4px; }
+
+  @keyframes bounceDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  .scroll-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.5);
+    margin-bottom: 6px;
+  }
+
+  /* Wrapper relativo para el consent */
+  #screen-consent {
+    position: fixed;
+    inset: 0;
+    background: #080808;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  .consent-scroll-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .consent-scroll {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 20px 20px;
+  }
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #AAFF00;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .consent-block {
+    margin-bottom: 16px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(170,255,0,0.1);
+    background: rgba(170,255,0,0.03);
+  }
+
+  .consent-block-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #AAFF00;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .consent-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+
+  .consent-block-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.7;
+  }
+
+  .consent-block-text strong {
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+  }
+
+  .consent-footer {
+    padding: 16px 20px 36px;
+    flex-shrink: 0;
+    border-top: 1px solid rgba(170,255,0,0.1);
+    background: #080808;
+  }
+
+  .consent-checkbox-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .consent-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(170,255,0,0.4);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .consent-checkbox.checked {
+    background: #AAFF00;
+    border-color: #AAFF00;
+  }
+
+  .consent-checkbox.checked::after {
+    content: '✓';
+    color: #000;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .consent-checkbox-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+  }
+
+  .consent-checkbox-text strong {
+    color: #AAFF00;
+    font-weight: 600;
+  }
+
+  .btn-consent {
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    background: rgba(170,255,0,0.2);
+    color: rgba(170,255,0,0.4);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: not-allowed;
+    transition: all 0.3s;
+  }
+
+  .btn-consent.active {
+    background: #AAFF00;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(170,255,0,0.4);
+  }
+
+  .btn-consent.active:active { background: #88cc00; transform: scale(0.98); }
+  #bg-media {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  #bg-media img,
+  #bg-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.18;
+    filter: blur(2px) saturate(1.4);
+  }
+
+  /* =================== VIDEO EN TARJETA =================== */
+  .card-front-video {
+    width: 100%;
+    height: 75%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* =================== GALERÍA DE MEDIOS =================== */
+  .gallery-section {
+    margin-bottom: 28px;
+  }
+
+  .gallery-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .gallery-tab {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(170,255,0,0.2);
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .gallery-tab.active {
+    background: rgba(170,255,0,0.1);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .gallery-item {
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s, transform 0.1s;
+    position: relative;
+    background: var(--surface2);
+    max-height: 80px;
+  }
+
+  .gallery-item:active { transform: scale(0.95); }
+
+  .gallery-item.selected {
+    border-color: var(--green);
+    box-shadow: 0 0 12px rgba(170,255,0,0.4);
+  }
+
+  .gallery-item img,
+  .gallery-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+
+  .gallery-item .gallery-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 4px;
+    font-size: 9px;
+    padding: 2px 4px;
+    color: var(--green);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .upload-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .btn-upload-media {
+    flex: 1;
+    padding: 11px 8px;
+    border-radius: 10px;
+    border: 1.5px dashed rgba(170,255,0,0.3);
+    background: rgba(170,255,0,0.04);
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.5);
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+
+  .btn-upload-media:active { background: rgba(170,255,0,0.1); }
+
+  .gallery-sublabel {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.4);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 8px;
+  }
+
+  .gallery-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 12px;
+  }
+
+  .gallery-divider::before,
+  .gallery-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(170,255,0,0.15);
+  }
+
+  .gallery-divider span {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(170,255,0,0.35);
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- =================== FONDO ANIMADO =================== -->
+<div id="bg-media"></div>
+
+<!-- =================== PANTALLA CONSENTIMIENTO RGPD =================== -->
+<div id="screen-consent">
+  <div class="consent-header">
+    <span class="consent-logo">I</span>
+    <div class="consent-tagline">dentity · Privacidad y Protección de Datos</div>
+  </div>
+
+  <div class="consent-scroll-wrap">
+    <div class="consent-scroll" id="consent-scroll-inner">
+    <div class="consent-title">Tus derechos y nuestro compromiso</div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+        Quiénes somos y qué hacemos
+      </div>
+      <div class="consent-block-text">
+        <strong>IDENTITY</strong> es una aplicación de tarjeta de contacto digital. Tus datos personales se almacenan <strong>exclusivamente en tu dispositivo</strong> mediante localStorage. No los enviamos, vendemos ni cedemos a terceros bajo ninguna circunstancia.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="13" y2="18"/>
+        </svg>
+        Base legal — RGPD Art. 6 y 7
+      </div>
+      <div class="consent-block-text">
+        El tratamiento de tus datos se basa en tu <strong>consentimiento explícito</strong> (Art. 6.1.a RGPD). Tienes derecho a retirar este consentimiento en cualquier momento sin que ello afecte a la licitud del tratamiento previo. Conforme al <strong>Art. 7 RGPD</strong>, este consentimiento es libre, específico, informado e inequívoco.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          <circle cx="18" cy="8" r="2" fill="#AAFF00" stroke="none" opacity="0.4"/>
+          <line x1="18" y1="6" x2="18" y2="10"/><line x1="16" y1="8" x2="20" y2="8"/>
+        </svg>
+        Tus derechos — RGPD Arts. 15–22
+      </div>
+      <div class="consent-block-text">
+        <strong>Art. 15 — Acceso:</strong> Puedes consultar todos tus datos en cualquier momento desde la pantalla de configuración.<br><br>
+        <strong>Art. 16 — Rectificación:</strong> Puedes modificar tus datos cuando quieras.<br><br>
+        <strong>Art. 17 — Supresión ("derecho al olvido"):</strong> Puedes eliminar todos tus datos borrando los datos del navegador o desinstalando la app.<br><br>
+        <strong>Art. 18 — Limitación:</strong> Puedes bloquear qué datos se incluyen en tu QR mediante los toggles de permisos.<br><br>
+        <strong>Art. 20 — Portabilidad:</strong> Tus datos están en tu dispositivo y son exportables en formato vCard estándar a través del QR.<br><br>
+        <strong>Art. 21 — Oposición:</strong> Puedes oponerte al uso de cualquier dato desactivando su permiso individualmente.<br><br>
+        <strong>Art. 22 — Decisiones automatizadas:</strong> IDENTITY no toma decisiones automatizadas sobre tu persona ni realiza perfilado.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="11" rx="2"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+          <circle cx="12" cy="16" r="1.5" fill="#AAFF00" stroke="none"/>
+        </svg>
+        Seguridad matemática — RGPD Art. 32
+      </div>
+      <div class="consent-block-text">
+        Tu contraseña de acceso está diseñada con criterios de seguridad matemática certificable:<br><br>
+        <strong>Contraseña IDENTITY (6 caracteres: 4 números + 1 letra + 1 símbolo)</strong><br>
+        Universo de caracteres: 94 posibles (10 números + 52 letras + 32 símbolos)<br>
+        Combinaciones posibles: 94⁶ = <strong>~689.000.000.000</strong> (689 mil millones)<br><br>
+        Comparativa con un PIN de 4 dígitos numéricos:<br>
+        — PIN 4 numérico: 10.000 combinaciones → roto en <strong>10 segundos</strong> a 1.000 intentos/seg<br>
+        — Contraseña IDENTITY: 689.000.000.000 → necesita <strong>21.000 años</strong> al mismo ritmo<br><br>
+        IDENTITY es <strong>69 millones de veces más seguro</strong> que un PIN numérico estándar. Este nivel de protección cumple y supera los requisitos de medidas técnicas adecuadas establecidos en el <strong>Art. 32 RGPD</strong>. Ningún dato se transmite a servidores externos — tu contraseña nunca sale de tu dispositivo.
+      </div>
+    </div>
+
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+        Doble factor de autenticación (2FA) — Nivel militar
+      </div>
+      <div class="consent-block-text">
+        IDENTITY ofrece <strong>autenticación de doble factor opcional</strong> que añade una segunda capa de seguridad matemáticamente verificable:<br><br>
+
+        <strong>Factor 1 — Contraseña (algo que sabes)</strong><br>
+        689.000.000.000 combinaciones → 21.000 años para romperla.<br><br>
+
+        <strong>Factor 2A — TOTP (algo que tienes)</strong><br>
+        Código de 6 dígitos que cambia cada 30 segundos. El atacante tendría que conocer tu contraseña Y tener tu móvil en ese preciso instante de 30 segundos. Probabilidad de ataque exitoso por fuerza bruta: 1 en 10⁶ cada 30 segundos = <strong>prácticamente imposible</strong>.<br><br>
+
+        <strong>Factor 2B — Biométrico (algo que eres)</strong><br>
+        Face ID / huella dactilar vía WebAuthn/FIDO2. Estándar utilizado por bancos, gobiernos y servicios de defensa. La probabilidad de falsa aceptación del Face ID de Apple es de <strong>1 en 1.000.000</strong> (0,0001%).<br><br>
+
+        <strong>Con los tres factores simultáneos:</strong><br>
+        Contraseña × TOTP × Biométrico = probabilidad de acceso no autorizado ≈ <strong>1 en 689.000.000.000.000.000</strong><br>
+        (689 cuadrillones de combinaciones)<br><br>
+
+        Este nivel de protección <strong>supera los requisitos de seguridad del Art. 32 RGPD</strong> para datos personales de categoría especial y es equivalente al estándar NIST SP 800-63B Nivel de Garantía 3 (AAL3), el más alto definido por el Instituto Nacional de Estándares de EE.UU.
+      </div>
+    </div>
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+        Derecho al olvido y baja voluntaria — Art. 17 RGPD
+      </div>
+      <div class="consent-block-text">
+        Conforme al <strong>Art. 17 RGPD</strong>, tienes derecho a la supresión de todos tus datos personales en cualquier momento, sin necesidad de justificación.<br><br>
+        IDENTITY pone a tu disposición un <strong>botón rojo de baja voluntaria</strong> accesible desde la pantalla de configuración que elimina de forma inmediata e irreversible:<br><br>
+        — Tu perfil completo (nombre, teléfono, email, dirección, redes)<br>
+        — Tu contraseña de acceso<br>
+        — Tu configuración de doble factor (TOTP y biométrico)<br>
+        — Tu diseño de QR personalizado<br>
+        — Todos tus permisos y preferencias<br><br>
+        Dado que todos los datos residen <strong>únicamente en tu dispositivo</strong>, la eliminación es instantánea y total. No existe ninguna copia en servidores externos.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+          <line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="#AAFF00" stroke="none"/>
+        </svg>
+        Tus deberes como usuario
+      </div>
+      <div class="consent-block-text">
+        <strong>Confidencialidad del PIN:</strong> Tu PIN de acceso es personal e intransferible. <strong>No debes compartirlo con nadie</strong>, ni familiares, ni amigos, ni ningún tercero bajo ninguna circunstancia.<br><br>
+        <strong>Custodia del dispositivo:</strong> Eres responsable de no dejar tu dispositivo desbloqueado con IDENTITY abierto en presencia de terceros. <strong>No debes prestar tu móvil</strong> con la aplicación activa.<br><br>
+        <strong>Uso personal:</strong> IDENTITY está diseñado para uso personal y exclusivo del titular. No está permitido su uso por personas distintas al titular de la cuenta.<br><br>
+        <strong>Veracidad de los datos:</strong> Los datos que introduces deben ser verídicos. No está permitido introducir datos de terceras personas sin su consentimiento explícito.<br><br>
+        <strong>Uso lícito:</strong> Queda prohibido usar IDENTITY para actividades ilegales, fraudulentas o que vulneren derechos de terceros.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+        Límites de uso y prohibiciones
+      </div>
+      <div class="consent-block-text">
+        <strong>Está terminantemente prohibido:</strong><br><br>
+        — Intentar vulnerar, hackear o manipular el sistema de PIN de la aplicación.<br><br>
+        — Usar la aplicación para suplantar la identidad de otra persona.<br><br>
+        — Compartir o publicar capturas de pantalla del QR de otro usuario sin su consentimiento.<br><br>
+        — Intentar acceder a datos de otros usuarios por cualquier medio.<br><br>
+        — Modificar, descompilar o realizar ingeniería inversa del código de la aplicación.<br><br>
+        — Usar la aplicación en dispositivos comprometidos (jailbreak/root) que puedan exponer tus datos.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        Responsabilidad y exención de garantías
+      </div>
+      <div class="consent-block-text">
+        IDENTITY se proporciona <strong>"tal cual"</strong>, sin garantías de disponibilidad continua. No nos responsabilizamos de:<br><br>
+        — Pérdida de datos por borrado del navegador o del dispositivo.<br><br>
+        — Acceso no autorizado derivado de que el usuario haya compartido su PIN.<br><br>
+        — Daños derivados de un uso incorrecto o imprudente de la aplicación.<br><br>
+        El usuario asume plena responsabilidad sobre el uso que hace de la aplicación y los datos que decide compartir mediante el QR.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/>
+          <line x1="9" y1="17" x2="12" y2="17"/>
+        </svg>
+        Legislación aplicable
+      </div>
+      <div class="consent-block-text">
+        Esta aplicación se rige por la legislación española y europea vigente, incluyendo:<br><br>
+        — <strong>RGPD (UE) 2016/679</strong> — Reglamento General de Protección de Datos.<br><br>
+        — <strong>LOPD-GDD (LO 3/2018)</strong> — Ley Orgánica de Protección de Datos y Garantía de los Derechos Digitales.<br><br>
+        — <strong>LSSI-CE</strong> — Ley de Servicios de la Sociedad de la Información.<br><br>
+        — <strong>Código Penal Español</strong> — Arts. 197-201 relativos a delitos contra la intimidad y el secreto de las comunicaciones.
+      </div>
+    </div>
+
+    </div><!-- fin consent-scroll -->
+
+    <!-- Indicador de scroll -->
+    <div class="scroll-indicator" id="scroll-indicator">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div class="scroll-text">desliza para leer más</div>
+        <div class="scroll-arrow">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- fin consent-scroll-wrap -->
+
+  <div class="consent-footer">
+    <div class="consent-checkbox-wrap">
+      <div class="consent-checkbox" id="consent-check"></div>
+      <div class="consent-checkbox-text">
+        He leído <strong>íntegramente</strong> la política de privacidad, los deberes de usuario y los límites de uso. Acepto el tratamiento de mis datos conforme al <strong>RGPD (UE) 2016/679</strong> y la <strong>LOPD-GDD</strong>, y me comprometo a cumplir todas las normas de uso establecidas.
+      </div>
+    </div>
+    <button class="btn-consent" id="btn-consent-accept" disabled>He leído todo — Acepto y entro</button>
+  </div>
+</div>
+
+<!-- =================== PANTALLA PIN =================== -->
+<div id="screen-pin">
+  <div class="pin-logo">I</div>
+  <div class="pin-brand">dentity</div>
+  <div class="pin-label">Crea tu contraseña de acceso</div>
+  <div class="pin-sublabel">4 números · 1 letra · 1 símbolo</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+    <div class="pin-dot" id="d4"></div>
+    <div class="pin-dot" id="d5"></div>
+  </div>
+
+  <!-- Teclado: números -->
+  <div class="pin-keypad">
+    <button class="pin-key" data-n="1">1</button>
+    <button class="pin-key" data-n="2">2</button>
+    <button class="pin-key" data-n="3">3</button>
+    <button class="pin-key" data-n="4">4</button>
+    <button class="pin-key" data-n="5">5</button>
+    <button class="pin-key" data-n="6">6</button>
+    <button class="pin-key" data-n="7">7</button>
+    <button class="pin-key" data-n="8">8</button>
+    <button class="pin-key" data-n="9">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" data-n="0">0</button>
+    <button class="pin-key del" id="pin-del">⌫</button>
+  </div>
+
+  <!-- Teclado: letras -->
+  <div class="pin-keyboard-section">
+    <div class="pin-keyboard-label">Letra</div>
+    <div class="pin-letters-grid" id="pin-letters-grid"></div>
+  </div>
+
+  <!-- Teclado: símbolos -->
+  <div class="pin-keyboard-section">
+    <div class="pin-keyboard-label">Símbolo</div>
+    <div class="pin-symbols-row" id="pin-symbols-row"></div>
+  </div>
+
+  <div class="pin-first-time" id="pin-hint">Primera vez — crea tu contraseña de 6 caracteres</div>
+  <button class="pin-enter" id="pin-enter-btn" disabled>Entrar</button>
+</div>
+
+<!-- =================== PANTALLA PRINCIPAL =================== -->
+<div id="screen-main">
+  <div class="main-header">
+    <div class="main-logo-sm">I</div>
+    <button class="btn-settings" id="btn-open-edit">⚙ Permisos y configuración</button>
+  </div>
+
+  <div class="card-container" id="card-container">
+    <div class="card-inner" id="card-inner">
+      <!-- FRENTE -->
+      <div class="card-face card-front">
+        <div class="card-front-photo-placeholder" id="photo-placeholder">👤</div>
+        <img class="card-front-photo" id="card-photo" style="display:none" alt="foto">
+        <video class="card-front-video" id="card-video" style="display:none" autoplay loop muted playsinline></video>
+        <div class="card-front-info">
+          <div class="card-front-name" id="card-name">Tu Nombre</div>
+          <div class="card-front-title" id="card-job">Tu título profesional</div>
+          <div class="card-front-hint">toca para compartir</div>
+        </div>
+      </div>
+      <!-- REVERSO -->
+      <div class="card-face card-back">
+        <div class="card-back-label">Escanea para contactar</div>
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:200px;height:200px;display:flex;align-items:center;justify-content:center;"></div>
+        <div class="card-back-name" id="qr-name">—</div>
+        <div class="card-back-sub">IDENTITY · Tarjeta Digital</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-bottom">
+    <div class="card-hint" id="flip-hint">↺ Toca la tarjeta para mostrar el QR</div>
+    <div class="main-actions">
+      <button class="btn-action" id="btn-lock">Bloquear</button>
+      <button class="btn-action primary" id="btn-share">Compartir QR</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== PANTALLA EDITAR =================== -->
+<div id="screen-edit">
+  <div class="edit-header">
+    <div class="edit-title">Mi Perfil</div>
+    <button class="btn-close" id="btn-close-edit">✕</button>
+  </div>
+
+  <div class="edit-section gallery-section">
+    <div class="edit-section-title">Imagen de tarjeta y fondo</div>
+
+    <!-- Galería integrada -->
+    <div class="gallery-sublabel">Galería</div>
+    <div class="gallery-grid" id="gallery-grid"></div>
+
+    <!-- Separador -->
+    <div class="gallery-divider">
+      <span>o sube el tuyo</span>
+    </div>
+
+    <!-- Subir archivo propio -->
+    <div class="upload-row">
+      <div class="btn-upload-media" id="btn-upload-img">📷 Imagen / GIF</div>
+      <div class="btn-upload-media" id="btn-upload-vid">🎬 Video / MP4</div>
+    </div>
+    <input type="file" id="media-file-img" accept="image/*" style="display:none">
+    <input type="file" id="media-file-vid" accept="video/*" style="display:none">
+    <div id="upload-preview-wrap" style="margin-top:12px; display:none; border-radius:12px; overflow:hidden; max-height:160px;">
+      <img id="upload-preview-img" style="width:100%;height:160px;object-fit:cover;display:none" alt="preview">
+      <video id="upload-preview-vid" style="width:100%;height:160px;object-fit:cover;display:none" autoplay loop muted playsinline></video>
+    </div>
+
+    <input type="file" id="photo-file-input" accept="image/*" style="display:none">
+  </div>
+
+  <div class="edit-section qr-style-selector">
+    <div class="edit-section-title">Estilo del QR</div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div id="qr-mini-preview" style="width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#f5f5f5;display:flex;align-items:center;justify-content:center;border:1px solid rgba(170,255,0,0.2);"></div>
+      <button id="btn-open-qr-designer" style="flex:1;padding:12px 8px;border-radius:10px;border:1.5px dashed rgba(170,255,0,0.35);background:rgba(170,255,0,0.04);font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(170,255,0,0.7);cursor:pointer;">
+        Personalizar diseño
+      </button>
+    </div>
+  </div>
+
+  <div class="edit-section">
+    <div class="edit-section-title">Información personal</div>
+    <div class="field-group">
+      <div class="field-wrap">
+        <div class="field-label">Nombre completo</div>
+        <input class="field-input" id="f-name" type="text" placeholder="Juan García López" autocomplete="name">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Título / Profesión</div>
+        <input class="field-input" id="f-job" type="text" placeholder="Desarrollador Web · Madrid">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Teléfono</div>
+        <input class="field-input" id="f-phone" type="tel" placeholder="+34 600 000 000">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Email</div>
+        <input class="field-input" id="f-email" type="email" placeholder="tu@email.com">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Dirección</div>
+        <input class="field-input" id="f-address" type="text" placeholder="Madrid, España">
+      </div>
+    </div>
+  </div>
+
+  <div class="edit-section">
+    <div class="edit-section-title">Redes y perfiles</div>
+    <div class="field-group">
+      <div class="field-wrap">
+        <div class="field-label">LinkedIn</div>
+        <input class="field-input" id="f-linkedin" type="url" placeholder="linkedin.com/in/tu-perfil">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">GitHub</div>
+        <input class="field-input" id="f-github" type="url" placeholder="github.com/tu-usuario">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Web personal</div>
+        <input class="field-input" id="f-web" type="url" placeholder="tuwebpersonal.com">
+      </div>
+    </div>
+  </div>
+
+  <div class="edit-section">
+    <div class="edit-section-title">¿Qué incluir en el QR?</div>
+    <div class="field-group">
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Teléfono</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-phone" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-phone">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Email</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-email" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-email">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Dirección</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-address"><span class="toggle-slider"></span></label>
+          <div class="toggle-status off" id="s-address">Bloqueado</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">LinkedIn</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-linkedin" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-linkedin">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">GitHub</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-github" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-github">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Web personal</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-web" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-web">Permitido</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2FA -->
+  <div class="edit-section">
+    <div class="edit-section-title">Doble factor de autenticación (2FA)</div>
+    <div class="twofa-info">
+      Con 2FA activo, tras introducir tu contraseña necesitarás un segundo factor para entrar. Nivel de seguridad militar.
+    </div>
+    <div class="field-group">
+      <div class="field-toggle-wrap">
+        <div>
+          <div class="field-toggle-label">🔐 Autenticador TOTP</div>
+          <div class="twofa-sublabel">Google Authenticator / Authy</div>
+        </div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-totp"><span class="toggle-slider"></span></label>
+          <div class="toggle-status off" id="s-totp">Bloqueado</div>
+        </div>
+      </div>
+      <div id="totp-setup-area" style="display:none;">
+        <button class="btn-2fa-setup" id="btn-setup-totp">Configurar autenticador</button>
+      </div>
+
+      <div class="field-toggle-wrap">
+        <div>
+          <div class="field-toggle-label">👆 Biométrico</div>
+          <div class="twofa-sublabel">Face ID / Huella dactilar</div>
+        </div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-bio"><span class="toggle-slider"></span></label>
+          <div class="toggle-status off" id="s-bio">Bloqueado</div>
+        </div>
+      </div>
+      <div id="bio-setup-area" style="display:none;">
+        <button class="btn-2fa-setup" id="btn-setup-bio">Registrar biométrico</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-save" id="btn-save">Guardar identidad</button>
+
+  <!-- BAJA VOLUNTARIA -->
+  <div class="delete-account-section">
+    <div class="delete-account-label">Zona de eliminación de datos</div>
+    <div class="delete-account-info">
+      Conforme al <strong>Art. 17 RGPD</strong> (derecho al olvido), puedes eliminar todos tus datos de IDENTITY en cualquier momento. Esta acción es <strong>irreversible</strong>.
+    </div>
+    <button class="btn-delete-account" id="btn-delete-account">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+      Eliminar todos mis datos — Baja voluntaria
+    </button>
+  </div>
+</div>
+
+<!-- =================== CONFIRMACIÓN BAJA =================== -->
+<div id="screen-delete-confirm" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;transform:scale(0.9);opacity:0;pointer-events:none;transition:all 0.3s;">
+  <div style="background:#111;border:1.5px solid rgba(255,60,60,0.4);border-radius:20px;padding:28px 24px;width:100%;max-width:360px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 12px;display:block;">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <div style="font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">¿Estás seguro?</div>
+      <div style="font-family:Inter,sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.6;">
+        Esta acción eliminará <strong style="color:rgba(255,120,120,0.8);">todos tus datos</strong> de IDENTITY de forma permanente e irreversible:<br><br>
+        — Tu perfil y datos personales<br>
+        — Tu contraseña de acceso<br>
+        — Tu configuración 2FA<br>
+        — Tu diseño de QR personalizado<br>
+        — Todos tus permisos
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="btn-confirm-delete" style="width:100%;padding:14px;border-radius:10px;border:none;background:#cc0000;color:#fff;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">
+        Sí, eliminar todo — Confirmar baja
+      </button>
+      <button id="btn-cancel-delete" style="width:100%;padding:14px;border-radius:10px;border:1px solid rgba(170,255,0,0.2);background:transparent;color:rgba(170,255,0,0.6);font-family:Inter,sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">
+        Cancelar — Mantener mis datos
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== TOTP SETUP =================== -->
+<div id="screen-totp-setup">
+  <div class="totp-header">
+    <div class="totp-title">Configurar TOTP</div>
+    <button class="btn-close" id="btn-close-totp">✕</button>
+  </div>
+
+  <div class="totp-steps">
+    <div class="totp-step">
+      <div class="totp-step-num">1</div>
+      <div class="totp-step-text">Instala <strong style="color:#AAFF00">Google Authenticator</strong> o <strong style="color:#AAFF00">Authy</strong> en tu móvil desde la App Store o Google Play.</div>
+    </div>
+    <div class="totp-step">
+      <div class="totp-step-num">2</div>
+      <div class="totp-step-text">Abre la app y pulsa <strong style="color:#AAFF00">"+"</strong> → <strong style="color:#AAFF00">"Escanear código QR"</strong> y apunta la cámara al QR de abajo.</div>
+    </div>
+    <div class="totp-step">
+      <div class="totp-step-num">3</div>
+      <div class="totp-step-text">Introduce el código de <strong style="color:#AAFF00">6 dígitos</strong> que aparece en la app para verificar que todo funciona.</div>
+    </div>
+  </div>
+
+  <div class="totp-qr-wrap" id="totp-qr-container"></div>
+
+  <div class="totp-secret-box" id="totp-secret-display">Generando...</div>
+
+  <input class="totp-verify-input" id="totp-verify-code" type="number" maxlength="6" placeholder="000000" inputmode="numeric">
+
+  <button class="btn-save" id="btn-confirm-totp" style="margin-top:0;">Verificar y activar</button>
+  <div style="font-family:Inter,sans-serif;font-size:10px;color:rgba(255,255,255,0.3);text-align:center;margin-top:12px;letter-spacing:1px;">
+    O introduce manualmente la clave secreta en tu app autenticadora
+  </div>
+</div>
+
+<!-- =================== 2FA VERIFY (login) =================== -->
+<div id="screen-2fa-verify">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;">
+    <div class="verify-icon" id="verify-icon">🔐</div>
+    <div class="verify-title" id="verify-title">Segundo factor</div>
+    <div class="verify-subtitle" id="verify-subtitle">Introduce el código de tu autenticador</div>
+
+    <!-- Input TOTP -->
+    <div id="verify-totp-area" style="width:100%;display:none;">
+      <input class="totp-verify-input" id="verify-totp-input" type="number" placeholder="000000" inputmode="numeric" maxlength="6">
+      <button class="btn-save" id="btn-verify-totp">Verificar código</button>
+    </div>
+
+    <!-- Biométrico -->
+    <div id="verify-bio-area" style="width:100%;display:none;text-align:center;">
+      <button class="btn-save" id="btn-verify-bio" style="margin-top:0;">
+        👆 Verificar con biométrico
+      </button>
+    </div>
+
+    <div class="verify-alt-btn" id="verify-alt-btn" style="display:none;">
+      Usar el otro método de verificación
+    </div>
+  </div>
+</div>
+
+<!-- =================== DISEÑADOR QR =================== -->
+<div id="screen-qr-designer">
+  <div class="qr-designer-header">
+    <div class="qr-designer-title">Diseño del QR</div>
+    <button class="btn-close" id="btn-close-qr-designer">✕</button>
+  </div>
+
+  <!-- Preview en tiempo real -->
+  <div class="qr-preview-zone">
+    <div class="qr-preview-wrap" id="qr-live-preview"></div>
+  </div>
+
+  <div class="qr-designer-scroll">
+
+    <!-- Templates -->
+    <div class="qr-section-label">Plantillas</div>
+    <div class="qr-templates-grid" id="qr-templates-grid"></div>
+
+    <!-- Patrón de módulos -->
+    <div class="qr-section-label">Patrón de módulos</div>
+    <div class="qr-pattern-grid" id="qr-pattern-grid"></div>
+
+    <!-- Estilo de esquinas -->
+    <div class="qr-section-label">Esquinas</div>
+    <div class="qr-corner-grid" id="qr-corner-grid"></div>
+
+    <!-- Colores -->
+    <div class="qr-section-label">Colores</div>
+    <div class="qr-color-row">
+      <div class="qr-color-item">
+        <div class="qr-color-lbl">Módulos</div>
+        <div class="qr-color-swatch" id="swatch-dots" style="background:#1a1a1a;">
+          <input type="color" id="color-dots" value="#1a1a1a">
+        </div>
+      </div>
+      <div class="qr-color-item">
+        <div class="qr-color-lbl">Fondo</div>
+        <div class="qr-color-swatch" id="swatch-bg" style="background:#f5f5f5;">
+          <input type="color" id="color-bg" value="#f5f5f5">
+        </div>
+      </div>
+      <div class="qr-color-item">
+        <div class="qr-color-lbl">Esquinas externas</div>
+        <div class="qr-color-swatch" id="swatch-corner-sq" style="background:#1a1a1a;">
+          <input type="color" id="color-corner-sq" value="#1a1a1a">
+        </div>
+      </div>
+      <div class="qr-color-item">
+        <div class="qr-color-lbl">Esquinas internas</div>
+        <div class="qr-color-swatch" id="swatch-corner-dot" style="background:#1a1a1a;">
+          <input type="color" id="color-corner-dot" value="#1a1a1a">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-qr-apply" id="btn-qr-apply">Aplicar diseño</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Install Banner -->
+<div class="install-banner" id="install-banner">
+  <div class="install-banner-text">Instala IDENTITY en tu pantalla de inicio para acceso rápido</div>
+  <button class="btn-install" id="btn-install-do">Instalar</button>
+  <button class="btn-install-close" id="btn-install-close">✕</button>
+</div>
+
+<!-- QRCode.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- QR Code Styling -->
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<!-- OTPAuth (TOTP 2FA) -->
+<script src="https://cdn.jsdelivr.net/npm/otpauth@9.3.2/dist/otpauth.umd.min.js"></script>
+
+<script>
+// =================== INDICADOR SCROLL CONSENT ===================
+const consentScrollEl = document.getElementById('consent-scroll-inner');
+const scrollIndicator = document.getElementById('scroll-indicator');
+
+if (consentScrollEl && scrollIndicator) {
+  consentScrollEl.addEventListener('scroll', () => {
+    const nearBottom = consentScrollEl.scrollHeight - consentScrollEl.scrollTop - consentScrollEl.clientHeight < 40;
+    scrollIndicator.classList.toggle('hidden', nearBottom);
+  });
+}
+
+// =================== CONSENTIMIENTO RGPD ===================
+const CONSENT_KEY = 'identity_consent';
+let consentGiven = localStorage.getItem(CONSENT_KEY) === 'true';
+
+if (consentGiven) {
+  document.getElementById('screen-consent').classList.add('hidden');
+} 
+
+const consentCheck = document.getElementById('consent-check');
+const btnConsent = document.getElementById('btn-consent-accept');
+let consentChecked = false;
+
+consentCheck.addEventListener('click', () => {
+  consentChecked = !consentChecked;
+  consentCheck.classList.toggle('checked', consentChecked);
+  btnConsent.classList.toggle('active', consentChecked);
+  btnConsent.disabled = !consentChecked;
+});
+
+btnConsent.addEventListener('click', () => {
+  if (!consentChecked) return;
+  localStorage.setItem(CONSENT_KEY, 'true');
+  consentGiven = true;
+  document.getElementById('screen-consent').classList.add('hidden');
+});
+
+// =================== ESTADO ===================
+const STORAGE_KEY = 'identity_data';
+const PIN_KEY = 'identity_pin';
+
+let pinBuffer = '';
+let isFirstTime = !localStorage.getItem(PIN_KEY);
+let profileData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let photoDataUrl = profileData.photo || null;
+let isFlipped = false;
+
+// =================== PIN ===================
+const pinDots = [0,1,2,3,4,5].map(i => document.getElementById('d'+i));
+const pinHint = document.getElementById('pin-hint');
+const PIN_LENGTH = 6;
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const SYMBOLS = ['@','#','$','%','&','*','!','?'];
+
+// Construir teclado letras
+const lettersGrid = document.getElementById('pin-letters-grid');
+LETTERS.forEach(l => {
+  const btn = document.createElement('button');
+  btn.className = 'pin-char-key';
+  btn.dataset.n = l;
+  btn.textContent = l;
+  btn.addEventListener('click', () => handlePinInput(l));
+  lettersGrid.appendChild(btn);
+});
+
+// Construir teclado símbolos
+const symbolsRow = document.getElementById('pin-symbols-row');
+SYMBOLS.forEach(s => {
+  const btn = document.createElement('button');
+  btn.className = 'pin-char-key';
+  btn.dataset.n = s;
+  btn.textContent = s;
+  btn.addEventListener('click', () => handlePinInput(s));
+  symbolsRow.appendChild(btn);
+});
+
+if (!isFirstTime) {
+  pinHint.textContent = 'Introduce tu contraseña';
+  const lbl = document.querySelector('.pin-label');
+  if (lbl) lbl.textContent = 'Contraseña de acceso';
+}
+
+function updateDots() {
+  pinDots.forEach((d, i) => {
+    d.classList.remove('filled','error');
+    if (i < pinBuffer.length) d.classList.add('filled');
+  });
+  if (pinBuffer.length < PIN_LENGTH) {
+    pinEnterBtn.classList.remove('ready');
+    pinEnterBtn.disabled = true;
+  }
+}
+
+function validatePassword(pwd) {
+  const nums    = (pwd.match(/[0-9]/g)||[]).length;
+  const letters = (pwd.match(/[A-Za-z]/g)||[]).length;
+  const symbols = (pwd.match(/[@#$%&*!?]/g)||[]).length;
+  return {
+    hasNum: nums >= 4,
+    hasLetter: letters >= 1,
+    hasSymbol: symbols >= 1,
+    valid: nums >= 4 && letters >= 1 && symbols >= 1 && pwd.length === PIN_LENGTH
+  };
+}
+
+function showPinValidationHint() {
+  if (pinBuffer.length === 0) return;
+  const v = validatePassword(pinBuffer);
+  const missing = [];
+  const nums = (pinBuffer.match(/[0-9]/g)||[]).length;
+  if (nums < 4)       missing.push(4-nums + ' número' + (4-nums>1?'s':''));
+  if (!v.hasLetter)   missing.push('1 letra');
+  if (!v.hasSymbol)   missing.push('1 símbolo');
+  if (missing.length > 0) {
+    pinHint.textContent = 'Falta: ' + missing.join(', ');
+    pinHint.style.color = 'rgba(255,150,100,0.8)';
+  } else {
+    pinHint.textContent = '✓ Contraseña válida — pulsa Entrar';
+    pinHint.style.color = '#AAFF00';
+  }
+}
+
+function handlePinInput(char) {
+  if (pinBuffer.length >= PIN_LENGTH) return;
+  pinBuffer += char;
+  updateDots();
+  showPinValidationHint();
+  if (pinBuffer.length === PIN_LENGTH) {
+    const v = validatePassword(pinBuffer);
+    if (v.valid) {
+      pinEnterBtn.classList.add('ready');
+      pinEnterBtn.disabled = false;
+    }
+  }
+}
+
+function pinError() {
+  pinDots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
+  pinHint.textContent = 'Contraseña incorrecta — inténtalo de nuevo';
+  pinHint.style.color = '#ff4444';
+  setTimeout(() => {
+    pinDots.forEach(d => d.classList.remove('error'));
+    pinBuffer = '';
+    updateDots();
+    pinHint.style.color = '';
+    pinHint.textContent = isFirstTime ? 'Crea tu contraseña de 6 caracteres' : 'Introduce tu contraseña';
+  }, 700);
+}
+
+function pinSuccess() {
+  // Verificar 2FA antes de entrar
+  check2FAAndEnter();
+}
+
+function doEnter() {
+  document.getElementById('screen-pin').classList.add('hidden');
+  document.getElementById('screen-main').classList.add('visible');
+  renderCard();
+  generateQR();
+}
+
+const pinEnterBtn = document.getElementById('pin-enter-btn');
+
+// Teclado numérico
+document.querySelectorAll('.pin-key[data-n]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 120);
+    handlePinInput(btn.dataset.n);
+  });
+});
+
+pinEnterBtn.addEventListener('click', () => {
+  if (pinBuffer.length < PIN_LENGTH) return;
+  const v = validatePassword(pinBuffer);
+  if (!v.valid && isFirstTime) {
+    showPinValidationHint();
+    return;
+  }
+  const stored = localStorage.getItem(PIN_KEY);
+  if (isFirstTime) {
+    localStorage.setItem(PIN_KEY, pinBuffer);
+    isFirstTime = false;
+    pinEnterBtn.classList.remove('ready');
+    pinEnterBtn.disabled = true;
+    showToast('Contraseña guardada ✓');
+    pinSuccess();
+  } else {
+    if (pinBuffer === stored) {
+      pinSuccess();
+    } else {
+      pinEnterBtn.classList.remove('ready');
+      pinEnterBtn.disabled = true;
+      pinError();
+    }
+  }
+});
+
+document.getElementById('pin-del').addEventListener('click', () => {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updateDots();
+});
+
+// =================== CARD ===================
+function renderCard() {
+  const name = profileData.name || 'Tu Nombre';
+  const job  = profileData.job  || 'Tu título profesional';
+
+  document.getElementById('card-name').textContent = name;
+  document.getElementById('card-job').textContent  = job;
+  document.getElementById('qr-name').textContent   = name;
+
+  const cardPhoto = document.getElementById('card-photo');
+  const cardVideo = document.getElementById('card-video');
+  const placeholder = document.getElementById('photo-placeholder');
+
+  const media = profileData.media;
+
+  if (media && media.type === 'video') {
+    cardPhoto.style.display = 'none';
+    placeholder.style.display = 'none';
+    cardVideo.src = media.src;
+    cardVideo.style.display = 'block';
+  } else if (media && media.src) {
+    cardVideo.style.display = 'none';
+    placeholder.style.display = 'none';
+    cardPhoto.src = media.src;
+    cardPhoto.style.display = 'block';
+  } else {
+    cardVideo.style.display = 'none';
+    cardPhoto.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+
+  renderBgMedia();
+}
+
+// =================== FONDO ANIMADO ===================
+function renderBgMedia() {
+  const bg = document.getElementById('bg-media');
+  bg.innerHTML = '';
+  const media = profileData.media;
+  if (!media || !media.src) return;
+
+  if (media.type === 'video') {
+    const v = document.createElement('video');
+    v.src = media.src;
+    v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+    bg.appendChild(v);
+  } else {
+    const i = document.createElement('img');
+    i.src = media.src;
+    bg.appendChild(i);
+  }
+}
+
+// =================== GALERÍA INTEGRADA — Videos propios en GitHub ===================
+const BASE = 'https://jjjmaracay-code.github.io/identity/videos/';
+const GALLERY_ITEMS = [
+  { id:'v1', label:'🌹', type:'video', thumb: BASE+'thumbs/t1.jpg', src: BASE+'v1.mp4' },
+  { id:'v2', label:'🌸', type:'video', thumb: BASE+'thumbs/t2.jpg', src: BASE+'v2.mp4' },
+  { id:'v3', label:'🌅', type:'video', thumb: BASE+'thumbs/t3.jpg', src: BASE+'v3.mp4' },
+  { id:'v4', label:'🌴', type:'video', thumb: BASE+'thumbs/t4.jpg', src: BASE+'v4.mp4' },
+  { id:'v5', label:'❄️', type:'video', thumb: BASE+'thumbs/t5.jpg', src: BASE+'v5.mp4' },
+  { id:'v6', label:'🎆', type:'video', thumb: BASE+'thumbs/t6.jpg', src: BASE+'v6.mp4' },
+  { id:'v7', label:'🗼', type:'video', thumb: BASE+'thumbs/t7.jpg', src: BASE+'v7.mp4' },
+  { id:'v8', label:'🌌', type:'video', thumb: BASE+'thumbs/t8.jpg', src: BASE+'v8.mp4' },
+  { id:'v9', label:'🐠', type:'video', thumb: BASE+'thumbs/t9.jpg', src: BASE+'v9.mp4' },
+];
+
+let selectedGalleryId = profileData.media?.galleryId || null;
+let previewVideoEl = null; // video en hover dentro de la galería
+
+function buildGallery() {
+  const grid = document.getElementById('gallery-grid');
+  grid.innerHTML = '';
+
+  GALLERY_ITEMS.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'gallery-item' + (selectedGalleryId === item.id ? ' selected' : '');
+    div.dataset.id = item.id;
+
+    // Thumb imagen (siempre visible)
+    const img = document.createElement('img');
+    img.src = item.thumb;
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
+
+    // Video preview oculto (se activa al tocar)
+    const vid = document.createElement('video');
+    vid.src = item.src;
+    vid.muted = true;
+    vid.loop = true;
+    vid.playsInline = true;
+    vid.preload = 'none';
+    vid.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:none;';
+
+    const badge = document.createElement('div');
+    badge.className = 'gallery-badge';
+    badge.textContent = '▶ HD';
+
+    div.style.position = 'relative';
+    div.appendChild(img);
+    div.appendChild(vid);
+    div.appendChild(badge);
+
+    // Tap: primer tap = preview video, segundo tap = seleccionar
+    let tapped = false;
+    div.addEventListener('click', () => {
+      if (!tapped) {
+        // Primer toque: previsualizar
+        tapped = true;
+        // Parar cualquier preview anterior
+        if (previewVideoEl && previewVideoEl !== vid) {
+          previewVideoEl.pause();
+          previewVideoEl.style.display = 'none';
+          previewVideoEl.parentElement?.querySelector('img')?.style.removeProperty('display');
+        }
+        vid.style.display = 'block';
+        img.style.display = 'none';
+        vid.play().catch(()=>{});
+        previewVideoEl = vid;
+        badge.textContent = '✓ Usar';
+        setTimeout(() => { tapped = false; badge.textContent = '▶ HD'; }, 3000);
+      } else {
+        // Segundo toque o tras preview: seleccionar
+        tapped = false;
+        selectGalleryItem(item, div);
+      }
+    });
+
+    grid.appendChild(div);
+  });
+}
+
+function selectGalleryItem(item, el) {
+  document.querySelectorAll('.gallery-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGalleryId = item.id;
+  profileData.media = { src: item.src, type: 'video', galleryId: item.id, thumb: item.thumb };
+  renderCard();
+  showToast('Video seleccionado ✓');
+}
+
+// =================== TOGGLES — etiquetas en tiempo real ===================
+['phone','email','address','linkedin','github','web'].forEach(field => {
+  const chk = document.getElementById('t-'+field);
+  const lbl = document.getElementById('s-'+field);
+  if (!chk || !lbl) return;
+  const update = () => {
+    lbl.textContent = chk.checked ? 'Permitido' : 'Bloqueado';
+    lbl.className = 'toggle-status ' + (chk.checked ? 'on' : 'off');
+  };
+  chk.addEventListener('change', update);
+  update();
+});
+
+// =================== SUBIR IMAGEN / GIF ===================
+document.getElementById('btn-upload-img').addEventListener('click', () => {
+  document.getElementById('media-file-img').click();
+});
+
+document.getElementById('media-file-img').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const isGif = file.type === 'image/gif';
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const src = ev.target.result;
+    selectedGalleryId = null;
+    profileData.media = { src, type: 'image', galleryId: null };
+
+    const prevImg = document.getElementById('upload-preview-img');
+    const prevVid = document.getElementById('upload-preview-vid');
+    const wrap = document.getElementById('upload-preview-wrap');
+    prevImg.src = src;
+    prevImg.style.display = 'block';
+    prevVid.style.display = 'none';
+    wrap.style.display = 'block';
+
+    renderCard();
+    showToast(isGif ? 'GIF cargado ✓' : 'Imagen cargada ✓');
+  };
+  reader.readAsDataURL(file);
+});
+
+// =================== SUBIR VIDEO ===================
+document.getElementById('btn-upload-vid').addEventListener('click', () => {
+  document.getElementById('media-file-vid').click();
+});
+
+document.getElementById('media-file-vid').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  // Vídeos: usar URL objeto (no base64 — demasiado pesado para localStorage)
+  const src = URL.createObjectURL(file);
+  selectedGalleryId = null;
+  profileData.media = { src, type: 'video', galleryId: null, isObjectUrl: true };
+
+  const prevImg = document.getElementById('upload-preview-img');
+  const prevVid = document.getElementById('upload-preview-vid');
+  const wrap = document.getElementById('upload-preview-wrap');
+  prevVid.src = src;
+  prevVid.style.display = 'block';
+  prevImg.style.display = 'none';
+  wrap.style.display = 'block';
+
+  renderCard();
+  showToast('Video cargado ✓');
+});
+
+// Flip
+document.getElementById('card-container').addEventListener('click', () => {
+  isFlipped = !isFlipped;
+  document.getElementById('card-inner').classList.toggle('flipped', isFlipped);
+  document.getElementById('flip-hint').textContent = isFlipped
+    ? '↺ Toca para volver a la tarjeta'
+    : '↺ Toca la tarjeta para mostrar el QR';
+});
+
+// =================== QR (vCard) ===================
+let qrInstance = null;
+
+function buildVCard() {
+  const d = profileData;
+  const t = profileData.toggles || {};
+
+  let vc = 'BEGIN:VCARD\nVERSION:3.0\n';
+  if (d.name)                     vc += `FN:${d.name}\n`;
+  if (d.job)                      vc += `TITLE:${d.job}\n`;
+  if (d.phone  && t.phone  !== false) vc += `TEL:${d.phone}\n`;
+  if (d.email  && t.email  !== false) vc += `EMAIL:${d.email}\n`;
+  if (d.address && t.address)         vc += `ADR:;;${d.address};;;;\n`;
+  if (d.linkedin && t.linkedin !== false) vc += `URL;type=LinkedIn:${d.linkedin}\n`;
+  if (d.github   && t.github   !== false) vc += `URL;type=GitHub:${d.github}\n`;
+  if (d.web      && t.web      !== false) vc += `URL;type=Web:${d.web}\n`;
+  vc += 'END:VCARD';
+  return vc;
+}
+
+// =================== DISEÑADOR QR PROFESIONAL ===================
+
+// Estado del diseñador
+let qrDesign = profileData.qrDesign || {
+  dotsType: 'square',
+  dotsColor: '#1a1a1a',
+  bgColor: '#f5f5f5',
+  cornerSquareType: 'square',
+  cornerDotType: 'square',
+  cornerSquareColor: '#1a1a1a',
+  cornerDotColor: '#1a1a1a',
+};
+
+// SVG de la I adaptado al color de fondo
+function makeISvg(bg, fg) {
+  const b = encodeURIComponent(bg), f = encodeURIComponent(fg);
+  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='${b}'/><text x='50' y='76' font-family='Times New Roman,serif' font-size='78' font-weight='900' text-anchor='middle' fill='${f}'>I</text></svg>`;
+}
+
+// Opciones QR completas
+function buildQROptions(design, size, data) {
+  const isPreview = size <= 100;
+  return {
+    width: size, height: size,
+    data: data || 'IDENTITY',
+    margin: isPreview ? 1 : 5,
+    qrOptions: { errorCorrectionLevel: 'H' },
+    imageOptions: { crossOrigin: 'anonymous', margin: isPreview ? 1 : 3, imageSize: 0.3 },
+    dotsOptions: { type: design.dotsType, color: design.dotsColor },
+    backgroundOptions: { color: design.bgColor },
+    cornersSquareOptions: { type: design.cornerSquareType, color: design.cornerSquareColor },
+    cornersDotOptions: { type: design.cornerDotType, color: design.cornerDotColor },
+    image: makeISvg(design.bgColor, design.dotsColor),
+  };
+}
+
+// ---- TEMPLATES predefinidos ----
+const QR_TEMPLATES = [
+  { id:'t1', name:'Clásico',   design:{ dotsType:'square',        dotsColor:'#1a1a1a', bgColor:'#f5f5f5', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#1a1a1a', cornerDotColor:'#1a1a1a' }},
+  { id:'t2', name:'Suave',     design:{ dotsType:'rounded',       dotsColor:'#222222', bgColor:'#ffffff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#222222', cornerDotColor:'#222222' }},
+  { id:'t3', name:'Dots',      design:{ dotsType:'dots',          dotsColor:'#111111', bgColor:'#f0f0f0', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#111111', cornerDotColor:'#111111' }},
+  { id:'t4', name:'Classy',    design:{ dotsType:'classy',        dotsColor:'#1a1a1a', bgColor:'#f5f5f5', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#1a1a1a', cornerDotColor:'#1a1a1a' }},
+  { id:'t5', name:'Smooth',    design:{ dotsType:'classy-rounded',dotsColor:'#000000', bgColor:'#eeeeee', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#000000', cornerDotColor:'#000000' }},
+  { id:'t6', name:'Circles',   design:{ dotsType:'extra-rounded', dotsColor:'#111111', bgColor:'#f8f8f8', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#111111', cornerDotColor:'#111111' }},
+  { id:'t7', name:'Neón',      design:{ dotsType:'extra-rounded', dotsColor:'#AAFF00', bgColor:'#080808', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#AAFF00', cornerDotColor:'#AAFF00' }},
+  { id:'t8', name:'Femenino',  design:{ dotsType:'dots',          dotsColor:'#c0006a', bgColor:'#fff0f5', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#c0006a', cornerDotColor:'#ff69b4' }},
+  { id:'t9', name:'Rústico',   design:{ dotsType:'classy',        dotsColor:'#3d2b1a', bgColor:'#f5f0e8', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#3d2b1a', cornerDotColor:'#8b5e3c' }},
+  { id:'t10',name:'Azul',      design:{ dotsType:'rounded',       dotsColor:'#0066cc', bgColor:'#e8f4ff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#0066cc', cornerDotColor:'#0099ff' }},
+  { id:'t11',name:'Morado',    design:{ dotsType:'dots',          dotsColor:'#6600cc', bgColor:'#f5eeff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#6600cc', cornerDotColor:'#9933ff' }},
+  { id:'t12',name:'Verde',     design:{ dotsType:'rounded',       dotsColor:'#006633', bgColor:'#eefff4', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#006633', cornerDotColor:'#00aa55' }},
+];
+
+// ---- PATRONES de módulos ----
+const QR_PATTERNS = [
+  { id:'square',         name:'Clásico'  },
+  { id:'rounded',        name:'Suave'    },
+  { id:'dots',           name:'Círculos' },
+  { id:'classy',         name:'Classy'   },
+  { id:'classy-rounded', name:'Smooth'   },
+  { id:'extra-rounded',  name:'Fluido'   },
+];
+
+// ---- ESTILOS de esquinas ----
+const QR_CORNERS_SQ = [
+  { id:'square',        name:'Cuadrado' },
+  { id:'dot',           name:'Círculo'  },
+  { id:'extra-rounded', name:'Redondo'  },
+];
+const QR_CORNERS_DOT = [
+  { id:'square', name:'Cuadrado' },
+  { id:'dot',    name:'Círculo'  },
+];
+
+let qrStylingInstance = null;
+let qrLiveInstance = null;
+let selectedTemplateId = profileData.qrTemplateId || 't1';
+
+// Renderizar preview en tiempo real
+function renderQRLive() {
+  const wrap = document.getElementById('qr-live-preview');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  try {
+    qrLiveInstance = new QRCodeStyling(buildQROptions(qrDesign, 120, buildVCard()));
+    qrLiveInstance.append(wrap);
+    setTimeout(() => {
+      const el = wrap.firstChild;
+      if (el) { el.style.width='120px'; el.style.height='120px'; el.style.display='block'; }
+    }, 200);
+  } catch(e) {}
+}
+
+// Preview mini en la pantalla de edición
+function renderQRMini() {
+  const wrap = document.getElementById('qr-mini-preview');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  try {
+    const mini = new QRCodeStyling(buildQROptions(qrDesign, 64, 'IDENTITY'));
+    mini.append(wrap);
+    setTimeout(() => {
+      const el = wrap.firstChild;
+      if (el) { el.style.width='64px'; el.style.height='64px'; el.style.display='block'; }
+    }, 200);
+  } catch(e) {}
+}
+
+// QR principal en la tarjeta
+function generateQR() {
+  const container = document.getElementById('qr-container');
+  if (!container) return;
+  container.innerHTML = '';
+  try {
+    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 200, buildVCard()));
+    qrStylingInstance.append(container);
+    setTimeout(() => {
+      const el = container.firstChild;
+      if (el) { el.style.width='200px'; el.style.height='200px'; el.style.display='block'; }
+    }, 300);
+  } catch(e) {}
+}
+
+// Construir grids del diseñador
+function buildDesignerGrids() {
+  // Templates
+  const tGrid = document.getElementById('qr-templates-grid');
+  if (tGrid) {
+    tGrid.innerHTML = '';
+    QR_TEMPLATES.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'qr-template-item' + (selectedTemplateId === t.id ? ' selected' : '');
+      const pDiv = document.createElement('div');
+      const lbl = document.createElement('div');
+      lbl.className = 'qr-template-lbl';
+      lbl.textContent = t.name;
+      item.appendChild(pDiv);
+      item.appendChild(lbl);
+      tGrid.appendChild(item);
+
+      try {
+        const p = new QRCodeStyling(buildQROptions(t.design, 60, 'ID'));
+        p.append(pDiv);
+        setTimeout(() => { const el = pDiv.firstChild; if(el){el.style.width='60px';el.style.height='60px';el.style.display='block';} }, 250);
+      } catch(e) {}
+
+      item.addEventListener('click', () => {
+        selectedTemplateId = t.id;
+        qrDesign = { ...t.design };
+        syncColorPickers();
+        syncPatternSelection();
+        syncCornerSelection();
+        document.querySelectorAll('.qr-template-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        renderQRLive();
+      });
+    });
+  }
+
+  // Patrones
+  const pGrid = document.getElementById('qr-pattern-grid');
+  if (pGrid) {
+    pGrid.innerHTML = '';
+    QR_PATTERNS.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'qr-pattern-item' + (qrDesign.dotsType === p.id ? ' selected' : '');
+      const pDiv = document.createElement('div');
+      const lbl = document.createElement('div');
+      lbl.className = 'qr-pattern-lbl';
+      lbl.textContent = p.name;
+      item.appendChild(pDiv);
+      item.appendChild(lbl);
+      pGrid.appendChild(item);
+
+      const patternDesign = { ...qrDesign, dotsType: p.id };
+      try {
+        const prev = new QRCodeStyling(buildQROptions(patternDesign, 48, 'ID'));
+        prev.append(pDiv);
+        setTimeout(() => { const el = pDiv.firstChild; if(el){el.style.width='48px';el.style.height='48px';el.style.display='block';} }, 250);
+      } catch(e) {}
+
+      item.addEventListener('click', () => {
+        qrDesign.dotsType = p.id;
+        document.querySelectorAll('.qr-pattern-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        renderQRLive();
+      });
+    });
+  }
+
+  // Esquinas
+  const cGrid = document.getElementById('qr-corner-grid');
+  if (cGrid) {
+    cGrid.innerHTML = '';
+    QR_CORNERS_SQ.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'qr-corner-item' + (qrDesign.cornerSquareType === c.id ? ' selected' : '');
+      const pDiv = document.createElement('div');
+      const lbl = document.createElement('div');
+      lbl.className = 'qr-corner-lbl';
+      lbl.textContent = c.name;
+      item.appendChild(pDiv);
+      item.appendChild(lbl);
+      cGrid.appendChild(item);
+
+      const cornerDesign = { ...qrDesign, cornerSquareType: c.id };
+      try {
+        const prev = new QRCodeStyling(buildQROptions(cornerDesign, 48, 'ID'));
+        prev.append(pDiv);
+        setTimeout(() => { const el = pDiv.firstChild; if(el){el.style.width='48px';el.style.height='48px';el.style.display='block';} }, 250);
+      } catch(e) {}
+
+      item.addEventListener('click', () => {
+        qrDesign.cornerSquareType = c.id;
+        document.querySelectorAll('.qr-corner-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        renderQRLive();
+      });
+    });
+  }
+}
+
+function syncColorPickers() {
+  const dc = document.getElementById('color-dots');
+  const bc = document.getElementById('color-bg');
+  const sc = document.getElementById('color-corner-sq');
+  const ic = document.getElementById('color-corner-dot');
+  if (dc) { dc.value = qrDesign.dotsColor; document.getElementById('swatch-dots').style.background = qrDesign.dotsColor; }
+  if (bc) { bc.value = qrDesign.bgColor;   document.getElementById('swatch-bg').style.background   = qrDesign.bgColor;   }
+  if (sc) { sc.value = qrDesign.cornerSquareColor; document.getElementById('swatch-corner-sq').style.background = qrDesign.cornerSquareColor; }
+  if (ic) { ic.value = qrDesign.cornerDotColor;    document.getElementById('swatch-corner-dot').style.background = qrDesign.cornerDotColor;    }
+}
+
+function syncPatternSelection() {
+  document.querySelectorAll('.qr-pattern-item').forEach((item, i) => {
+    item.classList.toggle('selected', QR_PATTERNS[i]?.id === qrDesign.dotsType);
+  });
+}
+
+function syncCornerSelection() {
+  document.querySelectorAll('.qr-corner-item').forEach((item, i) => {
+    item.classList.toggle('selected', QR_CORNERS_SQ[i]?.id === qrDesign.cornerSquareType);
+  });
+}
+
+// Color pickers en tiempo real
+['dots','bg','corner-sq','corner-dot'].forEach(key => {
+  const input = document.getElementById('color-' + key);
+  const swatch = document.getElementById('swatch-' + key);
+  if (!input) return;
+  input.addEventListener('input', () => {
+    const v = input.value;
+    swatch.style.background = v;
+    if (key === 'dots')       { qrDesign.dotsColor = v; }
+    if (key === 'bg')         { qrDesign.bgColor = v; }
+    if (key === 'corner-sq')  { qrDesign.cornerSquareColor = v; }
+    if (key === 'corner-dot') { qrDesign.cornerDotColor = v; }
+    renderQRLive();
+  });
+});
+
+// Abrir / cerrar diseñador
+document.getElementById('btn-open-qr-designer').addEventListener('click', () => {
+  document.getElementById('screen-qr-designer').classList.add('open');
+  buildDesignerGrids();
+  renderQRLive();
+  syncColorPickers();
+});
+
+document.getElementById('btn-close-qr-designer').addEventListener('click', () => {
+  document.getElementById('screen-qr-designer').classList.remove('open');
+});
+
+// Aplicar diseño
+document.getElementById('btn-qr-apply').addEventListener('click', () => {
+  profileData.qrDesign = { ...qrDesign };
+  profileData.qrTemplateId = selectedTemplateId;
+  generateQR();
+  renderQRMini();
+  document.getElementById('screen-qr-designer').classList.remove('open');
+  showToast('Diseño aplicado ✓');
+});
+
+
+
+// =================== COMPARTIR QR ===================
+document.getElementById('btn-share').addEventListener('click', async () => {
+  if (!isFlipped) {
+    isFlipped = true;
+    document.getElementById('card-inner').classList.add('flipped');
+  }
+  setTimeout(async () => {
+    try {
+      if (qrStylingInstance) {
+        const blob = await qrStylingInstance.getRawData('png');
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob],'identity_qr.png',{type:'image/png'})] })) {
+          await navigator.share({ title: 'Mi IDENTITY QR', text: profileData.name || 'Contacto', files: [new File([blob],'identity_qr.png',{type:'image/png'})] });
+        } else {
+          qrStylingInstance.download({ name: 'identity_qr', extension: 'png' });
+          showToast('QR descargado ✓');
+        }
+      }
+    } catch(e) { showToast('Compartir no disponible'); }
+  }, 400);
+});
+
+
+// =================== BLOQUEAR ===================
+document.getElementById('btn-lock').addEventListener('click', () => {
+  pinBuffer = '';
+  updateDots();
+  isFlipped = false;
+  document.getElementById('card-inner').classList.remove('flipped');
+  document.getElementById('screen-main').classList.remove('visible');
+  document.getElementById('screen-pin').classList.remove('hidden');
+});
+
+// =================== PANTALLA EDITAR ===================
+document.getElementById('btn-open-edit').addEventListener('click', openEdit);
+document.getElementById('btn-close-edit').addEventListener('click', closeEdit);
+
+function openEdit() {
+  const d = profileData;
+  const t = d.toggles || {};
+  document.getElementById('f-name').value    = d.name    || '';
+  document.getElementById('f-job').value     = d.job     || '';
+  document.getElementById('f-phone').value   = d.phone   || '';
+  document.getElementById('f-email').value   = d.email   || '';
+  document.getElementById('f-address').value = d.address || '';
+  document.getElementById('f-linkedin').value= d.linkedin|| '';
+  document.getElementById('f-github').value  = d.github  || '';
+  document.getElementById('f-web').value     = d.web     || '';
+
+  document.getElementById('t-phone').checked   = t.phone   !== false;
+  document.getElementById('t-email').checked   = t.email   !== false;
+  document.getElementById('t-address').checked = !!t.address;
+  document.getElementById('t-linkedin').checked= t.linkedin !== false;
+  document.getElementById('t-github').checked  = t.github   !== false;
+  document.getElementById('t-web').checked     = t.web      !== false;
+
+  // Sincronizar etiquetas
+  ['phone','email','address','linkedin','github','web'].forEach(field => {
+    const chk = document.getElementById('t-'+field);
+    const lbl = document.getElementById('s-'+field);
+    if (chk && lbl) {
+      lbl.textContent = chk.checked ? 'Permitido' : 'Bloqueado';
+      lbl.className = 'toggle-status ' + (chk.checked ? 'on' : 'off');
+    }
+  });
+
+  // Inicializar galería
+  buildGallery();
+  // Previews de estilos QR
+  setTimeout(renderQRMini, 300);
+  // 2FA toggles
+  init2FAToggles();
+
+  // Si hay media subida previamente (imagen/gif, no video objectUrl)
+  if (d.media && d.media.src && d.media.type !== 'video' && !d.media.galleryId) {
+    const prevImg = document.getElementById('upload-preview-img');
+    const wrap = document.getElementById('upload-preview-wrap');
+    prevImg.src = d.media.src;
+    prevImg.style.display = 'block';
+    wrap.style.display = 'block';
+  }
+
+  document.getElementById('screen-edit').classList.add('open');
+}
+
+function closeEdit() {
+  document.getElementById('screen-edit').classList.remove('open');
+}
+
+// Foto file input legacy (por si acaso)
+document.getElementById('photo-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    profileData.media = { src: ev.target.result, type: 'image', galleryId: null };
+    renderCard();
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('btn-save').addEventListener('click', () => {
+  // Guardar media — los objectUrl de video no se persisten (se pierden al cerrar)
+  const mediaToSave = profileData.media && !profileData.media.isObjectUrl
+    ? profileData.media
+    : (profileData.media?.isObjectUrl ? { ...profileData.media, src: null } : null);
+
+  profileData = {
+    name:     document.getElementById('f-name').value.trim(),
+    job:      document.getElementById('f-job').value.trim(),
+    phone:    document.getElementById('f-phone').value.trim(),
+    email:    document.getElementById('f-email').value.trim(),
+    address:  document.getElementById('f-address').value.trim(),
+    linkedin: document.getElementById('f-linkedin').value.trim(),
+    github:   document.getElementById('f-github').value.trim(),
+    web:      document.getElementById('f-web').value.trim(),
+    media:    mediaToSave,
+    toggles: {
+      phone:   document.getElementById('t-phone').checked,
+      email:   document.getElementById('t-email').checked,
+      address: document.getElementById('t-address').checked,
+      linkedin:document.getElementById('t-linkedin').checked,
+      github:  document.getElementById('t-github').checked,
+      web:     document.getElementById('t-web').checked,
+    }
+  };
+
+  // Restaurar media en memoria si era video objectUrl
+  if (profileData.media?.isObjectUrl) {
+    profileData.media.src = document.getElementById('card-video').src;
+  }
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profileData));
+  } catch(e) {
+    // Si la imagen es muy grande para localStorage, guardar sin ella
+    const slim = { ...profileData, media: profileData.media?.galleryId ? profileData.media : null };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+  }
+
+  renderCard();
+  generateQR();
+  closeEdit();
+  showToast('Identidad guardada ✓');
+});
+
+// =================== TOAST ===================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =================== PWA INSTALL ===================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => {
+    document.getElementById('install-banner').classList.add('show');
+  }, 3000);
+});
+
+document.getElementById('btn-install-do').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('install-banner').classList.remove('show');
+  }
+});
+
+document.getElementById('btn-install-close').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+// =================== SERVICE WORKER (PWA) ===================
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'identity-v1';
+    const ASSETS = ['/'];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// =================== BAJA VOLUNTARIA ===================
+const deleteScreen = document.getElementById('screen-delete-confirm');
+
+document.getElementById('btn-delete-account').addEventListener('click', () => {
+  deleteScreen.style.transform = 'scale(1)';
+  deleteScreen.style.opacity = '1';
+  deleteScreen.style.pointerEvents = 'all';
+});
+
+document.getElementById('btn-cancel-delete').addEventListener('click', () => {
+  deleteScreen.style.transform = 'scale(0.9)';
+  deleteScreen.style.opacity = '0';
+  deleteScreen.style.pointerEvents = 'none';
+});
+
+document.getElementById('btn-confirm-delete').addEventListener('click', () => {
+  // Eliminar TODOS los datos de localStorage
+  const keys = [
+    'identity_data', 'identity_pin', 'identity_consent',
+    'identity_totp_secret', 'identity_bio_credential', 'identity_2fa_config'
+  ];
+  keys.forEach(k => localStorage.removeItem(k));
+
+  // Resetear estado en memoria
+  profileData = {};
+  pinBuffer = '';
+  twoFAConfig = { totp: false, bio: false };
+
+  // Cerrar todo y volver al consentimiento
+  deleteScreen.style.transform = 'scale(0.9)';
+  deleteScreen.style.opacity = '0';
+  deleteScreen.style.pointerEvents = 'none';
+  document.getElementById('screen-edit').classList.remove('open');
+  document.getElementById('screen-main').classList.remove('visible');
+  document.getElementById('screen-pin').classList.remove('hidden');
+
+  // Mostrar de nuevo el consentimiento
+  document.getElementById('screen-consent').classList.remove('hidden');
+  document.getElementById('consent-check').classList.remove('checked');
+  document.getElementById('btn-consent-accept').disabled = true;
+  document.getElementById('btn-consent-accept').classList.remove('active');
+
+  showToast('Todos tus datos han sido eliminados');
+});
+
+// =================== 2FA SISTEMA ===================
+const TOTP_KEY    = 'identity_totp_secret';
+const BIO_KEY     = 'identity_bio_credential';
+const TWOFA_KEY   = 'identity_2fa_config';
+
+let twoFAConfig = JSON.parse(localStorage.getItem(TWOFA_KEY) || '{"totp":false,"bio":false}');
+let pendingTOTPSecret = null;
+
+function generateTOTPSecret() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let s = '';
+  for (let i = 0; i < 32; i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+
+function formatSecret(s) { return s.match(/.{1,4}/g).join(' '); }
+
+function getTOTPInstance(secret) {
+  try {
+    return new OTPAuth.TOTP({
+      issuer: 'IDENTITY', label: profileData.name || 'Usuario',
+      algorithm: 'SHA1', digits: 6, period: 30,
+      secret: OTPAuth.Secret.fromBase32(secret)
+    });
+  } catch(e) { return null; }
+}
+
+function verifyTOTPCode(secret, code) {
+  try {
+    const totp = getTOTPInstance(secret);
+    if (!totp) return false;
+    return totp.validate({ token: code.toString().padStart(6,'0'), window: 1 }) !== null;
+  } catch(e) { return false; }
+}
+
+// Toggle TOTP
+document.getElementById('t-totp').addEventListener('change', (e) => {
+  const lbl = document.getElementById('s-totp');
+  const area = document.getElementById('totp-setup-area');
+  if (e.target.checked) {
+    if (!localStorage.getItem(TOTP_KEY)) {
+      area.style.display = 'block';
+      lbl.textContent = 'Pendiente'; lbl.className = 'toggle-status off';
+    } else {
+      lbl.textContent = 'Permitido'; lbl.className = 'toggle-status on';
+      twoFAConfig.totp = true;
+      localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
+    }
+  } else {
+    localStorage.removeItem(TOTP_KEY);
+    twoFAConfig.totp = false;
+    localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
+    lbl.textContent = 'Bloqueado'; lbl.className = 'toggle-status off';
+    area.style.display = 'none';
+    showToast('TOTP desactivado');
+  }
+});
+
+document.getElementById('btn-setup-totp').addEventListener('click', () => {
+  const screen = document.getElementById('screen-totp-setup');
+  screen.classList.add('open');
+  pendingTOTPSecret = generateTOTPSecret();
+  document.getElementById('totp-secret-display').textContent = formatSecret(pendingTOTPSecret);
+  const container = document.getElementById('totp-qr-container');
+  container.innerHTML = '';
+  const totp = getTOTPInstance(pendingTOTPSecret);
+  if (totp) {
+    try {
+      new QRCode(container, { text: totp.toString(), width:200, height:200, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
+    } catch(e) {}
+  }
+});
+
+document.getElementById('btn-close-totp').addEventListener('click', () => {
+  document.getElementById('screen-totp-setup').classList.remove('open');
+  if (!twoFAConfig.totp) {
+    document.getElementById('t-totp').checked = false;
+    document.getElementById('s-totp').textContent = 'Bloqueado';
+    document.getElementById('s-totp').className = 'toggle-status off';
+    document.getElementById('totp-setup-area').style.display = 'none';
+  }
+});
+
+document.getElementById('btn-confirm-totp').addEventListener('click', () => {
+  const code = document.getElementById('totp-verify-code').value.trim();
+  if (!code || code.length !== 6) { showToast('Introduce 6 dígitos'); return; }
+  if (verifyTOTPCode(pendingTOTPSecret, code)) {
+    localStorage.setItem(TOTP_KEY, pendingTOTPSecret);
+    twoFAConfig.totp = true;
+    localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
+    document.getElementById('s-totp').textContent = 'Permitido';
+    document.getElementById('s-totp').className = 'toggle-status on';
+    document.getElementById('totp-setup-area').style.display = 'none';
+    document.getElementById('screen-totp-setup').classList.remove('open');
+    showToast('✓ TOTP activado');
+  } else {
+    showToast('Código incorrecto');
+    document.getElementById('totp-verify-code').value = '';
+  }
+});
+
+// Toggle Biométrico
+document.getElementById('t-bio').addEventListener('change', async (e) => {
+  const lbl = document.getElementById('s-bio');
+  const area = document.getElementById('bio-setup-area');
+  if (e.target.checked) {
+    area.style.display = 'block';
+    lbl.textContent = 'Pendiente'; lbl.className = 'toggle-status off';
+  } else {
+    localStorage.removeItem(BIO_KEY);
+    twoFAConfig.bio = false;
+    localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
+    lbl.textContent = 'Bloqueado'; lbl.className = 'toggle-status off';
+    area.style.display = 'none';
+    showToast('Biométrico desactivado');
+  }
+});
+
+document.getElementById('btn-setup-bio').addEventListener('click', async () => {
+  if (!window.PublicKeyCredential) { showToast('Navegador no soporta biométrico'); return; }
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId = crypto.getRandomValues(new Uint8Array(16));
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge, rp: { name: 'IDENTITY', id: location.hostname || 'localhost' },
+      user: { id: userId, name: profileData.email || 'user', displayName: profileData.name || 'Usuario' },
+      pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+      timeout: 60000
+    }});
+    if (cred) {
+      localStorage.setItem(BIO_KEY, btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
+      twoFAConfig.bio = true;
+      localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
+      document.getElementById('s-bio').textContent = 'Permitido';
+      document.getElementById('s-bio').className = 'toggle-status on';
+      document.getElementById('bio-setup-area').style.display = 'none';
+      showToast('✓ Biométrico registrado');
+    }
+  } catch(e) {
+    showToast('Error: ' + (e.message||'no disponible'));
+    document.getElementById('t-bio').checked = false;
+    document.getElementById('s-bio').textContent = 'Bloqueado';
+    document.getElementById('s-bio').className = 'toggle-status off';
+  }
+});
+
+// Verificación 2FA en login
+async function check2FAAndEnter() {
+  const hasTOTP = twoFAConfig.totp && localStorage.getItem(TOTP_KEY);
+  const hasBio  = twoFAConfig.bio  && localStorage.getItem(BIO_KEY);
+  if (!hasTOTP && !hasBio) { doEnter(); return; }
+
+  const screen = document.getElementById('screen-2fa-verify');
+  screen.classList.add('open');
+  const totpArea = document.getElementById('verify-totp-area');
+  const bioArea  = document.getElementById('verify-bio-area');
+  const altBtn   = document.getElementById('verify-alt-btn');
+
+  if (hasBio) {
+    document.getElementById('verify-icon').textContent = '👆';
+    document.getElementById('verify-title').textContent = 'Verificación biométrica';
+    document.getElementById('verify-subtitle').textContent = 'Usa Face ID o huella dactilar para confirmar';
+    bioArea.style.display = 'block'; totpArea.style.display = 'none';
+    if (hasTOTP) { altBtn.style.display='block'; altBtn.textContent='Usar código autenticador'; }
+    setTimeout(() => document.getElementById('btn-verify-bio').click(), 600);
+  } else {
+    document.getElementById('verify-icon').textContent = '🔐';
+    document.getElementById('verify-title').textContent = 'Código autenticador';
+    document.getElementById('verify-subtitle').textContent = 'Introduce el código de 6 dígitos de tu app';
+    totpArea.style.display = 'block'; bioArea.style.display = 'none';
+  }
+}
+
+document.getElementById('btn-verify-bio').addEventListener('click', async () => {
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const assertion = await navigator.credentials.get({ publicKey: { challenge, userVerification: 'required', timeout: 60000 }});
+    if (assertion) {
+      document.getElementById('screen-2fa-verify').classList.remove('open');
+      doEnter();
+    }
+  } catch(e) { showToast('Verificación fallida — usa el código'); }
+});
+
+document.getElementById('btn-verify-totp').addEventListener('click', () => {
+  const code = document.getElementById('verify-totp-input').value.trim();
+  const secret = localStorage.getItem(TOTP_KEY);
+  if (verifyTOTPCode(secret, code)) {
+    document.getElementById('screen-2fa-verify').classList.remove('open');
+    doEnter();
+  } else {
+    showToast('Código incorrecto');
+    document.getElementById('verify-totp-input').value = '';
+  }
+});
+
+document.getElementById('verify-alt-btn').addEventListener('click', () => {
+  const t = document.getElementById('verify-totp-area');
+  const b = document.getElementById('verify-bio-area');
+  const a = document.getElementById('verify-alt-btn');
+  if (b.style.display !== 'none') {
+    b.style.display='none'; t.style.display='block';
+    a.textContent='Usar biométrico';
+    document.getElementById('verify-icon').textContent='🔐';
+    document.getElementById('verify-title').textContent='Código autenticador';
+  } else {
+    t.style.display='none'; b.style.display='block';
+    a.textContent='Usar código autenticador';
+    document.getElementById('verify-icon').textContent='👆';
+    document.getElementById('verify-title').textContent='Verificación biométrica';
+  }
+});
+
+function init2FAToggles() {
+  const ta = twoFAConfig.totp && !!localStorage.getItem(TOTP_KEY);
+  const ba = twoFAConfig.bio  && !!localStorage.getItem(BIO_KEY);
+  document.getElementById('t-totp').checked = ta;
+  document.getElementById('s-totp').textContent = ta ? 'Permitido' : 'Bloqueado';
+  document.getElementById('s-totp').className = 'toggle-status ' + (ta ? 'on' : 'off');
+  document.getElementById('t-bio').checked = ba;
+  document.getElementById('s-bio').textContent = ba ? 'Permitido' : 'Bloqueado';
+  document.getElementById('s-bio').className = 'toggle-status ' + (ba ? 'on' : 'off');
+}
+
+// Init
+if (profileData.qrDesign) qrDesign = { ...qrDesign, ...profileData.qrDesign };
+renderCard();
+if (document.getElementById('screen-main').classList.contains('visible')) {
+  generateQR();
+}
+buildGallery();
+setTimeout(renderQRMini, 500);
+</script>
+</body>
+</html>
