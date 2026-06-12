@@ -378,7 +378,7 @@
     height: 100%;
     transform-style: preserve-3d;
     transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 24px;
+    border-radius: 16px;
   }
 
   .card-inner.flipped {
@@ -390,9 +390,15 @@
     inset: 0;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    border-radius: 24px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.2);
+    border: 2px solid var(--green);
+    /* Glow exterior verde + sombra multicapa profunda y dramática */
+    box-shadow:
+      0 0 20px rgba(170,255,0,0.4),
+      0 30px 80px rgba(0,0,0,0.75),
+      0 14px 36px rgba(0,0,0,0.55),
+      0 5px 14px rgba(0,0,0,0.45);
   }
 
   /* FRENTE: foto del usuario */
@@ -426,7 +432,8 @@
   .card-front-info {
     width: 100%;
     height: 25%;
-    background: #0a0a0a;
+    background: #000;
+    border-top: 1px solid var(--green);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -438,8 +445,9 @@
   .card-front-name {
     font-family: 'Inter', sans-serif;
     font-size: clamp(15px, 4vw, 18px);
-    font-weight: 500;
-    color: var(--green);
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.45);
     text-align: center;
     line-height: 1.2;
     letter-spacing: 0.5px;
