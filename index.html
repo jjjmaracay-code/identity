@@ -6,7 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="IDENTITY">
-<meta name="theme-color" content="#080808">
+<meta name="theme-color" content="#aaff00">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-512.png">
 <title>IDENTITY</title>
 
 <style>
@@ -4712,6 +4714,17 @@ if (document.readyState === 'loading') {
     </div>
   </div>
 </div>
+
+<!-- Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(r => console.log('SW registrado'))
+      .catch(e => console.log('SW error', e));
+  });
+}
+</script>
 
 <!-- =================== MODAL IMPORTADOR =================== -->
 <div id="import-modal">
