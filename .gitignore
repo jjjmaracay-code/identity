@@ -1,0 +1,4 @@
+node_modules/
+gen-icons.js
+package.json
+package-lock.json

@@ -1,11 +1,11 @@
 const CACHE_NAME = 'identity-v1';
 const CACHE_URLS = [
-  '/identity/index.html',
-  '/identity/register.html',
-  '/identity/recovery.html',
-  '/identity/manifest.json',
-  '/identity/icons/icon-192.png',
-  '/identity/icons/icon-512.png',
+  './index.html',
+  './register.html',
+  './recovery.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
 ];
 
 self.addEventListener('install', event => {
