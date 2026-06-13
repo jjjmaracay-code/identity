@@ -640,6 +640,44 @@
     letter-spacing: 1px;
     margin-bottom: 32px;
   }
+
+  /* =================== TOUR INTERACTIVO =================== */
+  .tour-overlay { display:none; position:fixed; inset:0; z-index:9999; }
+  .tour-overlay.active { display:block; }
+  .tour-spotlight {
+    position:fixed; border-radius:12px; pointer-events:none; z-index:10000;
+    animation:tour-glow 2s ease-in-out infinite;
+    transition:left .3s ease,top .3s ease,width .3s ease,height .3s ease;
+  }
+  @keyframes tour-glow {
+    0%,100% { box-shadow:0 0 0 9999px rgba(0,0,0,.62),0 0 0 2px #AAFF00,0 0 20px 6px rgba(170,255,0,.4); }
+    50%      { box-shadow:0 0 0 9999px rgba(0,0,0,.62),0 0 0 2px #AAFF00,0 0 34px 14px rgba(170,255,0,.7); }
+  }
+  .tour-bubble {
+    position:fixed; background:#1a1a1a; border:1px solid #AAFF00; border-radius:16px;
+    padding:20px; width:300px; max-width:90vw; z-index:10001; font-family:'Inter',sans-serif;
+    transition:opacity .3s ease,transform .3s ease;
+  }
+  .tour-bubble.out { opacity:0; transform:translateY(8px); pointer-events:none; }
+  .tour-step-num { color:#AAFF00; font-size:11px; font-weight:700; letter-spacing:2px; margin-bottom:10px; }
+  .tour-msg { color:#fff; font-size:14px; line-height:1.55; margin-bottom:18px; }
+  .tour-actions { display:flex; gap:10px; justify-content:flex-end; align-items:center; }
+  .tour-btn-skip {
+    background:none; border:1px solid rgba(255,255,255,.2); border-radius:8px;
+    color:rgba(255,255,255,.45); font-size:12px; padding:7px 12px; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .tour-btn-next {
+    background:#AAFF00; border:none; border-radius:8px; color:#000;
+    font-size:12px; font-weight:700; padding:7px 16px; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  @media (max-width:480px) {
+    .tour-bubble {
+      left:5% !important; right:auto !important;
+      bottom:20px !important; top:auto !important; width:90% !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -666,7 +704,7 @@
   <!-- =================== PASO 1 =================== -->
   <div class="screen active" id="screen-1">
 
-    <div class="form-card">
+    <div class="form-card" id="personal-fields-card">
       <div class="form-card-title">Identificación personal</div>
 
       <div class="field-wrap">
@@ -707,7 +745,7 @@
       <div class="pin-validation" id="pwd1-hint">Introduce 4 números, 1 letra y 1 símbolo</div>
 
       <!-- Teclado numérico -->
-      <div class="pin-keypad">
+      <div class="pin-keypad" id="pwd1-keypad">
         <button class="key-btn" data-pwd="1" data-val="1">1</button>
         <button class="key-btn" data-pwd="1" data-val="2">2</button>
         <button class="key-btn" data-pwd="1" data-val="3">3</button>
@@ -800,7 +838,7 @@
       <button class="resend-btn" id="btn-resend" disabled>Reenviar código</button>
 
       <!-- Teclado numérico para código -->
-      <div class="pin-keypad">
+      <div class="pin-keypad" id="code-keypad">
         <button class="key-btn" data-code="1">1</button>
         <button class="key-btn" data-code="2">2</button>
         <button class="key-btn" data-code="3">3</button>
@@ -810,7 +848,7 @@
         <button class="key-btn" data-code="7">7</button>
         <button class="key-btn" data-code="8">8</button>
         <button class="key-btn" data-code="9">9</button>
-        <button class="key-btn empty"></button>
+        <button class="key-btn" id="clr-code">CLR</button>
         <button class="key-btn" data-code="0">0</button>
         <button class="key-btn del" id="del-code">⌫</button>
       </div>
@@ -833,7 +871,7 @@
       <div class="pin-validation" id="pwd2-hint">Confirma tu contraseña maestra</div>
 
       <!-- Teclado numérico -->
-      <div class="pin-keypad">
+      <div class="pin-keypad" id="pwd2-keypad">
         <button class="key-btn" data-pwd="2" data-val="1">1</button>
         <button class="key-btn" data-pwd="2" data-val="2">2</button>
         <button class="key-btn" data-pwd="2" data-val="3">3</button>
@@ -1063,6 +1101,12 @@ document.getElementById('del-code').addEventListener('click', () => {
   checkStep2Ready();
 });
 
+document.getElementById('clr-code').addEventListener('click', () => {
+  codeBuffer = '';
+  updateCodeDisplay();
+  checkStep2Ready();
+});
+
 function updateCodeDisplay() {
   for (let i = 0; i < 6; i++) {
     const el = document.getElementById('c' + i);
@@ -1182,6 +1226,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
 
     startTimer();
     showToast('Código enviado a ' + email);
+    window.regTour?.onScreen2();
 
   } catch(e) {
     console.error('EmailJS:', e.status, e.text);
@@ -1203,6 +1248,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     document.getElementById('step-label').textContent = 'Paso 2 de 2 — Verificación y confirmación';
     startTimer();
     showToast('Modo desarrollo — código en consola');
+    window.regTour?.onScreen2();
   }
 });
 
@@ -1311,6 +1357,136 @@ window.addEventListener('load', () => {
     window.location.href = 'index.html';
   }
 });
+
+// =================== TOUR INTERACTIVO (REGISTRO) ===================
+(function () {
+  const TOUR_KEY = 'identity_register_tour_done';
+  const STEPS = [
+    { sel: '#personal-fields-card', screen: '1',
+      msg: 'Introduce tus datos reales. Son la base de tu identidad digital y no se pueden cambiar después.' },
+    { sel: '#pwd1-keypad', screen: '1',
+      msg: 'Crea tu contraseña maestra: 4 números, 1 letra y 1 símbolo en cualquier orden.' },
+    { sel: '#code-keypad', screen: '2',
+      msg: 'Introduce el código de 6 dígitos que enviamos a tu correo. Expira en 10 minutos.' },
+    { sel: '#pwd2-keypad', screen: '2',
+      msg: 'Repite exactamente la misma contraseña que creaste antes. Sin errores.' },
+  ];
+  let step = 0;
+
+  function getEl(sel) {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    // Filtrar solo elementos fuera de pantalla en horizontal (paneles cerrados que se deslizan)
+    // No filtrar en vertical: los elementos pueden estar simplemente desplazados por scroll
+    if (r.right < 0 || r.left > innerWidth) return null;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return null;
+    return el;
+  }
+
+  function positionBubble(r) {
+    const b = document.getElementById('tour-bubble');
+    if (innerWidth <= 480) return;
+    const bw = 300, bh = 150, pad = 12;
+    let left = r.left + r.width / 2 - bw / 2;
+    left = Math.max(pad, Math.min(left, innerWidth - bw - pad));
+    let top = r.bottom + 16;
+    if (top + bh > innerHeight - pad) top = r.top - bh - 16;
+    if (top < pad) top = pad;
+    b.style.left   = left + 'px';
+    b.style.top    = top  + 'px';
+    b.style.bottom = 'auto';
+    b.style.width  = bw   + 'px';
+  }
+
+  function showStep(n) {
+    if (localStorage.getItem(TOUR_KEY)) return;
+    let i = n;
+    while (i < STEPS.length && !getEl(STEPS[i].sel)) i++;
+    if (i >= STEPS.length) { finish(); return; }
+    step = i;
+
+    const el  = getEl(STEPS[step].sel);
+    const pad = 8;
+    const r   = el.getBoundingClientRect();
+    const spot   = document.getElementById('tour-spotlight');
+    const bubble = document.getElementById('tour-bubble');
+
+    document.getElementById('tour-overlay').classList.add('active');
+    spot.style.cssText =
+      `left:${r.left-pad}px;top:${r.top-pad}px;` +
+      `width:${r.width+pad*2}px;height:${r.height+pad*2}px`;
+
+    document.getElementById('tour-step-num').textContent = `${step + 1} / ${STEPS.length}`;
+    document.getElementById('tour-msg').textContent       = STEPS[step].msg;
+    const hasMore = STEPS.slice(step + 1).some(s => !!getEl(s.sel));
+    document.getElementById('tour-btn-next').textContent  = hasMore ? 'Siguiente →' : '¡Empezar!';
+
+    bubble.classList.add('out');
+    setTimeout(() => {
+      positionBubble(r);
+      bubble.classList.remove('out');
+    }, 30);
+  }
+
+  function nextStep() {
+    const bubble = document.getElementById('tour-bubble');
+    bubble.classList.add('out');
+    setTimeout(() => {
+      const next = step + 1;
+      if (next >= STEPS.length) { finish(); return; }
+      const sameSc = STEPS[step].screen === STEPS[next].screen;
+      step = next;
+      if (sameSc) {
+        showStep(step);
+      } else {
+        document.getElementById('tour-overlay').classList.remove('active');
+      }
+    }, 300);
+  }
+
+  function finish() {
+    document.getElementById('tour-bubble').classList.add('out');
+    document.getElementById('tour-overlay').classList.remove('active');
+    localStorage.setItem(TOUR_KEY, '1');
+  }
+
+  // Exponer API antes de tocar el DOM (el HTML del tour se encuentra tras el cierre del script)
+  window.regTour = {
+    init()      { if (!localStorage.getItem(TOUR_KEY)) setTimeout(() => showStep(0), 900); },
+    onScreen2() { if (!localStorage.getItem(TOUR_KEY) && STEPS[step]?.screen === '2') setTimeout(() => showStep(step), 500); },
+  };
+
+  function _regTourSetup() {
+    const btnNext = document.getElementById('tour-btn-next');
+    const btnSkip = document.getElementById('tour-btn-skip');
+    if (btnNext) btnNext.addEventListener('click', nextStep);
+    if (btnSkip) btnSkip.addEventListener('click', finish);
+    window.regTour.init();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _regTourSetup);
+  } else {
+    _regTourSetup();
+  }
+})();
 </script>
+
+<!-- =================== TOUR INTERACTIVO =================== -->
+<div class="tour-overlay" id="tour-overlay">
+  <div class="tour-spotlight" id="tour-spotlight"></div>
+  <div class="tour-bubble out" id="tour-bubble">
+    <div class="tour-step-num" id="tour-step-num">1 / 4</div>
+    <div class="tour-msg" id="tour-msg"></div>
+    <div class="tour-actions">
+      <button class="tour-btn-skip" id="tour-btn-skip">Saltar tour</button>
+      <button class="tour-btn-next" id="tour-btn-next">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
