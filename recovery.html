@@ -568,7 +568,7 @@
         <button class="key-btn" data-target="backup" data-val="7">7</button>
         <button class="key-btn" data-target="backup" data-val="8">8</button>
         <button class="key-btn" data-target="backup" data-val="9">9</button>
-        <button class="key-btn empty"></button>
+        <button class="key-btn" id="clr-backup">CLR</button>
         <button class="key-btn" data-target="backup" data-val="0">0</button>
         <button class="key-btn del" id="del-backup">⌫</button>
       </div>
@@ -613,7 +613,7 @@
         <button class="key-btn green-key" data-target="temp" data-val="7">7</button>
         <button class="key-btn green-key" data-target="temp" data-val="8">8</button>
         <button class="key-btn green-key" data-target="temp" data-val="9">9</button>
-        <button class="key-btn green-key empty"></button>
+        <button class="key-btn green-key" id="clr-temp">CLR</button>
         <button class="key-btn green-key" data-target="temp" data-val="0">0</button>
         <button class="key-btn del green-key" id="del-temp">⌫</button>
       </div>
@@ -655,7 +655,7 @@
         <button class="key-btn green-key" data-target="newpwd" data-val="7">7</button>
         <button class="key-btn green-key" data-target="newpwd" data-val="8">8</button>
         <button class="key-btn green-key" data-target="newpwd" data-val="9">9</button>
-        <button class="key-btn green-key empty"></button>
+        <button class="key-btn green-key" id="clr-newpwd">CLR</button>
         <button class="key-btn green-key" data-target="newpwd" data-val="0">0</button>
         <button class="key-btn del green-key" id="del-newpwd">⌫</button>
       </div>
@@ -785,6 +785,9 @@ document.querySelectorAll('.key-btn[data-target]').forEach(btn => {
 document.getElementById('del-backup').addEventListener('click', () => { backupBuffer = backupBuffer.slice(0,-1); updateDisplay('backup'); });
 document.getElementById('del-temp').addEventListener('click', () => { tempBuffer = tempBuffer.slice(0,-1); updateDisplay('temp'); });
 document.getElementById('del-newpwd').addEventListener('click', () => { newPwdBuffer = newPwdBuffer.slice(0,-1); updateDisplay('newpwd'); });
+document.getElementById('clr-backup').addEventListener('click', () => { backupBuffer = ''; updateDisplay('backup'); });
+document.getElementById('clr-temp').addEventListener('click', () => { tempBuffer = ''; updateDisplay('temp'); });
+document.getElementById('clr-newpwd').addEventListener('click', () => { newPwdBuffer = ''; updateDisplay('newpwd'); });
 
 // =================== UPDATE DISPLAYS ===================
 function updateDisplay(target) {
