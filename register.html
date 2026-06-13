@@ -642,7 +642,8 @@
   }
 
   /* =================== TOUR INTERACTIVO =================== */
-  .tour-overlay { display:none; position:fixed; inset:0; z-index:9999; }
+  /* El overlay es solo visual — no intercepta clicks */
+  .tour-overlay { display:none; position:fixed; inset:0; z-index:9999; pointer-events:none; }
   .tour-overlay.active { display:block; }
   .tour-spotlight {
     position:fixed; border-radius:12px; pointer-events:none; z-index:10000;
@@ -656,7 +657,7 @@
   .tour-bubble {
     position:fixed; background:#1a1a1a; border:1px solid #AAFF00; border-radius:16px;
     padding:20px; width:300px; max-width:90vw; z-index:10001; font-family:'Inter',sans-serif;
-    transition:opacity .3s ease,transform .3s ease;
+    transition:opacity .3s ease,transform .3s ease; pointer-events:auto;
   }
   .tour-bubble.out { opacity:0; transform:translateY(8px); pointer-events:none; }
   .tour-step-num { color:#AAFF00; font-size:11px; font-weight:700; letter-spacing:2px; margin-bottom:10px; }
@@ -1414,7 +1415,9 @@ window.addEventListener('load', () => {
     const spot   = document.getElementById('tour-spotlight');
     const bubble = document.getElementById('tour-bubble');
 
-    document.getElementById('tour-overlay').classList.add('active');
+    const tourOv = document.getElementById('tour-overlay');
+    tourOv.style.display = '';
+    tourOv.classList.add('active');
     spot.style.cssText =
       `left:${r.left-pad}px;top:${r.top-pad}px;` +
       `width:${r.width+pad*2}px;height:${r.height+pad*2}px`;
@@ -1442,14 +1445,18 @@ window.addEventListener('load', () => {
       if (sameSc) {
         showStep(step);
       } else {
-        document.getElementById('tour-overlay').classList.remove('active');
+        const ov = document.getElementById('tour-overlay');
+        ov.classList.remove('active');
+        ov.style.display = 'none';
       }
     }, 300);
   }
 
   function finish() {
+    const ov = document.getElementById('tour-overlay');
     document.getElementById('tour-bubble').classList.add('out');
-    document.getElementById('tour-overlay').classList.remove('active');
+    ov.classList.remove('active');
+    ov.style.display = 'none';
     localStorage.setItem(TOUR_KEY, '1');
   }
 
