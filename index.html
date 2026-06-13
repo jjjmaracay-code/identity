@@ -1086,6 +1086,37 @@
     opacity: 1;
   }
 
+  /* Toast de error — parte superior */
+  .error-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+    background: #1a0000;
+    border: 1px solid #ff4444;
+    border-radius: 12px;
+    padding: 14px 24px;
+    color: #ff6b6b;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 99999;
+    pointer-events: none;
+  }
+  .error-toast.show {
+    animation: error-toast-in 0.3s ease forwards;
+  }
+  .error-toast.hide {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  @keyframes error-toast-in {
+    from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0);     opacity: 1; }
+  }
+
   /* Install banner */
   .install-banner {
     position: fixed;
@@ -2627,6 +2658,8 @@
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+<!-- Toast de error (intentos fallidos) -->
+<div class="error-toast" id="error-toast"></div>
 
 <!-- Install Banner -->
 <div class="install-banner" id="install-banner">
@@ -2654,6 +2687,10 @@ if (!localStorage.getItem('identity_registration')) {
 if (parseInt(localStorage.getItem('identity_block_until') || '0', 10) > Date.now()) {
   window.location.replace('recovery.html');
   throw new Error('Cuenta bloqueada — redirigiendo a recuperación');
+}
+// Si el bloqueo expiró pero quedaron intentos acumulados, resetearlos
+if (parseInt(localStorage.getItem('identity_attempts') || '0', 10) >= 3) {
+  localStorage.setItem('identity_attempts', '0');
 }
 
 // =================== INDICADOR SCROLL CONSENT ===================
@@ -2839,15 +2876,20 @@ function handlePinInput(char) {
 }
 
 function pinError() {
-  // Contador de intentos fallidos: al tercero, bloquear 30 minutos y pasar a recuperación
-  const attempts = parseInt(localStorage.getItem('identity_failed_attempts') || '0', 10) + 1;
-  localStorage.setItem('identity_failed_attempts', String(attempts));
+  const attempts = parseInt(localStorage.getItem('identity_attempts') || '0', 10) + 1;
+  localStorage.setItem('identity_attempts', String(attempts));
+
   if (attempts >= 3) {
     localStorage.setItem('identity_block_until', String(Date.now() + 1800000));
-    localStorage.removeItem('identity_failed_attempts');
     window.location.href = 'recovery.html';
     return;
   }
+
+  const left = 3 - attempts;
+  const msg = left === 1
+    ? 'Contraseña incorrecta — te queda 1 intento'
+    : `Contraseña incorrecta — te quedan ${left} intentos`;
+  showErrorToast(msg);
 
   pinDots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
   pinHint.textContent = 'Contraseña incorrecta — inténtalo de nuevo';
@@ -2862,7 +2904,7 @@ function pinError() {
 }
 
 function pinSuccess() {
-  localStorage.setItem('identity_failed_attempts', '0');
+  localStorage.setItem('identity_attempts', '0');
   // Verificar 2FA antes de entrar
   check2FAAndEnter();
 }
@@ -3786,6 +3828,20 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function showErrorToast(msg) {
+  const t = document.getElementById('error-toast');
+  t.textContent = '⚠️ ' + msg;
+  t.classList.remove('hide', 'show');
+  // Forzar reflow para reiniciar la animación si se llama dos veces
+  void t.offsetWidth;
+  t.classList.add('show');
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => {
+    t.classList.add('hide');
+    setTimeout(() => t.classList.remove('show', 'hide'), 300);
+  }, 2500);
 }
 
 // =================== PWA INSTALL ===================
