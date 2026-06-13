@@ -891,8 +891,16 @@ async function sendTempCode() {
   const email = reg.email || '';
   const name  = reg.name  || 'Usuario';
   try {
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_name: name, to_email: email, code: tempCode, app_name: 'IDENTITY Recovery'
+    await emailjs.send(EMAILJS_SERVICE_ID, 'template_vone66l', {
+      to_name:       name,
+      to_email:      email,
+      code:          tempCode,
+      app_name:      'RECUPERACIÓN DE CUENTA',
+      subject:       '🔑 Código de recuperación IDENTITY — Expira en 10 minutos',
+      alert:         '⏱ ESTE CÓDIGO EXPIRA EN 10 MINUTOS',
+      intro:         'Recibimos una solicitud de recuperación de tu cuenta. Usa este código:',
+      message_title: '¿Qué hago con este código?',
+      message:       'Introdúcelo en la pantalla de recuperación de IDENTITY. Si no solicitaste esta recuperación, ignora este correo.',
     });
     showToast('Código enviado a ' + email);
   } catch(e) {

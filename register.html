@@ -941,7 +941,8 @@
 // =================== CONFIG EmailJS ===================
 const EMAILJS_PUBLIC_KEY  = 'OT3h9cqzHbJKpZzdv';
 const EMAILJS_SERVICE_ID  = 'service_685y0yj';
-const EMAILJS_TEMPLATE_ID = 'template_rf7v48m';
+const EMAILJS_TEMPLATE_ID        = 'template_rf7v48m';
+const EMAILJS_BACKUP_TEMPLATE_ID = 'template_vone66l';
 
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
@@ -1313,16 +1314,16 @@ document.getElementById('btn-step2').addEventListener('click', () => {
   // Código de respaldo permanente para la recuperación de cuenta
   const backupCode = generateCode();
   localStorage.setItem('identity_backup_code', backupCode);
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    to_name:  step1Data.name,
-    to_email: step1Data.email,
-    code:     backupCode,
-    app_name: 'IDENTITY',
-    subject:  'Tu código de respaldo IDENTITY — Guárdalo en lugar seguro',
-    message:  'Este es tu código de respaldo permanente de IDENTITY: ' + backupCode + '. ' +
-              'Guárdalo de forma permanente en un lugar seguro (no lo borres de tu correo). ' +
-              'Lo necesitarás para recuperar tu cuenta si olvidas tu contraseña maestra. ' +
-              'Sin este código no será posible recuperar tu cuenta y deberás registrarte de nuevo desde cero.',
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_BACKUP_TEMPLATE_ID, {
+    to_name:       step1Data.name,
+    to_email:      step1Data.email,
+    code:          backupCode,
+    app_name:      'CÓDIGO DE RESPALDO',
+    subject:       '🔐 Tu código de respaldo IDENTITY — Guárdalo en lugar seguro',
+    alert:         '⚠️ GUARDA ESTE CORREO — NO LO BORRES NUNCA',
+    intro:         'Tu registro está completo. Este es tu código de respaldo permanente:',
+    message_title: '¿Para qué sirve este código?',
+    message:       'Lo necesitarás si olvidas tu contraseña maestra. Este código NO expira — es permanente. Sin él no podrás recuperar tu cuenta.',
   }).catch(e => console.error('EmailJS (código de respaldo):', e.status, e.text));
 
   // Pasar a éxito
