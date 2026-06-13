@@ -247,27 +247,6 @@
     z-index: 101;
   }
 
-  .pin-clear-all {
-    width: min(320px, 88vw);
-    margin-top: 12px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid rgba(255,100,100,0.3);
-    background: rgba(255,100,100,0.06);
-    color: rgba(255,100,100,0.7);
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    position: relative;
-    z-index: 101;
-    transition: background 0.15s;
-  }
-
-  .pin-clear-all:active { background: rgba(255,100,100,0.2); }
-
   .pin-keyboard-label {
     font-size: 9px;
     font-family: 'Inter', sans-serif;
@@ -2142,7 +2121,7 @@
     <button class="pin-key" data-n="7">7</button>
     <button class="pin-key" data-n="8">8</button>
     <button class="pin-key" data-n="9">9</button>
-    <button class="pin-key empty"></button>
+    <button class="pin-key" id="pin-clr">CLR</button>
     <button class="pin-key" data-n="0">0</button>
     <button class="pin-key del" id="pin-del">⌫</button>
   </div>
@@ -2158,8 +2137,6 @@
     <div class="pin-keyboard-label">Símbolo</div>
     <div class="pin-symbols-row" id="pin-symbols-row"></div>
   </div>
-
-  <button class="pin-clear-all" id="pin-clear-all">✕ Borrar todo</button>
 
   <div class="pin-first-time" id="pin-hint">Primera vez — crea tu contraseña de 6 caracteres</div>
   <button class="pin-enter" id="pin-enter-btn" disabled>Entrar</button>
@@ -2898,7 +2875,7 @@ document.getElementById('pin-del').addEventListener('click', () => {
   updateDots();
 });
 
-document.getElementById('pin-clear-all').addEventListener('click', () => {
+document.getElementById('pin-clr').addEventListener('click', () => {
   pinBuffer = '';
   updateDots();
 });
@@ -2922,15 +2899,24 @@ function renderCard() {
   const media = profileData.media;
 
   if (media && media.type === 'video') {
-    if (media.thumb) {
-      // Thumbnail animado: video en bucle en la cara de la tarjeta
+    if (media.src && media.src.startsWith('blob:') && media.thumb) {
+      // Safari bloquea el autoplay de blob URLs dentro de contenedores con
+      // transform 3D: usar el thumbnail como imagen estática en la tarjeta.
+      placeholder.style.display = 'none';
+      cardVideo.style.display = 'none';
+      cardVideo.removeAttribute('src');
+      cardPhoto.src = media.thumb;
+      cardPhoto.style.display = 'block';
+    } else if (media.src) {
+      // URL normal (galería del sistema) o base64: el video sí reproduce
+      // dentro del flip 3D, así que mantenemos el elemento video con autoplay.
       placeholder.style.display = 'none';
       cardPhoto.style.display = 'none';
-      cardVideo.poster = media.thumb;
+      if (media.thumb) cardVideo.poster = media.thumb;
       cardVideo.src = media.src;
       cardVideo.style.display = 'block';
     } else {
-      // Video sin thumbnail (p. ej. subido desde archivo): mostrar placeholder
+      // Video sin src válido: mostrar placeholder
       cardVideo.style.display = 'none';
       cardVideo.removeAttribute('src');
       cardPhoto.style.display = 'none';
@@ -3182,21 +3168,37 @@ document.getElementById('btn-upload-vid').addEventListener('click', () => {
 document.getElementById('media-file-vid').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  // Vídeos: usar URL objeto (no base64 — demasiado pesado para localStorage)
-  const src = URL.createObjectURL(file);
-  selectedGalleryId = null;
-  profileData.media = { src, type: 'video', galleryId: null, isObjectUrl: true };
 
-  const prevImg = document.getElementById('upload-preview-img');
-  const prevVid = document.getElementById('upload-preview-vid');
-  const wrap = document.getElementById('upload-preview-wrap');
-  prevVid.src = src;
-  prevVid.style.display = 'block';
-  prevImg.style.display = 'none';
-  wrap.style.display = 'block';
+  // Validación de tamaño: máximo 50MB antes de leer el archivo
+  if (file.size > 50 * 1024 * 1024) {
+    showToast('Video demasiado grande — máximo 50MB');
+    e.target.value = '';
+    return;
+  }
 
-  renderCard();
-  showToast('Video cargado ✓');
+  // Convertir el video a base64 (data URL): así Safari sí reproduce el video
+  // dentro del flip 3D, a diferencia de las blob URLs.
+  const reader = new FileReader();
+  reader.onload = () => {
+    const src = reader.result; // data:video/...;base64,...
+    selectedGalleryId = null;
+    profileData.media = { src, type: 'video', galleryId: null };
+
+    const prevImg = document.getElementById('upload-preview-img');
+    const prevVid = document.getElementById('upload-preview-vid');
+    const wrap = document.getElementById('upload-preview-wrap');
+    prevVid.src = src;
+    prevVid.style.display = 'block';
+    prevImg.style.display = 'none';
+    wrap.style.display = 'block';
+
+    renderCard();
+    showToast('Video cargado ✓');
+  };
+  reader.onerror = () => {
+    showToast('Error al leer el video');
+  };
+  reader.readAsDataURL(file);
 });
 
 // Flip

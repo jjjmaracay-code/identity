@@ -717,7 +717,7 @@
         <button class="key-btn" data-pwd="1" data-val="7">7</button>
         <button class="key-btn" data-pwd="1" data-val="8">8</button>
         <button class="key-btn" data-pwd="1" data-val="9">9</button>
-        <button class="key-btn empty"></button>
+        <button class="key-btn" id="clr-pwd1">CLR</button>
         <button class="key-btn" data-pwd="1" data-val="0">0</button>
         <button class="key-btn del" id="del-pwd1">⌫</button>
       </div>
@@ -843,7 +843,7 @@
         <button class="key-btn" data-pwd="2" data-val="7">7</button>
         <button class="key-btn" data-pwd="2" data-val="8">8</button>
         <button class="key-btn" data-pwd="2" data-val="9">9</button>
-        <button class="key-btn empty"></button>
+        <button class="key-btn" id="clr-pwd2">CLR</button>
         <button class="key-btn" data-pwd="2" data-val="0">0</button>
         <button class="key-btn del" id="del-pwd2">⌫</button>
       </div>
@@ -1026,6 +1026,17 @@ document.getElementById('del-pwd1').addEventListener('click', () => {
 
 document.getElementById('del-pwd2').addEventListener('click', () => {
   pwd2Buffer = pwd2Buffer.slice(0, -1);
+  updatePwdDisplay(2);
+});
+
+// Borrar todo (CLR) — limpia el buffer completo
+document.getElementById('clr-pwd1').addEventListener('click', () => {
+  pwd1Buffer = '';
+  updatePwdDisplay(1);
+});
+
+document.getElementById('clr-pwd2').addEventListener('click', () => {
+  pwd2Buffer = '';
   updatePwdDisplay(2);
 });
 
