@@ -1059,6 +1059,198 @@
 
   .btn-save:active { background: #88cc00; transform: scale(0.98); }
 
+  /* =================== IMPORTADOR INTELIGENTE =================== */
+  .btn-import {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1.5px solid #00ffcc;
+    background: rgba(0,255,204,0.05);
+    color: #00ffcc;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 20px;
+    text-align: center;
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 12px rgba(0,255,204,0.1);
+  }
+  .btn-import:hover  { background: rgba(0,255,204,0.12); box-shadow: 0 0 20px rgba(0,255,204,0.25); }
+  .btn-import:active { background: rgba(0,255,204,0.2); }
+
+  #import-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .import-container {
+    width: 100%;
+    max-width: 600px;
+    background: #111;
+    border: 1px solid #00ffcc;
+    border-radius: 16px;
+    padding: 32px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #00ffcc22 transparent;
+  }
+  .import-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .import-title {
+    color: #00ffcc;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+  .import-close {
+    background: transparent;
+    border: 1px solid rgba(0,255,204,0.3);
+    color: #00ffcc;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .import-close:hover { background: rgba(0,255,204,0.1); }
+  .import-subtitle {
+    color: rgba(255,255,255,0.4);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  #import-textarea {
+    width: 100%;
+    height: 180px;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #fff;
+    padding: 12px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+  }
+  #import-textarea:focus { border-color: rgba(0,255,204,0.4); }
+  #btn-analyze {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    background: #00ffcc;
+    color: #000;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: opacity 0.15s;
+  }
+  #btn-analyze:hover  { opacity: 0.88; }
+  #btn-analyze:active { opacity: 0.72; }
+  #import-results { margin-top: 20px; }
+  .import-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .import-conf {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    min-width: 54px;
+  }
+  .import-field-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+    min-width: 130px;
+    text-transform: uppercase;
+  }
+  .import-value {
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #fff;
+    word-break: break-all;
+  }
+  .import-check {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #00ffcc;
+    flex-shrink: 0;
+  }
+  .import-empty {
+    color: rgba(255,255,255,0.4);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    text-align: center;
+    padding: 24px 0;
+  }
+  #import-actions {
+    display: none;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  #btn-apply-all {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--green);
+    color: #000;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  #btn-apply-all:hover { background: #ccff44; }
+  #btn-cancel-import {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #btn-cancel-import:hover { border-color: #555; color: rgba(255,255,255,0.8); }
+  @media (max-width: 480px) {
+    .import-container { padding: 20px; }
+    .import-field-label { min-width: 90px; font-size: 9px; }
+  }
+
   /* =================== NOTIFICACIÓN =================== */
   .toast {
     position: fixed;
@@ -2304,6 +2496,7 @@
   </div>
 
   <div class="edit-section">
+    <button class="btn-import" id="btn-open-import">IMPORTAR DATOS AUTOMATICAMENTE</button>
     <div class="edit-section-title">Información personal</div>
     <div class="field-group">
       <div class="field-wrap">
@@ -4164,6 +4357,214 @@ if (document.getElementById('screen-main').classList.contains('visible')) {
 buildGallery();
 setTimeout(renderQRMini, 500);
 
+// =================== IMPORTADOR INTELIGENTE ===================
+const IMPORT_FIELD_MAP = {
+  nombre:           { id: 'f-name',     label: 'NOMBRE' },
+  cargo:            { id: 'f-job',      label: 'CARGO / PROFESION' },
+  telefono:         { id: 'f-phone',    label: 'TELEFONO' },
+  email_principal:  { id: 'f-email',    label: 'EMAIL PRINCIPAL' },
+  email_secundario: { id: 'f-email2',   label: 'EMAIL SECUNDARIO' },
+  empresa:          { id: 'f-company',  label: 'EMPRESA' },
+  ciudad:           { id: 'f-address',  label: 'CIUDAD' },
+  linkedin:         { id: 'f-linkedin', label: 'LINKEDIN' },
+  github:           { id: 'f-github',   label: 'GITHUB' },
+  web:              { id: 'f-web',      label: 'WEB' },
+};
+
+function extractData(text) {
+  const result = {};
+
+  // CAPA 1 — Patrones exactos
+  const emails = [...new Set((text.match(/[\w.+-]+@[\w-]+\.[a-z]{2,}/gi) || []).map(e => e.toLowerCase()))];
+  if (emails[0]) result.email_principal  = { value: emails[0], confidence: 'high' };
+  if (emails[1]) result.email_secundario = { value: emails[1], confidence: 'high' };
+
+  const telMatch = text.match(/(\+34|0034)?[\s.-]?[6789]\d{2}[\s.-]?\d{3}[\s.-]?\d{3}/g);
+  if (telMatch) {
+    const tel = telMatch[0].replace(/[\s.-]/g, '').replace(/^0034/, '+34');
+    result.telefono = { value: tel, confidence: 'high' };
+  }
+
+  const liMatch = text.match(/(?:linkedin\.com\/in\/)([\w-]+)/i);
+  if (liMatch) result.linkedin = { value: 'https://linkedin.com/in/' + liMatch[1], confidence: 'high' };
+
+  const ghMatch = text.match(/(?:github\.com\/)([\w-]+)/i);
+  if (ghMatch) result.github = { value: 'https://github.com/' + ghMatch[1], confidence: 'high' };
+
+  const twMatch = text.match(/(?:twitter\.com\/|x\.com\/|^@)([\w]+)/im);
+  if (twMatch) result.twitter = { value: '@' + twMatch[1], confidence: 'high' };
+
+  const igMatch = text.match(/(?:instagram\.com\/)([\w.]+)/i);
+  if (igMatch) result.instagram = { value: 'https://instagram.com/' + igMatch[1], confidence: 'high' };
+
+  const webMatches = [...text.matchAll(/https?:\/\/(?!(?:linkedin|github|twitter|instagram|facebook|x\.com))([\w.-]+\.[a-z]{2,}[\w./=?&-]*)/gi)];
+  if (webMatches.length) result.web = { value: webMatches[0][0], confidence: 'high' };
+
+  const ytMatch = text.match(/(?:youtube\.com\/(?:c\/|channel\/|@))([\w-]+)/i);
+  if (ytMatch) result.youtube = { value: 'https://youtube.com/@' + ytMatch[1], confidence: 'high' };
+
+  const ttMatch = text.match(/(?:tiktok\.com\/@)([\w.]+)/i);
+  if (ttMatch) result.tiktok = { value: 'https://tiktok.com/@' + ttMatch[1], confidence: 'high' };
+
+  // CAPA 2 — Patrones contextuales
+  const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+
+  const CARGO_KW = /Engineer|Developer|Designer|Manager|Director|CEO|CTO|CFO|Founder|Consultor|Analista|T[eé]cnico|Especialista|Coordinador/i;
+  for (const line of lines) {
+    if (CARGO_KW.test(line) && line.length < 100) {
+      result.cargo = { value: line, confidence: 'medium' };
+      break;
+    }
+  }
+
+  const EMPRESA_RE = /(?:\ben\b|\bat\b|^@|empresa:|company:)\s*(.+)/i;
+  for (const line of lines) {
+    const m = line.match(EMPRESA_RE);
+    if (m && m[1].trim().length >= 2 && m[1].length < 80) {
+      result.empresa = { value: m[1].trim(), confidence: 'medium' };
+      break;
+    }
+  }
+
+  const CIUDADES = /Madrid|Barcelona|Valencia|Sevilla|Zaragoza|M[aá]laga|Murcia|Palma|Las Palmas|Bilbao|Alicante|C[oó]rdoba|Valladolid|Vigo|Gij[oó]n|Vitoria|La Coru[ñn]a|Granada|Elche|M[eé]xico|Buenos Aires|Colombia|Argentina|, Espa[ñn]a|, M[eé]xico|, Argentina/i;
+  for (const line of lines) {
+    if (CIUDADES.test(line) && line.length < 80) {
+      result.ciudad = { value: line, confidence: 'medium' };
+      break;
+    }
+  }
+
+  const UNIV_RE = /Universidad|University|Grado en|M[aá]ster en|Bachelor|Master's/i;
+  for (const line of lines) {
+    if (UNIV_RE.test(line) && line.length < 120) {
+      result.universidad = { value: line, confidence: 'medium' };
+      break;
+    }
+  }
+
+  // CAPA 3 — Heurística de nombre (primeras 5 líneas)
+  const NAME_RE = /^[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ][a-záéíóúàèìòùâêîôûäëïöüñ]+(?:\s+[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ][a-záéíóúàèìòùâêîôûäëïöüñ]+){1,3}$/;
+  for (let i = 0; i < Math.min(5, lines.length); i++) {
+    const line = lines[i];
+    if (NAME_RE.test(line) && line.length >= 5 && line.length <= 50) {
+      result.nombre = { value: line, confidence: i < 2 ? 'high' : 'medium' };
+      break;
+    }
+  }
+
+  return result;
+}
+
+function openImportModal() {
+  const modal = document.getElementById('import-modal');
+  modal.style.display = 'flex';
+  document.getElementById('import-textarea').value = '';
+  document.getElementById('import-results').style.display = 'none';
+  document.getElementById('import-results').innerHTML = '';
+  document.getElementById('import-actions').style.display = 'none';
+}
+
+function closeImportModal() {
+  document.getElementById('import-modal').style.display = 'none';
+}
+
+// btn-open-import está en screen-edit (antes del script) — se puede enlazar ya
+document.getElementById('btn-open-import').addEventListener('click', openImportModal);
+
+// El resto de elementos del modal están DESPUÉS del cierre del bloque script
+// (el HTML del modal se inserta al final del body) — se enlazan en DOMContentLoaded
+function _importModalSetup() {
+  document.getElementById('btn-close-import').addEventListener('click', closeImportModal);
+  document.getElementById('import-overlay').addEventListener('click', closeImportModal);
+  document.getElementById('btn-cancel-import').addEventListener('click', closeImportModal);
+
+  document.getElementById('btn-analyze').addEventListener('click', () => {
+    const text = document.getElementById('import-textarea').value.trim();
+    const resultsDiv = document.getElementById('import-results');
+    resultsDiv.innerHTML = '';
+
+    if (!text) {
+      resultsDiv.innerHTML = '<div class="import-empty">Pega algun texto primero.</div>';
+      resultsDiv.style.display = 'block';
+      return;
+    }
+
+    const extracted = extractData(text);
+    const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extracted[k]);
+
+    if (mappedKeys.length === 0) {
+      resultsDiv.innerHTML = '<div class="import-empty">No se encontraron datos reconocibles. Intenta con mas texto.</div>';
+      resultsDiv.style.display = 'block';
+      document.getElementById('import-actions').style.display = 'none';
+      return;
+    }
+
+    mappedKeys.forEach(key => {
+      const { value, confidence } = extracted[key];
+      const { label } = IMPORT_FIELD_MAP[key];
+      const confText  = confidence === 'high' ? 'SEGURO' : confidence === 'medium' ? 'PROBABLE' : 'REVISAR';
+      const confColor = confidence === 'high' ? '#00ffcc' : confidence === 'medium' ? '#f0a500' : '#ff6b6b';
+
+      const row = document.createElement('div');
+      row.className = 'import-row';
+      row.dataset.key = key;
+
+      const conf = document.createElement('span');
+      conf.className = 'import-conf';
+      conf.style.color = confColor;
+      conf.textContent = confText;
+
+      const lbl = document.createElement('span');
+      lbl.className = 'import-field-label';
+      lbl.textContent = label;
+
+      const val = document.createElement('span');
+      val.className = 'import-value';
+      val.textContent = value;
+
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.className = 'import-check';
+      chk.checked = true;
+
+      row.appendChild(conf);
+      row.appendChild(lbl);
+      row.appendChild(val);
+      row.appendChild(chk);
+      resultsDiv.appendChild(row);
+    });
+
+    resultsDiv.style.display = 'block';
+    document.getElementById('import-actions').style.display = 'flex';
+  });
+
+  document.getElementById('btn-apply-all').addEventListener('click', () => {
+    const rows = document.querySelectorAll('.import-row');
+    let firstEl = null;
+
+    rows.forEach(row => {
+      if (!row.querySelector('.import-check').checked) return;
+      const key = row.dataset.key;
+      const value = row.querySelector('.import-value').textContent;
+      const mapping = IMPORT_FIELD_MAP[key];
+      if (!mapping) return;
+      const input = document.getElementById(mapping.id);
+      if (!input) return;
+      input.value = value;
+      if (!firstEl) firstEl = input;
+    });
+
+    closeImportModal();
+    if (firstEl) setTimeout(() => firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _importModalSetup);
+} else {
+  _importModalSetup();
+}
+
 // =================== TOUR INTERACTIVO ===================
 (function () {
   const TOUR_KEY = 'identity_tour_done';
@@ -4308,6 +4709,25 @@ setTimeout(renderQRMini, 500);
     <div class="tour-actions">
       <button class="tour-btn-skip" id="tour-btn-skip">Saltar tour</button>
       <button class="tour-btn-next" id="tour-btn-next">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MODAL IMPORTADOR =================== -->
+<div id="import-modal">
+  <div id="import-overlay" style="position:absolute;inset:0;"></div>
+  <div class="import-container">
+    <div class="import-header">
+      <div class="import-title">IMPORTAR DATOS</div>
+      <button class="import-close" id="btn-close-import">X Cerrar</button>
+    </div>
+    <div class="import-subtitle">Pega aqui tu bio de LinkedIn, CV, perfil o cualquier texto con tus datos</div>
+    <textarea id="import-textarea" placeholder="Pega aqui tu texto..."></textarea>
+    <button id="btn-analyze">ANALIZAR Y EXTRAER DATOS</button>
+    <div id="import-results" style="display:none;"></div>
+    <div id="import-actions">
+      <button id="btn-apply-all">APLICAR TODOS</button>
+      <button id="btn-cancel-import">Cancelar</button>
     </div>
   </div>
 </div>
