@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="IDENTITY · Registro">
+<meta name="apple-mobile-web-app-title" content="IDENTIFLY · Registro">
 <meta name="theme-color" content="#aaff00">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-512.png">
-<title>IDENTITY · Registro</title>
+<title>IDENTIFLY · Registro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- EmailJS -->
@@ -957,7 +957,7 @@
     <div class="checkbox-wrap" id="chk2-wrap">
       <div class="checkbox-box" id="chk2"></div>
       <div class="checkbox-text">
-        He leído, escuchado y confirmo nuevamente que todos los datos son <strong>correctos y verídicos</strong>, que soy el titular legítimo de esta identidad, y que acepto las <strong>condiciones de uso y política de privacidad</strong> de IDENTITY.
+        He leído, escuchado y confirmo nuevamente que todos los datos son <strong>correctos y verídicos</strong>, que soy el titular legítimo de esta identidad, y que acepto las <strong>condiciones de uso y política de privacidad</strong> de IDENTIFLY.
       </div>
     </div>
 
@@ -979,10 +979,10 @@
       <div class="success-title">Identidad verificada</div>
       <div class="success-sub">
         Tu registro es completo y seguro.<br>
-        Bienvenido a IDENTITY.
+        Bienvenido a IDENTIFLY.
       </div>
       <button class="btn-primary" id="btn-enter-app">
-        Entrar a IDENTITY →
+        Entrar a IDENTIFLY →
       </button>
     </div>
   </div>
@@ -1268,7 +1268,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
       to_name:  name,
       to_email: email,
       code:     emailCode,
-      app_name: 'IDENTITY',
+      app_name: 'IDENTIFLY',
     });
 
     // Pasar a paso 2
@@ -1318,7 +1318,7 @@ document.getElementById('btn-resend').addEventListener('click', async () => {
       to_name:  step1Data.name,
       to_email: step1Data.email,
       code:     emailCode,
-      app_name: 'IDENTITY',
+      app_name: 'IDENTIFLY',
     });
     showToast('Nuevo código enviado');
   } catch(e) {
@@ -1374,7 +1374,7 @@ document.getElementById('btn-step2').addEventListener('click', () => {
     to_email:      step1Data.email,
     code:          backupCode,
     app_name:      'CÓDIGO DE RESPALDO',
-    subject:       '🔐 Tu código de respaldo IDENTITY — Guárdalo en lugar seguro',
+    subject:       '🔐 Tu código de respaldo IDENTIFLY — Guárdalo en lugar seguro',
     alert:         '⚠️ GUARDA ESTE CORREO — NO LO BORRES NUNCA',
     intro:         'Tu registro está completo. Este es tu código de respaldo permanente:',
     message_title: '¿Para qué sirve este código?',
