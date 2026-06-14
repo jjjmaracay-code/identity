@@ -2966,6 +2966,15 @@
 <script>
 // =================== VERIFICACIÓN DE REGISTRO ===================
 // Si el usuario no está registrado, redirigir a register.html antes de mostrar nada
+// Verificar trial de 30 días
+const _reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+if (_reg.timestamp) {
+  const _days = Math.floor((Date.now() - new Date(_reg.timestamp)) / (1000*60*60*24));
+  if (_days >= 30 && localStorage.getItem('identity_plan') !== 'free') {
+    window.location.href = 'paywall.html';
+  }
+}
+
 if (!localStorage.getItem('identity_registration')) {
   window.location.replace('register.html');
   throw new Error('Redirigiendo a registro'); // detener el resto del script
