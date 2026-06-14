@@ -2546,6 +2546,12 @@
   <div class="edit-header">
     <div class="edit-title">Mi Perfil</div>
     <button class="btn-close" id="btn-close-edit">✕ Cerrar</button>
+    <!-- BURBUJA TRIAL -->
+    <div id="trial-bubble" style="background:rgba(170,255,0,0.08);border:1px solid rgba(170,255,0,0.3);border-radius:12px;padding:14px 16px;margin:12px 0 0;font-family:'Inter',sans-serif;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaff00;text-transform:uppercase;margin-bottom:6px;">Periodo de prueba</div>
+      <div id="trial-bubble-text" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;">Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.</div>
+      <button onclick="window.location.href='paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Ver planes — desde 2.99€/mes</button>
+    </div>
   </div>
 
   <div class="edit-section gallery-section">
@@ -4803,6 +4809,22 @@ if (document.readyState === 'loading') {
     _idxTourSetup();
   }
 })();
+
+// Actualizar burbuja trial
+const _trialReg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+if (_trialReg.timestamp) {
+  const _trialDays = Math.floor((Date.now() - new Date(_trialReg.timestamp)) / (1000*60*60*24));
+  const _remaining = 30 - _trialDays;
+  const _bubble = document.getElementById('trial-bubble-text');
+  if (_bubble) {
+    if (_remaining > 0) {
+      _bubble.textContent = `Te quedan ${_remaining} días de prueba gratuita. Pasado ese periodo elige un plan para continuar.`;
+    } else {
+      _bubble.textContent = 'Tu periodo de prueba ha finalizado. Elige un plan para seguir usando IDENTIFLY.';
+      _bubble.style.color = 'rgba(255,100,100,0.8)';
+    }
+  }
+}
 </script>
 
 <!-- =================== TOUR INTERACTIVO =================== -->
