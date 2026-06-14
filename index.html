@@ -4476,33 +4476,41 @@ function extractData(text) {
   const emails = [...new Set((text.match(/[\w.+-]+@[\w-]+\.[a-z]{2,}/gi) || []).map(e => e.toLowerCase()))];
   if (emails[0]) result.email_principal  = { value: emails[0], confidence: 'high' };
   if (emails[1]) result.email_secundario = { value: emails[1], confidence: 'high' };
+  if (emails[2]) result.email_trabajo    = { value: emails[2], confidence: 'medium' };
 
   const telMatch = text.match(/(\+34|0034)?[\s.-]?[6789]\d{2}[\s.-]?\d{3}[\s.-]?\d{3}/g);
   if (telMatch) {
     const tel = telMatch[0].replace(/[\s.-]/g, '').replace(/^0034/, '+34');
     result.telefono = { value: tel, confidence: 'high' };
+    if (telMatch[1]) {
+      const tel2 = telMatch[1].replace(/[\s.-]/g, '').replace(/^0034/, '+34');
+      result.movil = { value: tel2, confidence: 'high' };
+    }
   }
 
-  const liMatch = text.match(/(?:linkedin\.com\/in\/)([\w-]+)/i);
-  if (liMatch) result.linkedin = { value: 'https://linkedin.com/in/' + liMatch[1], confidence: 'high' };
+  const liMatch = text.match(/(?:linkedin\.com\/in\/|linked\s*in[:\s]+|linkedln[:\s]+|linkedin[:\s]+)([\w-]+)/i);
+  if (liMatch) result.linkedin = { value: 'https://linkedin.com/in/' + liMatch[1].replace(/^@/, ''), confidence: 'high' };
 
-  const ghMatch = text.match(/(?:github\.com\/)([\w-]+)/i);
-  if (ghMatch) result.github = { value: 'https://github.com/' + ghMatch[1], confidence: 'high' };
+  const ghMatch = text.match(/(?:github\.com\/|git\s*hub[:\s]+|githb[:\s]+|github[:\s]+)([\w-]+)/i);
+  if (ghMatch) result.github = { value: 'https://github.com/' + ghMatch[1].replace(/^@/, ''), confidence: 'high' };
 
-  const twMatch = text.match(/(?:twitter\.com\/|x\.com\/|^@)([\w]+)/im);
+  const twMatch = text.match(/(?:twitter\.com\/|x\.com\/|tw(?:itter)?[:\s]+|^@)([\w]+)/im);
   if (twMatch) result.twitter = { value: '@' + twMatch[1], confidence: 'high' };
 
-  const igMatch = text.match(/(?:instagram\.com\/)([\w.]+)/i);
+  const igMatch = text.match(/(?:instagram\.com\/|ig[:\s]+|insta(?:gram)?[:\s]+)([\w.]+)/i);
   if (igMatch) result.instagram = { value: 'https://instagram.com/' + igMatch[1], confidence: 'high' };
 
   const webMatches = [...text.matchAll(/https?:\/\/(?!(?:linkedin|github|twitter|instagram|facebook|x\.com))([\w.-]+\.[a-z]{2,}[\w./=?&-]*)/gi)];
   if (webMatches.length) result.web = { value: webMatches[0][0], confidence: 'high' };
 
-  const ytMatch = text.match(/(?:youtube\.com\/(?:c\/|channel\/|@))([\w-]+)/i);
+  const ytMatch = text.match(/(?:youtube\.com\/(?:c\/|channel\/|@)|you\s*tube[:\s]+)([\w-]+)/i);
   if (ytMatch) result.youtube = { value: 'https://youtube.com/@' + ytMatch[1], confidence: 'high' };
 
-  const ttMatch = text.match(/(?:tiktok\.com\/@)([\w.]+)/i);
+  const ttMatch = text.match(/(?:tiktok\.com\/@|tik\s*tok[:\s]+@?)([\w.]+)/i);
   if (ttMatch) result.tiktok = { value: 'https://tiktok.com/@' + ttMatch[1], confidence: 'high' };
+
+  const waMatch = text.match(/(?:whatsapp[:\s]+|wa[:\s]+)(\+?[\d\s.-]{9,15})/i);
+  if (waMatch) result.whatsapp = { value: waMatch[1].replace(/[\s.-]/g, ''), confidence: 'high' };
 
   // CAPA 2 — Patrones contextuales
   const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
