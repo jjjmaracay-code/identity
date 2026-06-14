@@ -2105,7 +2105,7 @@
     }
   }
 
-  @keyframes vuelo {
+  @keyframes aleteo {
     0%,100% { transform: rotate(-15deg) scaleX(0.75); }
     5%      { transform: rotate(-15deg) scaleX(0.77); }
     10%     { transform: rotate(-15deg) scaleX(0.75); }
@@ -2165,7 +2165,7 @@
     height: 122px;
     object-fit: contain;
     mix-blend-mode: screen;
-    animation: vuelo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;
+    animation: aleteo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;
     transform-origin: center center;
   }
 
@@ -2241,7 +2241,7 @@
         <strong>Art. 15 — Acceso:</strong> Puedes consultar todos tus datos en cualquier momento desde la pantalla de configuración.<br><br>
         <strong>Art. 16 — Rectificación:</strong> Puedes modificar tus datos cuando quieras.<br><br>
         <strong>Art. 17 — Supresión ("derecho al olvido"):</strong> Puedes eliminar todos tus datos borrando los datos del navegador o desinstalando la app.<br><br>
-        <strong>Art. 18 — Limitación:</strong> Puedes bloquear qué datos se incluyen en tu QR mediante los toggles de permisos.<br><br>
+        <strong>Art. 18 — Limitación:</strong> Puedes bloquear qué datos se incluyen en tu QR mediante los interruptores de permisos.<br><br>
         <strong>Art. 20 — Portabilidad:</strong> Tus datos están en tu dispositivo y son exportables en formato vCard estándar a través del QR.<br><br>
         <strong>Art. 21 — Oposición:</strong> Puedes oponerte al uso de cualquier dato desactivando su permiso individualmente.<br><br>
         <strong>Art. 22 — Decisiones automatizadas:</strong> IDENTIFLY no toma decisiones automatizadas sobre tu persona ni realiza perfilado.
@@ -2260,11 +2260,11 @@
       <div class="consent-block-text">
         Tu contraseña de acceso está diseñada con criterios de seguridad matemática certificable:<br><br>
         <strong>Contraseña IDENTIFLY (6 caracteres: 4 números + 1 letra + 1 símbolo)</strong><br>
-        Universo de caracteres: 94 posibles (10 números + 52 letras + 32 símbolos)<br>
+        Universo de caracteres: 94 posibles (10 números + 52 letras + 32 símbolos: ! @ # $ % ^ & * ( ) _ + - = [ ] { } | ; : , . ? ~ ` /  < > " ')<br>
         Combinaciones posibles: 94⁶ = <strong>~689000000000</strong> (689 mil millones)<br><br>
         Comparativa con un PIN de 4 dígitos numéricos:<br>
         — PIN 4 numérico: 10000 combinaciones → roto en <strong>10 segundos</strong> a 1000 intentos/seg<br>
-        — Contraseña IDENTIFLY: 689000000000 → necesita <strong>21000 años</strong> al mismo ritmo<br><br>
+        — Contraseña IDENTIFLY: 689000000000 → necesita <strong>21000 años</strong> al mismo ritmo.<br><br>
         IDENTIFLY es <strong>69 millones de veces más seguro</strong> que un PIN numérico estándar. Este nivel de protección cumple y supera los requisitos de medidas técnicas adecuadas establecidos en el <strong>Art. 32 RGPD</strong>. Ningún dato se transmite a servidores externos — tu contraseña nunca sale de tu dispositivo.
       </div>
     </div>
@@ -2329,7 +2329,7 @@
         — Tu contraseña de acceso<br>
         — Tu configuración de doble factor (TOTP y biométrico)<br>
         — Tu diseño de QR personalizado<br>
-        — Todos tus permisos y preferencias<br><br>
+        — Todos tus permisos y preferencias.<br><br>
         Dado que todos los datos residen <strong>únicamente en tu dispositivo</strong>, la eliminación es instantánea y total. No existe ninguna copia en servidores externos.
       </div>
     </div>
