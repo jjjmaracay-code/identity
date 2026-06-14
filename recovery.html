@@ -906,7 +906,7 @@ function validatePwd(pwd) {
   return {
     valid: nums >= 4 && /[A-Za-z]/.test(pwd) && /[@#$%&*!?+\-=_.,;:]/.test(pwd) && pwd.length === PIN_LEN,
     hasLetter: /[A-Za-z]/.test(pwd),
-    hasSymbol: /[@#$%&*!?+\-=_.,;:]/.test(pwd)
+    hasSymbol: /[@#$%&*!?+\-=_.,:;()\[\]{}|~`<>/\\'"]/g.test(pwd)
   };
 }
 
