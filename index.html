@@ -368,7 +368,7 @@
   /* CARD con flip */
   .card-container {
     perspective: 1000px;
-    width: min(300px, 82vw);
+    width: min(320px, 90vw);
     aspect-ratio: 3/4;
     cursor: pointer;
     flex-shrink: 0;
@@ -626,8 +626,8 @@
   }
 
   .qr-preview-wrap {
-    width: 120px;
-    height: 120px;
+    width: 280px;
+    height: 280px;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
@@ -640,7 +640,7 @@
   }
 
   .qr-preview-wrap canvas,
-  .qr-preview-wrap svg { width: 120px !important; height: 120px !important; display: block !important; }
+  .qr-preview-wrap svg { width: 280px !important; height: 280px !important; display: block !important; }
 
   .qr-designer-scroll {
     flex: 1;
@@ -2257,10 +2257,10 @@
         Tu contraseña de acceso está diseñada con criterios de seguridad matemática certificable:<br><br>
         <strong>Contraseña IDENTITY (6 caracteres: 4 números + 1 letra + 1 símbolo)</strong><br>
         Universo de caracteres: 94 posibles (10 números + 52 letras + 32 símbolos)<br>
-        Combinaciones posibles: 94⁶ = <strong>~689.000.000.000</strong> (689 mil millones)<br><br>
+        Combinaciones posibles: 94⁶ = <strong>~689000000000</strong> (689 mil millones)<br><br>
         Comparativa con un PIN de 4 dígitos numéricos:<br>
-        — PIN 4 numérico: 10.000 combinaciones → roto en <strong>10 segundos</strong> a 1.000 intentos/seg<br>
-        — Contraseña IDENTITY: 689.000.000.000 → necesita <strong>21.000 años</strong> al mismo ritmo<br><br>
+        — PIN 4 numérico: 10000 combinaciones → roto en <strong>10 segundos</strong> a 1000 intentos/seg<br>
+        — Contraseña IDENTITY: 689000000000 → necesita <strong>21000 años</strong> al mismo ritmo<br><br>
         IDENTITY es <strong>69 millones de veces más seguro</strong> que un PIN numérico estándar. Este nivel de protección cumple y supera los requisitos de medidas técnicas adecuadas establecidos en el <strong>Art. 32 RGPD</strong>. Ningún dato se transmite a servidores externos — tu contraseña nunca sale de tu dispositivo.
       </div>
     </div>
@@ -2293,16 +2293,16 @@
         IDENTITY ofrece <strong>autenticación de doble factor opcional</strong> que añade una segunda capa de seguridad matemáticamente verificable:<br><br>
 
         <strong>Factor 1 — Contraseña (algo que sabes)</strong><br>
-        689.000.000.000 combinaciones → 21.000 años para romperla.<br><br>
+        689000000000 combinaciones → 21000 años para romperla.<br><br>
 
         <strong>Factor 2A — TOTP (algo que tienes)</strong><br>
         Código de 6 dígitos que cambia cada 30 segundos. El atacante tendría que conocer tu contraseña Y tener tu móvil en ese preciso instante de 30 segundos. Probabilidad de ataque exitoso por fuerza bruta: 1 en 10⁶ cada 30 segundos = <strong>prácticamente imposible</strong>.<br><br>
 
         <strong>Factor 2B — Biométrico (algo que eres)</strong><br>
-        Face ID / huella dactilar vía WebAuthn/FIDO2. Estándar utilizado por bancos, gobiernos y servicios de defensa. La probabilidad de falsa aceptación del Face ID de Apple es de <strong>1 en 1.000.000</strong> (0,0001%).<br><br>
+        Face ID / huella dactilar vía WebAuthn/FIDO2. Estándar utilizado por bancos, gobiernos y servicios de defensa. La probabilidad de falsa aceptación del Face ID de Apple es de <strong>1 en 1000000</strong> (0,0001%).<br><br>
 
         <strong>Con los tres factores simultáneos:</strong><br>
-        Contraseña × TOTP × Biométrico = probabilidad de acceso no autorizado ≈ <strong>1 en 689.000.000.000.000.000</strong><br>
+        Contraseña × TOTP × Biométrico = probabilidad de acceso no autorizado ≈ <strong>1 en 689000000000000000</strong><br>
         (689 cuadrillones de combinaciones)<br><br>
 
         Este nivel de protección <strong>supera los requisitos de seguridad del Art. 32 RGPD</strong> para datos personales de categoría especial y es equivalente al estándar NIST SP 800-63B Nivel de Garantía 3 (AAL3), el más alto definido por el Instituto Nacional de Estándares de EE.UU.
@@ -2491,7 +2491,7 @@
     <div class="card-inner" id="card-inner">
       <!-- FRENTE -->
       <div class="card-face card-front">
-        <div class="card-front-photo-placeholder" id="photo-placeholder">👤</div>
+        <div class="card-front-photo-placeholder" id="photo-placeholder"></div>
         <img class="card-front-photo" id="card-photo" style="display:none" alt="foto">
         <video class="card-front-video" id="card-video" style="display:none" autoplay loop muted playsinline></video>
         <div class="card-front-info">
@@ -2503,7 +2503,7 @@
       <!-- REVERSO -->
       <div class="card-face card-back">
         <div class="card-back-label">Escanea para contactar</div>
-        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:200px;height:200px;display:flex;align-items:center;justify-content:center;"></div>
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:280px;height:280px;display:flex;align-items:center;justify-content:center;"></div>
         <div class="card-back-name" id="qr-name">—</div>
         <div class="card-back-sub">IDENTITY · Tarjeta Digital</div>
       </div>
@@ -2540,8 +2540,8 @@
 
     <!-- Subir archivo propio -->
     <div class="upload-row">
-      <div class="btn-upload-media" id="btn-upload-img">📷 Imagen / GIF</div>
-      <div class="btn-upload-media" id="btn-upload-vid">🎬 Video / MP4</div>
+      <div class="btn-upload-media" id="btn-upload-img">Imagen / GIF</div>
+      <div class="btn-upload-media" id="btn-upload-vid">Video / MP4</div>
     </div>
     <input type="file" id="media-file-img" accept="image/*" style="display:none">
     <input type="file" id="media-file-vid" accept="video/*" style="display:none">
@@ -2556,7 +2556,7 @@
     <div style="font-size:10px;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;line-height:1.6;letter-spacing:0.5px;margin-top:14px;">
       Si tienes un documento personal (DNI, pasaporte, tarjeta de visita) puedes subirlo y el sistema intentará rellenar automáticamente tus datos. Recuerda revisar y completar los campos que queden vacíos — tú tienes siempre la última palabra sobre tu información.
     </div>
-    <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;">📄 Extraer datos de documento</div>
+    <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;">Extraer datos de documento</div>
     <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf" style="display:none">
   </div>
 
@@ -2727,7 +2727,7 @@
     <div class="field-group">
       <div class="field-toggle-wrap">
         <div>
-          <div class="field-toggle-label">🔐 Autenticador TOTP</div>
+          <div class="field-toggle-label">Autenticador TOTP</div>
           <div class="twofa-sublabel">Google Authenticator / Authy</div>
         </div>
         <div class="toggle-right">
@@ -2841,7 +2841,7 @@
 <!-- =================== 2FA VERIFY (login) =================== -->
 <div id="screen-2fa-verify">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;">
-    <div class="verify-icon" id="verify-icon">🔐</div>
+    <div class="verify-icon" id="verify-icon"></div>
     <div class="verify-title" id="verify-title">Segundo factor</div>
     <div class="verify-subtitle" id="verify-subtitle">Introduce el código de tu autenticador</div>
 
@@ -3019,7 +3019,7 @@ btnListenTerms.addEventListener('click', () => {
   }
   if (synth.paused) {
     synth.resume();
-    btnListenTerms.textContent = '⏸ Pausar';
+    btnListenTerms.textContent = 'Pausar';
     return;
   }
 
@@ -3312,15 +3312,15 @@ function renderBgMedia() {
 // =================== GALERÍA INTEGRADA — Videos propios en GitHub ===================
 const BASE = 'https://jjjmaracay-code.github.io/identity/videos/';
 const GALLERY_ITEMS = [
-  { id:'v1', label:'🌹', type:'video', thumb: BASE+'thumbs/t1.jpg', src: BASE+'v1.mp4' },
-  { id:'v2', label:'🌸', type:'video', thumb: BASE+'thumbs/t2.jpg', src: BASE+'v2.mp4' },
-  { id:'v3', label:'🌅', type:'video', thumb: BASE+'thumbs/t3.jpg', src: BASE+'v3.mp4' },
-  { id:'v4', label:'🌴', type:'video', thumb: BASE+'thumbs/t4.jpg', src: BASE+'v4.mp4' },
-  { id:'v5', label:'❄️', type:'video', thumb: BASE+'thumbs/t5.jpg', src: BASE+'v5.mp4' },
-  { id:'v6', label:'🎆', type:'video', thumb: BASE+'thumbs/t6.jpg', src: BASE+'v6.mp4' },
-  { id:'v7', label:'🗼', type:'video', thumb: BASE+'thumbs/t7.jpg', src: BASE+'v7.mp4' },
-  { id:'v8', label:'🌌', type:'video', thumb: BASE+'thumbs/t8.jpg', src: BASE+'v8.mp4' },
-  { id:'v9', label:'🐠', type:'video', thumb: BASE+'thumbs/t9.jpg', src: BASE+'v9.mp4' },
+  { id:'v1', label:'', type:'video', thumb: BASE+'thumbs/t1.jpg', src: BASE+'v1.mp4' },
+  { id:'v2', label:'', type:'video', thumb: BASE+'thumbs/t2.jpg', src: BASE+'v2.mp4' },
+  { id:'v3', label:'', type:'video', thumb: BASE+'thumbs/t3.jpg', src: BASE+'v3.mp4' },
+  { id:'v4', label:'', type:'video', thumb: BASE+'thumbs/t4.jpg', src: BASE+'v4.mp4' },
+  { id:'v5', label:'', type:'video', thumb: BASE+'thumbs/t5.jpg', src: BASE+'v5.mp4' },
+  { id:'v6', label:'', type:'video', thumb: BASE+'thumbs/t6.jpg', src: BASE+'v6.mp4' },
+  { id:'v7', label:'', type:'video', thumb: BASE+'thumbs/t7.jpg', src: BASE+'v7.mp4' },
+  { id:'v8', label:'', type:'video', thumb: BASE+'thumbs/t8.jpg', src: BASE+'v8.mp4' },
+  { id:'v9', label:'', type:'video', thumb: BASE+'thumbs/t9.jpg', src: BASE+'v9.mp4' },
 ];
 
 let selectedGalleryId = profileData.media?.galleryId || null;
@@ -3451,7 +3451,7 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
   e.target.value = ''; // permitir volver a elegir el mismo archivo
 
   const btn = document.getElementById('btn-ocr-doc');
-  btn.textContent = '⏳ Analizando documento...';
+  btn.textContent = 'Analizando documento...';
   showToast('Procesando documento — puede tardar unos segundos');
 
   try {
@@ -3468,7 +3468,7 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
     console.error('OCR:', err);
     showToast('Error al procesar el documento');
   } finally {
-    btn.textContent = '📄 Extraer datos de documento';
+    btn.textContent = 'Extraer datos de documento';
   }
 });
 
@@ -3672,7 +3672,7 @@ function renderQRLive() {
   if (!wrap) return;
   wrap.innerHTML = '';
   try {
-    qrLiveInstance = new QRCodeStyling(buildQROptions(qrDesign, 120, buildVCard()));
+    qrLiveInstance = new QRCodeStyling(buildQROptions(qrDesign, 280, buildVCard()));
     qrLiveInstance.append(wrap);
     setTimeout(() => {
       const el = wrap.firstChild;
@@ -3702,11 +3702,11 @@ function generateQR() {
   if (!container) return;
   container.innerHTML = '';
   try {
-    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 200, buildVCard()));
+    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 280, buildVCard()));
     qrStylingInstance.append(container);
     setTimeout(() => {
       const el = container.firstChild;
-      if (el) { el.style.width='200px'; el.style.height='200px'; el.style.display='block'; }
+      if (el) { el.style.width='280px'; el.style.height='280px'; el.style.display='block'; }
     }, 300);
   } catch(e) {}
 }
@@ -4102,7 +4102,7 @@ function showToast(msg) {
 
 function showErrorToast(msg) {
   const t = document.getElementById('error-toast');
-  t.textContent = '⚠️ ' + msg;
+  t.textContent = msg;
   t.classList.remove('hide', 'show');
   // Forzar reflow para reiniciar la animación si se llama dos veces
   void t.offsetWidth;
@@ -4268,7 +4268,7 @@ document.getElementById('btn-setup-totp').addEventListener('click', () => {
   const totp = getTOTPInstance(pendingTOTPSecret);
   if (totp) {
     try {
-      new QRCode(container, { text: totp.toString(), width:200, height:200, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
+      new QRCode(container, { text: totp.toString(), width:280, height:280, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
     } catch(e) {}
   }
 });
