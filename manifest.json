@@ -1,7 +1,7 @@
 {
-  "name": "IDENTITY",
-  "short_name": "IDENTITY",
-  "description": "Tu identidad digital segura y privada",
+  "name": "IDENTIFLY",
+  "short_name": "IDENTIFLY",
+  "description": "Tu tarjeta de contacto digital. Tus datos. Solo en tu móvil.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
