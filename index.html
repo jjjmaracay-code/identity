@@ -3118,7 +3118,7 @@ function updateDots() {
 function validatePassword(pwd) {
   const nums    = (pwd.match(/[0-9]/g)||[]).length;
   const letters = (pwd.match(/[A-Za-z]/g)||[]).length;
-  const symbols = (pwd.match(/[@#$%&*!?+\-=_.,:;]/g)||[]).length;
+  const symbols = (pwd.match(/[@#$%&*!?+\-=_.,:;()\[\]{}|~`<>/\\'"]/g)||[]).length;
   return {
     hasNum: nums >= 4,
     hasLetter: letters >= 1,
