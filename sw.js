@@ -1,4 +1,4 @@
-const CACHE_NAME = 'identity-v6';
+const CACHE_NAME = 'identity-v7';
 const CACHE_URLS = [
   './index.html',
   './register.html',
