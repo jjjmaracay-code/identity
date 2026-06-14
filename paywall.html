@@ -270,9 +270,36 @@
       line-height: 1.6;
       max-width: 300px;
     }
+    @keyframes aleteo {
+      0%,100% { transform: rotate(-15deg) scaleX(0.75); }
+      5%      { transform: rotate(-15deg) scaleX(0.77); }
+      10%     { transform: rotate(-15deg) scaleX(0.75); }
+      15%     { transform: rotate(-15deg) scaleX(0.77); }
+      20%     { transform: rotate(-15deg) scaleX(0.75); }
+      26%     { transform: rotate(-15deg) scaleX(0.08); }
+      28%     { transform: rotate(-15deg) scaleX(0.75); }
+      30%     { transform: rotate(-15deg) scaleX(0.08); }
+      32%     { transform: rotate(-15deg) scaleX(0.75); }
+      34%     { transform: rotate(-15deg) scaleX(0.08); }
+      36%     { transform: rotate(-15deg) scaleX(0.75); }
+      46%     { transform: rotate(-15deg) scaleX(0.78); }
+      52%     { transform: rotate(-15deg) scaleX(0.75); }
+      58%     { transform: rotate(-15deg) scaleX(0.78); }
+      64%     { transform: rotate(-15deg) scaleX(0.75); }
+      83%     { transform: rotate(-15deg) scaleX(0.35); }
+      86%     { transform: rotate(-15deg) scaleX(0.75); }
+      95%     { transform: rotate(-15deg) scaleX(0.77); }
+    }
+    @keyframes neon-flicker {
+      0%,100% { filter: drop-shadow(0 0 8px #aaff00) drop-shadow(0 0 20px #aaff00) drop-shadow(0 0 40px rgba(170,255,0,0.6)); }
+      45%     { filter: drop-shadow(0 0 4px #aaff00) drop-shadow(0 0 12px #aaff00); }
+      50%     { filter: drop-shadow(0 0 12px #aaff00) drop-shadow(0 0 30px #aaff00) drop-shadow(0 0 60px rgba(170,255,0,0.5)); }
+    }
   </style>
 </head>
 <body>
+
+  <img src="assets/logo-wings.png" alt="IDENTIFLY" style="width:100px;height:76px;object-fit:contain;mix-blend-mode:screen;filter:drop-shadow(0 0 8px #aaff00) drop-shadow(0 0 20px rgba(170,255,0,0.6));animation:aleteo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;margin-bottom:8px;"/>
 
   <div class="brand" aria-label="Aidentiflay">IDENTIFLY</div>
   <div class="tagline">Identidad digital segura</div>
