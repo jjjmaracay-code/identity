@@ -1,8 +1,10 @@
-const CACHE_NAME = 'identity-v1';
+const CACHE_NAME = 'identity-v6';
 const CACHE_URLS = [
   './index.html',
   './register.html',
   './recovery.html',
+  './paywall.html',
+  './install.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
