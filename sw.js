@@ -6,6 +6,7 @@ const CACHE_URLS = [
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './assets/logo-wings.png',
 ];
 
 self.addEventListener('install', event => {

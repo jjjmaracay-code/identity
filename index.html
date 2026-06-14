@@ -2104,6 +2104,79 @@
     }
   }
 
+  @keyframes vuelo {
+    0%,100% { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    5%      { transform: rotate(-15deg) scaleX(1.02) translateY(-3px); }
+    10%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    15%     { transform: rotate(-15deg) scaleX(1.02) translateY(-3px); }
+    20%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    26%     { transform: rotate(-15deg) scaleX(0.08) translateY(-8px); }
+    28%     { transform: rotate(-15deg) scaleX(1) translateY(-4px); }
+    30%     { transform: rotate(-15deg) scaleX(0.08) translateY(-8px); }
+    32%     { transform: rotate(-15deg) scaleX(1) translateY(-4px); }
+    34%     { transform: rotate(-15deg) scaleX(0.08) translateY(-8px); }
+    36%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    46%     { transform: rotate(-15deg) scaleX(1.03) translateY(-4px); }
+    52%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    58%     { transform: rotate(-15deg) scaleX(1.03) translateY(-4px); }
+    64%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    83%     { transform: rotate(-15deg) scaleX(0.35) translateY(-5px); }
+    86%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    95%     { transform: rotate(-15deg) scaleX(1.02) translateY(-3px); }
+  }
+
+  @keyframes neon-flicker {
+    0%,100% {
+      filter: drop-shadow(0 0 8px #aaff00)
+              drop-shadow(0 0 20px #aaff00)
+              drop-shadow(0 0 40px rgba(170,255,0,0.6));
+    }
+    45% {
+      filter: drop-shadow(0 0 4px #aaff00)
+              drop-shadow(0 0 12px #aaff00);
+    }
+    50% {
+      filter: drop-shadow(0 0 12px #aaff00)
+              drop-shadow(0 0 30px #aaff00)
+              drop-shadow(0 0 60px rgba(170,255,0,0.5));
+    }
+  }
+
+  @keyframes neon-flicker-red {
+    0%,100% {
+      filter: drop-shadow(0 0 8px #ff2200)
+              drop-shadow(0 0 20px #ff2200)
+              drop-shadow(0 0 40px rgba(255,34,0,0.6))
+              hue-rotate(100deg) saturate(2);
+    }
+    50% {
+      filter: drop-shadow(0 0 12px #ff2200)
+              drop-shadow(0 0 30px #ff2200)
+              hue-rotate(100deg) saturate(2);
+    }
+  }
+
+  .logo-butterfly {
+    width: 160px;
+    height: 122px;
+    object-fit: contain;
+    mix-blend-mode: screen;
+    animation: vuelo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;
+    transform-origin: center center;
+  }
+
+  .logo-butterfly.bloqueada {
+    animation: neon-flicker-red 1.5s ease-in-out infinite;
+    filter: hue-rotate(100deg) saturate(2)
+            drop-shadow(0 0 12px #ff2200)
+            drop-shadow(0 0 30px rgba(255,34,0,0.6));
+  }
+
+  .logo-butterfly.small {
+    width: 100px;
+    height: 76px;
+  }
+
 </style>
 </head>
 <body>
@@ -2114,7 +2187,7 @@
 <!-- =================== PANTALLA CONSENTIMIENTO RGPD =================== -->
 <div id="screen-consent">
   <div class="consent-header">
-    <span class="consent-logo">I</span>
+    <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
     <div class="consent-tagline">dentity · Privacidad y Protección de Datos</div>
   </div>
 
@@ -2359,7 +2432,7 @@
 
 <!-- =================== PANTALLA PIN =================== -->
 <div id="screen-pin">
-  <div class="pin-logo">I</div>
+  <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly"/>
   <div class="pin-brand">dentity</div>
   <div class="pin-label">Crea tu contraseña de acceso</div>
   <div class="pin-sublabel">4 números · 1 letra · 1 símbolo</div>
@@ -2410,7 +2483,7 @@
 <!-- =================== PANTALLA PRINCIPAL =================== -->
 <div id="screen-main">
   <div class="main-header">
-    <div class="main-logo-sm">I</div>
+    <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
     <button class="btn-settings" id="btn-open-edit">⚙ Permisos y configuración</button>
   </div>
 
@@ -3076,7 +3149,9 @@ function pinError() {
 
   if (attempts >= 3) {
     localStorage.setItem('identity_block_until', String(Date.now() + 1800000));
-    window.location.href = 'recovery.html';
+    const butterfly = document.querySelector('.logo-butterfly');
+    if (butterfly) butterfly.classList.add('bloqueada');
+    setTimeout(() => { window.location.href = 'recovery.html'; }, 800);
     return;
   }
 

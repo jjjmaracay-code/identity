@@ -682,13 +682,66 @@
       bottom:20px !important; top:auto !important; width:90% !important;
     }
   }
+
+  @keyframes vuelo {
+    0%,100% { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    5%      { transform: rotate(-15deg) scaleX(1.02) translateY(-3px); }
+    10%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    15%     { transform: rotate(-15deg) scaleX(1.02) translateY(-3px); }
+    20%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    26%     { transform: rotate(-15deg) scaleX(0.08) translateY(-8px); }
+    28%     { transform: rotate(-15deg) scaleX(1) translateY(-4px); }
+    30%     { transform: rotate(-15deg) scaleX(0.08) translateY(-8px); }
+    32%     { transform: rotate(-15deg) scaleX(1) translateY(-4px); }
+    34%     { transform: rotate(-15deg) scaleX(0.08) translateY(-8px); }
+    36%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    46%     { transform: rotate(-15deg) scaleX(1.03) translateY(-4px); }
+    52%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    58%     { transform: rotate(-15deg) scaleX(1.03) translateY(-4px); }
+    64%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    83%     { transform: rotate(-15deg) scaleX(0.35) translateY(-5px); }
+    86%     { transform: rotate(-15deg) scaleX(1) translateY(0); }
+    95%     { transform: rotate(-15deg) scaleX(1.02) translateY(-3px); }
+  }
+
+  @keyframes neon-flicker {
+    0%,100% {
+      filter: drop-shadow(0 0 8px #aaff00)
+              drop-shadow(0 0 20px #aaff00)
+              drop-shadow(0 0 40px rgba(170,255,0,0.6));
+    }
+    45% {
+      filter: drop-shadow(0 0 4px #aaff00)
+              drop-shadow(0 0 12px #aaff00);
+    }
+    50% {
+      filter: drop-shadow(0 0 12px #aaff00)
+              drop-shadow(0 0 30px #aaff00)
+              drop-shadow(0 0 60px rgba(170,255,0,0.5));
+    }
+  }
+
+  .logo-butterfly {
+    width: 160px;
+    height: 122px;
+    object-fit: contain;
+    mix-blend-mode: screen;
+    animation: vuelo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;
+    transform-origin: center center;
+  }
+
+  .logo-butterfly.small {
+    width: 100px;
+    height: 76px;
+  }
+
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <div class="reg-header">
-  <div class="reg-logo">I</div>
+  <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
   <div class="reg-brand">dentity</div>
   <div class="reg-tagline">Registro seguro de identidad</div>
 
