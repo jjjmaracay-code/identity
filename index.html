@@ -331,10 +331,11 @@
   .main-header {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     padding: 0 4px;
     flex-shrink: 0;
+    gap: 16px;
   }
 
   .main-logo-sm {
@@ -349,8 +350,8 @@
   .btn-settings {
     padding: 8px 14px;
     border-radius: 20px;
-    background: rgba(170,255,0,0.08);
-    border: 1px solid rgba(170,255,0,0.25);
+    background: rgba(170,255,0,0.1);
+    border: 1px solid rgba(170,255,0,0.6);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -360,7 +361,7 @@
     font-weight: 500;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: rgba(170,255,0,0.7);
+    color: rgba(170,255,0,0.95);
     transition: background 0.15s;
     white-space: nowrap;
   }
@@ -2501,7 +2502,7 @@
 <div id="screen-main">
   <div class="main-header">
     <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
-    <button class="btn-settings" id="btn-open-edit">⚙ Permisos y configuración</button>
+    <button class="btn-settings" id="btn-open-edit">Permisos y configuración</button>
   </div>
 
   <div class="card-container" id="card-container">
