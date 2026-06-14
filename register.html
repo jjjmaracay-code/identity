@@ -1374,11 +1374,11 @@ document.getElementById('btn-step2').addEventListener('click', () => {
     to_email:      step1Data.email,
     code:          backupCode,
     app_name:      'CÓDIGO DE RESPALDO',
-    subject:       '🔐 Tu código de respaldo IDENTIFLY — Guárdalo en lugar seguro',
-    alert:         '⚠️ GUARDA ESTE CORREO — NO LO BORRES NUNCA',
-    intro:         'Tu registro está completo. Este es tu código de respaldo permanente:',
-    message_title: '¿Para qué sirve este código?',
-    message:       'Lo necesitarás si olvidas tu contraseña maestra. Este código NO expira — es permanente. Sin él no podrás recuperar tu cuenta.',
+    subject:       'IDENTIFLY — Tu código de respaldo permanente',
+    alert:         'CÓDIGO PERMANENTE — NO BORRES ESTE CORREO',
+    intro:         'Tu registro en IDENTIFLY está completo. A continuación tu código de respaldo permanente:',
+    message_title: 'Código de respaldo — no caduca nunca',
+    message:       'Guárdalo en un lugar seguro fuera de la app. Si olvidas tu contraseña maestra es la única forma de recuperar tu cuenta. IDENTIFLY no puede recuperarla sin este código.',
   }).catch(e => console.error('EmailJS (código de respaldo):', e.status, e.text));
 
   // Pasar a éxito

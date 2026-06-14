@@ -954,11 +954,11 @@ async function sendTempCode() {
       to_email:      email,
       code:          tempCode,
       app_name:      'RECUPERACIÓN DE CUENTA',
-      subject:       '🔑 Código de recuperación IDENTITY — Expira en 10 minutos',
-      alert:         '⏱ ESTE CÓDIGO EXPIRA EN 10 MINUTOS',
-      intro:         'Recibimos una solicitud de recuperación de tu cuenta. Usa este código:',
-      message_title: '¿Qué hago con este código?',
-      message:       'Introdúcelo en la pantalla de recuperación de IDENTITY. Si no solicitaste esta recuperación, ignora este correo.',
+      subject:       'IDENTIFLY — Código de verificación temporal',
+      alert:         'CÓDIGO TEMPORAL — VÁLIDO 10 MINUTOS',
+      intro:         'Hemos recibido una solicitud de acceso a tu cuenta IDENTIFLY. Introduce este código ahora:',
+      message_title: 'Código de un solo uso',
+      message:       'Úsalo en la pantalla de verificación de IDENTIFLY. Caduca en 10 minutos. Si no has solicitado este acceso, ignora este correo — tu cuenta permanece segura.',
     });
     showToast('Código enviado a ' + email);
   } catch(e) {
