@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IDENTIFLY · Instalar App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #080808;
+      color: rgba(255,255,255,0.85);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 32px 20px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .brand {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 10px;
+      color: #aaff00;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px #aaff00, 0 0 25px rgba(170,255,0,0.6);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .tagline {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .os-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    .os-tab {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(170,255,0,0.2);
+      background: rgba(170,255,0,0.04);
+      color: rgba(170,255,0,0.5);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .os-tab.active {
+      border-color: #aaff00;
+      background: rgba(170,255,0,0.1);
+      color: #aaff00;
+    }
+    .steps { display: none; }
+    .steps.active { display: block; }
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 28px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #aaff00;
+      color: #aaff00;
+      font-size: 13px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-content {}
+    .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+    .step-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+    .step-desc strong { color: #aaff00; }
+    .btn-go {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: #aaff00;
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 32px;
+    }
+    .note {
+      font-size: 10px;
+      color: rgba(255,255,255,0.2);
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.6;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="brand" aria-label="Aidentiflay">IDENTIFLY</div>
+  <div class="tagline">Instala la app en tu móvil</div>
+
+  <div class="os-tabs">
+    <button class="os-tab active" onclick="showOS('android')">Android</button>
+    <button class="os-tab" onclick="showOS('ios')">iPhone / iPad</button>
+    <button class="os-tab" onclick="showOS('desktop')">Escritorio</button>
+  </div>
+
+  <!-- ANDROID -->
+  <div class="steps active" id="steps-android">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Abre Chrome</div>
+        <div class="step-desc">Accede a <strong>identifly.app</strong> desde el navegador Chrome en tu Android.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Toca el menú</div>
+        <div class="step-desc">Pulsa los <strong>3 puntos</strong> en la esquina superior derecha del navegador.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Añadir a pantalla de inicio</div>
+        <div class="step-desc">Selecciona <strong>"Añadir a pantalla de inicio"</strong> y confirma.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Listo</div>
+        <div class="step-desc">El icono de IDENTIFLY aparecerá en tu pantalla de inicio como cualquier otra app.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IOS -->
+  <div class="steps" id="steps-ios">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Abre Safari</div>
+        <div class="step-desc">Accede a <strong>identifly.app</strong> desde Safari. No funciona desde Chrome en iPhone.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Toca Compartir</div>
+        <div class="step-desc">Pulsa el icono de <strong>compartir</strong> — el cuadrado con la flecha hacia arriba — en la barra inferior.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Añadir a inicio</div>
+        <div class="step-desc">Desplázate y selecciona <strong>"Añadir a pantalla de inicio"</strong>.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <div class="step-title">Confirma</div>
+        <div class="step-desc">Toca <strong>"Añadir"</strong> en la esquina superior derecha. El icono aparecerá en tu inicio.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP -->
+  <div class="steps" id="steps-desktop">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-title">Abre Chrome o Edge</div>
+        <div class="step-desc">Accede a <strong>identifly.app</strong> desde Chrome o Microsoft Edge.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-title">Icono de instalación</div>
+        <div class="step-desc">Busca el icono de <strong>instalar</strong> en la barra de direcciones — un ordenador con una flecha hacia abajo.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-title">Instalar</div>
+        <div class="step-desc">Haz click en <strong>"Instalar"</strong> y confirma. IDENTIFLY se abrirá como app independiente.</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-go" onclick="window.location.href='index.html'">Ir a IDENTIFLY</button>
+  <div class="note">IDENTIFLY es una PWA — Progressive Web App.<br>No requiere descarga desde ninguna tienda de apps.</div>
+
+  <script>
+    function showOS(os) {
+      document.querySelectorAll('.steps').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('steps-' + os).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
