@@ -3413,48 +3413,31 @@ async function pdfFirstPageToCanvas(file) {
 
 // Aplicar regex sobre el texto OCR y rellenar campos; devuelve los nombres rellenados
 function applyExtractedData(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const data = extractData(text);
   const filled = [];
-
   const fill = (id, value, label) => {
     const input = document.getElementById(id);
-    if (!value || !input || input.disabled) return; // no tocar campos bloqueados por registro
+    if (!value || !input || input.disabled) return;
     input.value = value.trim();
     filled.push(label);
   };
 
-  // Nombre: primera línea con 2+ palabras en mayúsculas (ignorando cabeceras típicas de documentos)
-  const headerWords = /\b(DOCUMENTO|IDENTIDAD|NACIONAL|DNI|NIE|PASAPORTE|CARNET|CARN[EÉ]|TARJETA|REP[UÚ]BLICA|REINO|ESPA[NÑ]A|IDENTITY|CARD|PASSPORT|LICENSE|PERMISO|CONDUCIR|CURRICULUM|VITAE)\b/;
-  const nameLine = lines.find(l =>
-    /^([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ'.-]*\s+)+[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ'.-]*$/.test(l) &&
-    l.split(/\s+/).length >= 2 &&
-    !headerWords.test(l)
-  );
-  fill('f-name', nameLine, 'nombre');
-
-  // Email: patrón estándar
-  const emailMatch = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
-  fill('f-email', emailMatch?.[0], 'email');
-
-  // Teléfono: +XX XXX XXX XXX o similar
-  const phoneMatch = text.match(/\+?\d{1,3}[\s.-]?\d{2,3}[\s.-]?\d{3}[\s.-]?\d{3}\b/);
-  fill('f-phone', phoneMatch?.[0], 'teléfono');
-
-  // Dirección: línea con calle, avda, plaza, c/, nº...
-  const addressLine = lines.find(l => /\b(calle|avda\.?|avenida|plaza|paseo|c\/|nº|n°)\b/i.test(l));
-  fill('f-address', addressLine, 'dirección');
-
-  // Empresa: línea después de palabras clave
-  const companyRegex = /(?:empresa|company|organizaci[oó]n|trabajo en)[:\s]*(.+)/i;
-  let companyValue = null;
-  for (let i = 0; i < lines.length; i++) {
-    const m = lines[i].match(companyRegex);
-    if (m) {
-      companyValue = m[1].trim() || lines[i + 1] || null;
-      break;
-    }
-  }
-  fill('f-company', companyValue, 'empresa');
+  if (data.nombre)        fill('f-name',       data.nombre.value,        'nombre');
+  if (data.email_principal) fill('f-email',    data.email_principal.value, 'email');
+  if (data.email_secundario) fill('f-email2',  data.email_secundario.value,'email secundario');
+  if (data.email_trabajo)  fill('f-email-work',data.email_trabajo.value,  'email trabajo');
+  if (data.telefono)      fill('f-phone',      data.telefono.value,       'teléfono');
+  if (data.movil)         fill('f-mobile',     data.movil.value,          'móvil');
+  if (data.empresa)       fill('f-company',    data.empresa.value,        'empresa');
+  if (data.cargo)         fill('f-role',       data.cargo.value,          'cargo');
+  if (data.ciudad)        fill('f-address',    data.ciudad.value,         'ciudad');
+  if (data.linkedin)      fill('f-linkedin',   data.linkedin.value,       'LinkedIn');
+  if (data.github)        fill('f-github',     data.github.value,         'GitHub');
+  if (data.twitter)       fill('f-twitter',    data.twitter.value,        'Twitter');
+  if (data.instagram)     fill('f-instagram',  data.instagram.value,      'Instagram');
+  if (data.web)           fill('f-web',        data.web.value,            'web');
+  if (data.youtube)       fill('f-youtube',    data.youtube.value,        'YouTube');
+  if (data.tiktok)        fill('f-tiktok',     data.tiktok.value,         'TikTok');
 
   return filled;
 }
