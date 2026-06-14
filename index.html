@@ -2158,6 +2158,9 @@
   }
 
   .logo-butterfly {
+    display: block;
+    margin: 0 auto;
+    align-self: center;
     width: 160px;
     height: 122px;
     object-fit: contain;
@@ -3573,7 +3576,13 @@ function buildVCard() {
   const t = profileData.toggles || {};
 
   let vc = 'BEGIN:VCARD\nVERSION:3.0\n';
-  if (d.name)                     vc += `FN:${d.name}\n`;
+  if (d.name) {
+    const parts = d.name.trim().split(' ');
+    const firstName = parts[0] || '';
+    const lastName = parts.slice(1).join(' ') || '';
+    vc += `N:${lastName};${firstName};;;\n`;
+    vc += `FN:${d.name}\n`;
+  }
   if (d.job)                      vc += `TITLE:${d.job}\n`;
   if (d.phone  && t.phone  !== false) vc += `TEL:${d.phone}\n`;
   if (d.mobile    && t.mobile !== false)  vc += `TEL;type=CELL:${d.mobile}\n`;
@@ -3622,7 +3631,7 @@ function buildQROptions(design, size, data) {
     backgroundOptions: { color: design.bgColor },
     cornersSquareOptions: { type: design.cornerSquareType, color: design.cornerSquareColor },
     cornersDotOptions: { type: design.cornerDotType, color: design.cornerDotColor },
-    image: makeISvg(design.bgColor, design.dotsColor),
+    image: '',
   };
 }
 
