@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="IDENTIFLY"/>
+  <title>IDENTIFLY · Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #aaff00;
+      --bg: #080808;
+      --card: #111;
+      --text: rgba(255,255,255,0.85);
+      --muted: rgba(255,255,255,0.35);
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+    }
+
+    /* LOGO */
+    .brand {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 10px;
+      color: var(--green);
+      text-transform: uppercase;
+      text-shadow: 0 0 10px #aaff00, 0 0 25px rgba(170,255,0,0.6);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .tagline {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    /* TRIAL BADGE */
+    .trial-badge {
+      background: rgba(170,255,0,0.08);
+      border: 1px solid rgba(170,255,0,0.3);
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--green);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .trial-badge span {
+      color: #fff;
+    }
+
+    /* PLANES */
+    .plans {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 360px;
+      margin-bottom: 32px;
+    }
+
+    .plan-card {
+      background: var(--card);
+      border: 1px solid rgba(170,255,0,0.15);
+      border-radius: 16px;
+      padding: 24px 20px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .plan-card.featured {
+      border-color: var(--green);
+      box-shadow: 0 0 20px rgba(170,255,0,0.15);
+    }
+    .plan-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--green);
+      color: #000;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 4px 12px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .plan-name {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 4px;
+    }
+    .plan-price {
+      font-size: 36px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .plan-price sup {
+      font-size: 16px;
+      vertical-align: top;
+      margin-top: 6px;
+    }
+    .plan-period {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .plan-features {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+    .plan-features li {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      line-height: 1.5;
+    }
+    .plan-features li::before {
+      content: '— ';
+      color: var(--green);
+    }
+    .plan-features li.disabled {
+      color: rgba(255,255,255,0.2);
+      text-decoration: line-through;
+    }
+    .plan-features li.disabled::before {
+      color: rgba(255,255,255,0.15);
+    }
+
+    .btn-plan {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-plan.free {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-plan.pro {
+      background: var(--green);
+      color: #000;
+    }
+    .btn-plan.lifetime {
+      background: transparent;
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+    .btn-plan:hover { opacity: 0.85; }
+
+    /* MODAL EMAIL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #111;
+      border: 1px solid rgba(170,255,0,0.3);
+      border-radius: 16px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+    }
+    .modal-title {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .modal-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(170,255,0,0.3);
+      background: rgba(170,255,0,0.04);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 16px;
+    }
+    .btn-notify {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: var(--green);
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .btn-cancel {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+    .success-msg {
+      display: none;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    /* PIE */
+    .footer-note {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+      max-width: 300px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="brand" aria-label="Aidentiflay">IDENTIFLY</div>
+  <div class="tagline">Identidad digital segura</div>
+  <div class="trial-badge" id="trial-info">Periodo de prueba finalizado</div>
+
+  <div class="plans">
+
+    <!-- FREE -->
+    <div class="plan-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price"><sup>€</sup>0</div>
+      <div class="plan-period">para siempre</div>
+      <ul class="plan-features">
+        <li>Perfil completo de contacto</li>
+        <li>QR estándar funcional</li>
+        <li>Importador de datos</li>
+        <li class="disabled">Video de fondo en tarjeta</li>
+        <li class="disabled">Personalización de colores QR</li>
+        <li class="disabled">Doble factor de autenticación</li>
+      </ul>
+      <button class="btn-plan free" onclick="goFree()">Continuar gratis</button>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan-card featured">
+      <div class="plan-badge">Más popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price"><sup>€</sup>2<span style="font-size:20px">.99</span></div>
+      <div class="plan-period">por mes — cancela cuando quieras</div>
+      <ul class="plan-features">
+        <li>Todo lo de Free</li>
+        <li>Video de fondo en tarjeta</li>
+        <li>Personalización completa del QR</li>
+        <li>Doble factor de autenticación</li>
+        <li>Soporte prioritario</li>
+      </ul>
+      <button class="btn-plan pro" onclick="openModal('pro')">Quiero Pro — 2.99€/mes</button>
+    </div>
+
+    <!-- LIFETIME -->
+    <div class="plan-card">
+      <div class="plan-name">Lifetime</div>
+      <div class="plan-price"><sup>€</sup>14<span style="font-size:20px">.99</span></div>
+      <div class="plan-period">pago único — tuyo para siempre</div>
+      <ul class="plan-features">
+        <li>Todo lo de Pro</li>
+        <li>Sin pagos recurrentes</li>
+        <li>Acceso a todas las funciones futuras</li>
+        <li>Soporte de por vida</li>
+      </ul>
+      <button class="btn-plan lifetime" onclick="openModal('lifetime')">Pago único — 14.99€</button>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    Tus datos permanecen exclusivamente en tu dispositivo.<br>
+    Ningún servidor almacena tu información personal — RGPD Art. 5
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-title">Próximamente</div>
+      <div class="modal-sub" id="modal-sub">Déjanos tu email y te avisamos cuando el pago esté disponible. Tendrás un descuento de lanzamiento.</div>
+      <div id="modal-form">
+        <input class="modal-input" type="email" id="notify-email" placeholder="tu@email.com"/>
+        <button class="btn-notify" onclick="submitNotify()">Avisarme</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      </div>
+      <div class="success-msg" id="success-msg">Anotado. Te avisamos en cuanto esté listo.</div>
+    </div>
+  </div>
+
+  <script>
+    // Mostrar días restantes o estado del trial
+    const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+    if (reg.timestamp) {
+      const start = new Date(reg.timestamp);
+      const now = new Date();
+      const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+      const remaining = 30 - days;
+      const badge = document.getElementById('trial-info');
+      if (remaining > 0) {
+        badge.textContent = `Periodo de prueba — quedan ${remaining} días`;
+      } else {
+        badge.textContent = 'Periodo de prueba finalizado';
+      }
+    }
+
+    function goFree() {
+      localStorage.setItem('identity_plan', 'free');
+      window.location.href = 'index.html';
+    }
+
+    function openModal(plan) {
+      const titles = { pro: 'Pro — 2.99€/mes', lifetime: 'Lifetime — 14.99€' };
+      document.getElementById('modal-title').textContent = titles[plan];
+      document.getElementById('modal-form').style.display = 'block';
+      document.getElementById('success-msg').style.display = 'none';
+      document.getElementById('notify-email').value = reg.email || '';
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
+
+    function submitNotify() {
+      const email = document.getElementById('notify-email').value.trim();
+      if (!email || !email.includes('@')) return;
+      // Guardar localmente — cuando haya backend se enviará
+      const notifs = JSON.parse(localStorage.getItem('identity_notify') || '[]');
+      notifs.push({ email, plan: document.getElementById('modal-title').textContent, date: new Date().toISOString() });
+      localStorage.setItem('identity_notify', JSON.stringify(notifs));
+      document.getElementById('modal-form').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
