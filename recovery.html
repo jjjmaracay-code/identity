@@ -519,8 +519,15 @@
     height: 122px;
     object-fit: contain;
     mix-blend-mode: screen;
-    animation: aleteo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;
+    animation: neon-flicker-red 2s ease-in-out infinite;
+    transform: rotate(-15deg) scaleX(0.75);
     transform-origin: center center;
+    filter: drop-shadow(0 0 12px #ff4444) drop-shadow(0 0 30px rgba(255,68,68,0.6));
+  }
+
+  @keyframes neon-flicker-red {
+    0%,100% { filter: drop-shadow(0 0 12px #ff4444) drop-shadow(0 0 30px rgba(255,68,68,0.6)); }
+    50% { filter: drop-shadow(0 0 6px #ff4444) drop-shadow(0 0 18px rgba(255,68,68,0.4)); }
   }
 
   .logo-butterfly.small {
