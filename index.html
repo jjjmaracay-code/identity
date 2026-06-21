@@ -2143,6 +2143,21 @@
     95%     { transform: rotate(-15deg) scaleX(0.77); }
   }
 
+  @keyframes butterfly-land {
+    from { opacity: 0; transform: rotate(-15deg) translateY(-30px); }
+    to   { opacity: 1; transform: rotate(-15deg) translateY(0); }
+  }
+
+  @keyframes pin-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .pin-enter-anim {
+    opacity: 0;
+    animation: pin-fade-in 0.45s ease forwards;
+  }
+
   @keyframes neon-flicker {
     0%,100% {
       filter: drop-shadow(0 0 8px #aaff00)
@@ -2182,7 +2197,9 @@
     height: 122px;
     object-fit: contain;
     mix-blend-mode: screen;
-    animation: aleteo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;
+    animation: butterfly-land 0.7s ease forwards,
+               aleteo 8s ease-in-out infinite 0.7s,
+               neon-flicker 4s ease-in-out infinite 0.7s;
     transform-origin: center center;
   }
 
@@ -2455,13 +2472,13 @@
 <!-- =================== PANTALLA PIN =================== -->
 <div id="screen-pin">
   <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly"/>
-  <div class="pin-brand" aria-label="Aidentiflay">IDENTIFLY</div>
-  <div class="pin-label">Crea tu contraseña de acceso</div>
-  <div class="pin-sublabel">4 números · 1 letra · 1 símbolo</div>
-  <div style="font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;text-align:center;line-height:1.5;margin:-12px 24px 16px;position:relative;z-index:101;">
-    Puedes combinarlos en cualquier orden · Ej: 12@34A · 1A23$4 · No es aconsejable agruparlos todos juntos: 1234@A
+  <div class="pin-brand pin-enter-anim" style="animation-delay:0.4s" aria-label="Aidentiflay">IDENTIFLY</div>
+  <div class="pin-label pin-enter-anim" style="animation-delay:0.6s">Crea tu contraseña de acceso</div>
+  <div class="pin-sublabel pin-enter-anim" style="animation-delay:0.6s">4 números · 1 letra · 1 símbolo</div>
+  <div class="pin-enter-anim" style="font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;text-align:center;line-height:1.5;margin:-12px 24px 16px;position:relative;z-index:101;animation-delay:0.6s">
+    Combínalos en cualquier orden · Ej: 12@34A
   </div>
-  <div class="pin-dots">
+  <div class="pin-dots pin-enter-anim" style="animation-delay:0.85s">
     <div class="pin-dot" id="d0"></div>
     <div class="pin-dot" id="d1"></div>
     <div class="pin-dot" id="d2"></div>
@@ -2471,7 +2488,7 @@
   </div>
 
   <!-- Teclado: números -->
-  <div class="pin-keypad">
+  <div class="pin-keypad pin-enter-anim" style="animation-delay:0.85s">
     <button class="pin-key" data-n="1">1</button>
     <button class="pin-key" data-n="2">2</button>
     <button class="pin-key" data-n="3">3</button>
@@ -2487,20 +2504,20 @@
   </div>
 
   <!-- Teclado: letras -->
-  <div class="pin-keyboard-section">
+  <div class="pin-keyboard-section pin-enter-anim" style="animation-delay:0.85s">
     <div class="pin-keyboard-label">Letra</div>
     <div class="pin-letters-grid" id="pin-letters-grid"></div>
   </div>
 
   <!-- Teclado: símbolos -->
-  <div class="pin-keyboard-section">
+  <div class="pin-keyboard-section pin-enter-anim" style="animation-delay:0.85s">
     <div class="pin-keyboard-label">Símbolo</div>
     <div class="pin-symbols-row" id="pin-symbols-row"></div>
   </div>
 
-  <div class="pin-first-time" id="pin-hint">Primera vez — crea tu contraseña de 6 caracteres</div>
-  <button class="pin-enter" id="pin-enter-btn" disabled>Entrar</button>
-  <a href="install.html" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(170,255,0,0.3);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;">¿Primera vez? Instala la app en tu móvil</a>
+  <div class="pin-first-time pin-enter-anim" id="pin-hint" style="animation-delay:0.85s">Primera vez — crea tu contraseña de 6 caracteres</div>
+  <button class="pin-enter pin-enter-anim" id="pin-enter-btn" disabled style="animation-delay:0.85s">Entrar</button>
+  <a href="install.html" class="pin-enter-anim" style="display:block;margin-top:16px;font-size:9px;color:rgba(170,255,0,0.3);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;animation-delay:0.85s">¿Primera vez? Instala la app en tu móvil</a>
 </div>
 
 <!-- =================== PANTALLA PRINCIPAL =================== -->
