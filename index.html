@@ -3375,9 +3375,7 @@ function doEnter() {
   renderCard();
   generateQR();
   window.idxTour?.onMain();
-  if (localStorage.getItem('identity_plan') !== 'free' &&
-      localStorage.getItem('identity_plan') !== 'pro' &&
-      localStorage.getItem('identity_plan') !== 'lifetime') {
+  if (!localStorage.getItem('identity_plan')) {
     showIPlans();
   }
 }
