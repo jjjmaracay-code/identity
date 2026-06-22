@@ -1407,15 +1407,6 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// =================== VERIFICAR SI YA ESTÁ REGISTRADO ===================
-window.addEventListener('load', () => {
-  const reg = localStorage.getItem(REG_KEY);
-  const pin = localStorage.getItem('identity_pin');
-  if (reg && pin) {
-    // Ya registrado — ir directo a la app
-    window.location.href = 'index.html';
-  }
-});
 
 // =================== TOUR INTERACTIVO (REGISTRO) ===================
 (function () {
