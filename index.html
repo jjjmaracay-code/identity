@@ -2211,6 +2211,13 @@
     z-index: 999999;
   }
 
+  .pdot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: rgba(170,255,0,0.2);
+    cursor: pointer; transition: background .2s;
+  }
+  .pdot.pdot-on { background: #AAFF00; }
+
   .logo-butterfly.bloqueada {
     animation: neon-flicker-red 1.5s ease-in-out infinite;
     filter: hue-rotate(100deg) saturate(2)
@@ -2228,6 +2235,70 @@
 </head>
 <body>
 <div id="boot-gate"></div>
+
+<!-- =================== OVERLAY PLANES =================== -->
+<div id="plans-ov" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div id="plans-box" style="background:#0a0a0a;border:1.5px solid rgba(170,255,0,0.3);border-radius:20px;padding:28px 20px 20px;max-width:420px;width:100%;font-family:'Inter',sans-serif;position:relative;">
+
+    <div class="pslide" id="iplan-0">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:9px;font-weight:900;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;margin-bottom:12px;">Tu periodo de prueba</div>
+        <div id="iplan-days" style="font-size:52px;font-weight:900;color:#AAFF00;text-shadow:0 0 20px rgba(170,255,0,0.5);line-height:1;margin-bottom:4px;">--</div>
+        <div style="font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:20px;">días restantes de prueba gratuita</div>
+        <div style="background:rgba(170,255,0,0.05);border:1px solid rgba(170,255,0,0.12);border-radius:12px;padding:16px;text-align:left;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(170,255,0,0.6);text-transform:uppercase;margin-bottom:10px;">Con un plan de pago tienes</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.4;">
+            <div>✓ Video de fondo en tarjeta</div>
+            <div>✓ Personalización completa del QR</div>
+            <div>✓ Doble factor de autenticación</div>
+            <div>✓ Soporte prioritario</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pslide" id="iplan-1" style="display:none;">
+      <div style="border:1px solid rgba(170,255,0,0.25);border-radius:16px;padding:20px;background:rgba(170,255,0,0.03);position:relative;">
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a0a0a;padding:0 10px;font-size:9px;font-weight:700;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;">MÁS POPULAR</div>
+        <div style="text-align:center;margin-bottom:14px;">
+          <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:900;color:#AAFF00;text-shadow:0 0 16px rgba(170,255,0,0.35);margin-bottom:8px;">Pro</div>
+          <div style="font-size:36px;font-weight:900;color:#fff;line-height:1;"><span style="font-size:18px;vertical-align:top;margin-top:6px;display:inline-block;">€</span>2<span style="font-size:20px;">.99</span></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;">por mes — cancela cuando quieras</div>
+        </div>
+        <button class="plans-pay-btn" onclick="window.location.href='paywall.html'"
+          style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-bottom:14px;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+          QUIERO PRO
+        </button>
+      </div>
+    </div>
+
+    <div class="pslide" id="iplan-2" style="display:none;">
+      <div style="border:1.5px solid rgba(170,255,0,0.35);border-radius:16px;padding:20px;background:rgba(170,255,0,0.03);position:relative;">
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a0a0a;padding:0 10px;font-size:9px;font-weight:700;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;white-space:nowrap;">◆ MEJOR VALOR</div>
+        <div style="text-align:center;margin-bottom:14px;">
+          <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:900;color:#AAFF00;text-shadow:0 0 16px rgba(170,255,0,0.4);margin-bottom:8px;">Lifetime</div>
+          <div style="font-size:36px;font-weight:900;color:#fff;line-height:1;"><span style="font-size:18px;vertical-align:top;margin-top:6px;display:inline-block;">€</span>14<span style="font-size:20px;">.99</span></div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;">pago único — tuyo para siempre</div>
+        </div>
+        <button class="plans-pay-btn" onclick="window.location.href='paywall.html'"
+          style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-bottom:14px;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+          PAGO ÚNICO
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:6px;justify-content:center;margin:18px 0 14px;" id="iplan-dots">
+      <span class="pdot pdot-on" data-ipi="0"></span>
+      <span class="pdot" data-ipi="1"></span>
+      <span class="pdot" data-ipi="2"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button id="iplan-skip" onclick="closeIPlans()" style="flex:1;background:none;border:none;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:1px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;padding:0;">Continuar con mi plan actual</button>
+      <button id="iplan-prev" onclick="iplanNav(-1)" style="display:none;background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-size:14px;padding:9px 14px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;">‹</button>
+      <button id="iplan-next" onclick="iplanNav(1)" style="background:#AAFF00;border:none;color:#000;font-size:11px;font-weight:900;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;white-space:nowrap;">Siguiente →</button>
+    </div>
+  </div>
+</div>
 
 <!-- =================== FONDO ANIMADO =================== -->
 <div id="bg-media"></div>
