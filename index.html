@@ -3661,7 +3661,7 @@ function buildVCard() {
 // =================== DISEÑADOR QR PROFESIONAL ===================
 
 // Estado del diseñador
-let qrDesign = profileData.qrDesign || {
+const DEFAULT_QR_DESIGN = {
   dotsType: 'square',
   dotsColor: '#1a1a1a',
   bgColor: '#f5f5f5',
@@ -3670,6 +3670,17 @@ let qrDesign = profileData.qrDesign || {
   cornerSquareColor: '#1a1a1a',
   cornerDotColor: '#1a1a1a',
 };
+let qrDesign = { ...DEFAULT_QR_DESIGN, ...profileData.qrDesign };
+
+function saveQRDesign() {
+  profileData.qrDesign = { ...DEFAULT_QR_DESIGN, ...qrDesign };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profileData));
+  } catch(e) {
+    const slim = { ...profileData, media: profileData.media?.galleryId ? profileData.media : null };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+  }
+}
 
 // SVG de la I adaptado al color de fondo
 function makeISvg(bg, fg) {
@@ -3840,6 +3851,7 @@ function buildDesignerGrids() {
 
       item.addEventListener('click', () => {
         qrDesign.dotsType = p.id;
+        saveQRDesign();
         document.querySelectorAll('.qr-pattern-item').forEach(i => i.classList.remove('selected'));
         item.classList.add('selected');
         renderQRLive();
@@ -3871,6 +3883,7 @@ function buildDesignerGrids() {
 
       item.addEventListener('click', () => {
         qrDesign.cornerSquareType = c.id;
+        saveQRDesign();
         document.querySelectorAll('.qr-corner-item').forEach(i => i.classList.remove('selected'));
         item.classList.add('selected');
         renderQRLive();
@@ -3914,6 +3927,7 @@ function syncCornerSelection() {
     if (key === 'bg')         { qrDesign.bgColor = v; }
     if (key === 'corner-sq')  { qrDesign.cornerSquareColor = v; }
     if (key === 'corner-dot') { qrDesign.cornerDotColor = v; }
+    saveQRDesign();
     renderQRLive();
   });
 });
