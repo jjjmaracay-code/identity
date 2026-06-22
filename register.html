@@ -1053,12 +1053,14 @@ function buildKeyboard(lettersId, symbolsId, pwdNum) {
 buildKeyboard('letters-1', 'symbols-1', 1);
 buildKeyboard('letters-2', 'symbols-2', 2);
 
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    const gate = document.getElementById('boot-gate');
-    if (gate) gate.remove();
-  });
-});
+setTimeout(() => {
+  const gate = document.getElementById('boot-gate');
+  if (gate) {
+    gate.style.transition = 'opacity 0.25s';
+    gate.style.opacity = '0';
+    setTimeout(() => gate.remove(), 250);
+  }
+}, 600);
 
 // =================== CONTRASEÑA =================== 
 function handlePwdInput(num, char) {

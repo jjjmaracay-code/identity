@@ -3160,12 +3160,14 @@ if (!isFirstTime) {
   if (noAccountLink) noAccountLink.style.display = 'block';
 }
 
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    const gate = document.getElementById('boot-gate');
-    if (gate) gate.remove();
-  });
-});
+setTimeout(() => {
+  const gate = document.getElementById('boot-gate');
+  if (gate) {
+    gate.style.transition = 'opacity 0.25s';
+    gate.style.opacity = '0';
+    setTimeout(() => gate.remove(), 250);
+  }
+}, 600);
 
 function updateDots() {
   pinDots.forEach((d, i) => {
