@@ -2868,19 +2868,6 @@
         <button class="btn-2fa-setup" id="btn-setup-totp">Configurar autenticador</button>
       </div>
 
-      <div class="field-toggle-wrap">
-        <div>
-          <div class="field-toggle-label">👆 Biométrico</div>
-          <div class="twofa-sublabel">Face ID / Huella dactilar</div>
-        </div>
-        <div class="toggle-right">
-          <label class="toggle-switch"><input type="checkbox" id="t-bio"><span class="toggle-slider"></span></label>
-          <div class="toggle-status off" id="s-bio">Bloqueado</div>
-        </div>
-      </div>
-      <div id="bio-setup-area" style="display:none;">
-        <button class="btn-2fa-setup" id="btn-setup-bio">Registrar biométrico</button>
-      </div>
     </div>
   </div>
 
@@ -2980,16 +2967,6 @@
       <button class="btn-save" id="btn-verify-totp">Verificar código</button>
     </div>
 
-    <!-- Biométrico -->
-    <div id="verify-bio-area" style="width:100%;display:none;text-align:center;">
-      <button class="btn-save" id="btn-verify-bio" style="margin-top:0;">
-        👆 Verificar con biométrico
-      </button>
-    </div>
-
-    <div class="verify-alt-btn" id="verify-alt-btn" style="display:none;">
-      Usar el otro método de verificación
-    </div>
   </div>
 </div>
 
@@ -4379,7 +4356,7 @@ document.getElementById('btn-confirm-delete').addEventListener('click', () => {
   // Resetear estado en memoria
   profileData = {};
   pinBuffer = '';
-  twoFAConfig = { totp: false, bio: false };
+  twoFAConfig = { totp: false };
 
   // Cerrar todo y volver al consentimiento
   deleteScreen.style.transform = 'scale(0.9)';
@@ -4400,10 +4377,9 @@ document.getElementById('btn-confirm-delete').addEventListener('click', () => {
 
 // =================== 2FA SISTEMA ===================
 const TOTP_KEY    = 'identity_totp_secret';
-const BIO_KEY     = 'identity_bio_credential';
 const TWOFA_KEY   = 'identity_2fa_config';
 
-let twoFAConfig = JSON.parse(localStorage.getItem(TWOFA_KEY) || '{"totp":false,"bio":false}');
+let twoFAConfig = JSON.parse(localStorage.getItem(TWOFA_KEY) || '{"totp":false}');
 let pendingTOTPSecret = null;
 
 function generateTOTPSecret() {
@@ -4499,89 +4475,21 @@ document.getElementById('btn-confirm-totp').addEventListener('click', () => {
   }
 });
 
-// Toggle Biométrico
-document.getElementById('t-bio').addEventListener('change', async (e) => {
-  const lbl = document.getElementById('s-bio');
-  const area = document.getElementById('bio-setup-area');
-  if (e.target.checked) {
-    area.style.display = 'block';
-    lbl.textContent = 'Pendiente'; lbl.className = 'toggle-status off';
-  } else {
-    localStorage.removeItem(BIO_KEY);
-    twoFAConfig.bio = false;
-    localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
-    lbl.textContent = 'Bloqueado'; lbl.className = 'toggle-status off';
-    area.style.display = 'none';
-    showToast('Biométrico desactivado');
-  }
-});
 
-document.getElementById('btn-setup-bio').addEventListener('click', async () => {
-  if (!window.PublicKeyCredential) { showToast('Navegador no soporta biométrico'); return; }
-  try {
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const userId = crypto.getRandomValues(new Uint8Array(16));
-    const cred = await navigator.credentials.create({ publicKey: {
-      challenge, rp: { name: 'IDENTITY', id: location.hostname || 'localhost' },
-      user: { id: userId, name: profileData.email || 'user', displayName: profileData.name || 'Usuario' },
-      pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
-      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-      timeout: 60000
-    }});
-    if (cred) {
-      localStorage.setItem(BIO_KEY, btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
-      twoFAConfig.bio = true;
-      localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
-      document.getElementById('s-bio').textContent = 'Permitido';
-      document.getElementById('s-bio').className = 'toggle-status on';
-      document.getElementById('bio-setup-area').style.display = 'none';
-      showToast('✓ Biométrico registrado');
-    }
-  } catch(e) {
-    showToast('Error: ' + (e.message||'no disponible'));
-    document.getElementById('t-bio').checked = false;
-    document.getElementById('s-bio').textContent = 'Bloqueado';
-    document.getElementById('s-bio').className = 'toggle-status off';
-  }
-});
 
 // Verificación 2FA en login
 async function check2FAAndEnter() {
   const hasTOTP = twoFAConfig.totp && localStorage.getItem(TOTP_KEY);
-  const hasBio  = twoFAConfig.bio  && localStorage.getItem(BIO_KEY);
-  if (!hasTOTP && !hasBio) { doEnter(); return; }
+  if (!hasTOTP) { doEnter(); return; }
 
   const screen = document.getElementById('screen-2fa-verify');
   screen.classList.add('open');
-  const totpArea = document.getElementById('verify-totp-area');
-  const bioArea  = document.getElementById('verify-bio-area');
-  const altBtn   = document.getElementById('verify-alt-btn');
-
-  if (hasBio) {
-    document.getElementById('verify-icon').textContent = '👆';
-    document.getElementById('verify-title').textContent = 'Verificación biométrica';
-    document.getElementById('verify-subtitle').textContent = 'Usa Face ID o huella dactilar para confirmar';
-    bioArea.style.display = 'block'; totpArea.style.display = 'none';
-    if (hasTOTP) { altBtn.style.display='block'; altBtn.textContent='Usar código autenticador'; }
-    setTimeout(() => document.getElementById('btn-verify-bio').click(), 600);
-  } else {
-    document.getElementById('verify-icon').textContent = '🔐';
-    document.getElementById('verify-title').textContent = 'Código autenticador';
-    document.getElementById('verify-subtitle').textContent = 'Introduce el código de 6 dígitos de tu app';
-    totpArea.style.display = 'block'; bioArea.style.display = 'none';
-  }
+  document.getElementById('verify-icon').textContent = '🔐';
+  document.getElementById('verify-title').textContent = 'Código autenticador';
+  document.getElementById('verify-subtitle').textContent = 'Introduce el código de 6 dígitos de tu app';
+  document.getElementById('verify-totp-area').style.display = 'block';
 }
 
-document.getElementById('btn-verify-bio').addEventListener('click', async () => {
-  try {
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const assertion = await navigator.credentials.get({ publicKey: { challenge, userVerification: 'required', timeout: 60000 }});
-    if (assertion) {
-      document.getElementById('screen-2fa-verify').classList.remove('open');
-      doEnter();
-    }
-  } catch(e) { showToast('Verificación fallida — usa el código'); }
-});
 
 document.getElementById('btn-verify-totp').addEventListener('click', () => {
   const code = document.getElementById('verify-totp-input').value.trim();
@@ -4595,32 +4503,12 @@ document.getElementById('btn-verify-totp').addEventListener('click', () => {
   }
 });
 
-document.getElementById('verify-alt-btn').addEventListener('click', () => {
-  const t = document.getElementById('verify-totp-area');
-  const b = document.getElementById('verify-bio-area');
-  const a = document.getElementById('verify-alt-btn');
-  if (b.style.display !== 'none') {
-    b.style.display='none'; t.style.display='block';
-    a.textContent='Usar biométrico';
-    document.getElementById('verify-icon').textContent='🔐';
-    document.getElementById('verify-title').textContent='Código autenticador';
-  } else {
-    t.style.display='none'; b.style.display='block';
-    a.textContent='Usar código autenticador';
-    document.getElementById('verify-icon').textContent='👆';
-    document.getElementById('verify-title').textContent='Verificación biométrica';
-  }
-});
 
 function init2FAToggles() {
   const ta = twoFAConfig.totp && !!localStorage.getItem(TOTP_KEY);
-  const ba = twoFAConfig.bio  && !!localStorage.getItem(BIO_KEY);
   document.getElementById('t-totp').checked = ta;
   document.getElementById('s-totp').textContent = ta ? 'Permitido' : 'Bloqueado';
   document.getElementById('s-totp').className = 'toggle-status ' + (ta ? 'on' : 'off');
-  document.getElementById('t-bio').checked = ba;
-  document.getElementById('s-bio').textContent = ba ? 'Permitido' : 'Bloqueado';
-  document.getElementById('s-bio').className = 'toggle-status ' + (ba ? 'on' : 'off');
 }
 
 // Init
