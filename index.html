@@ -3043,8 +3043,11 @@ const CONSENT_KEY = 'identity_consent';
 let consentGiven = localStorage.getItem(CONSENT_KEY) === 'true';
 
 if (consentGiven) {
-  document.getElementById('screen-consent').classList.add('hidden');
-} 
+  const scConsent = document.getElementById('screen-consent');
+  scConsent.style.transition = 'none';
+  scConsent.classList.add('hidden');
+  requestAnimationFrame(() => { scConsent.style.transition = ''; });
+}
 
 const consentCheck = document.getElementById('consent-check');
 const btnConsent = document.getElementById('btn-consent-accept');
