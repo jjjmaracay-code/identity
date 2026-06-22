@@ -597,6 +597,13 @@
 
   .resend-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+  #boot-gate {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 999999;
+  }
+
   /* Pantallas */
   .screen {
     width: 100%;
@@ -739,6 +746,7 @@
 </style>
 </head>
 <body>
+<div id="boot-gate"></div>
 
 <!-- HEADER -->
 <div class="reg-header">
@@ -1044,6 +1052,13 @@ function buildKeyboard(lettersId, symbolsId, pwdNum) {
 
 buildKeyboard('letters-1', 'symbols-1', 1);
 buildKeyboard('letters-2', 'symbols-2', 2);
+
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    const gate = document.getElementById('boot-gate');
+    if (gate) gate.remove();
+  });
+});
 
 // =================== CONTRASEÑA =================== 
 function handlePwdInput(num, char) {

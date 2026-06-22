@@ -2204,6 +2204,13 @@
     transform-origin: center center;
   }
 
+  #boot-gate {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 999999;
+  }
+
   .logo-butterfly.bloqueada {
     animation: neon-flicker-red 1.5s ease-in-out infinite;
     filter: hue-rotate(100deg) saturate(2)
@@ -2220,6 +2227,7 @@
 </style>
 </head>
 <body>
+<div id="boot-gate"></div>
 
 <!-- =================== FONDO ANIMADO =================== -->
 <div id="bg-media"></div>
@@ -3148,6 +3156,13 @@ if (!isFirstTime) {
   const noAccountLink = document.getElementById('link-no-account');
   if (noAccountLink) noAccountLink.style.display = 'block';
 }
+
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    const gate = document.getElementById('boot-gate');
+    if (gate) gate.remove();
+  });
+});
 
 function updateDots() {
   pinDots.forEach((d, i) => {
