@@ -367,7 +367,7 @@
       <div class="modal-sub" id="modal-sub">Déjanos tu email y te avisamos cuando el pago esté disponible. Tendrás un descuento de lanzamiento.</div>
       <div id="modal-form">
         <input class="modal-input" type="email" id="notify-email" placeholder="tu@email.com"/>
-        <button class="btn-notify" onclick="submitNotify()">Avisarme</button>
+        <button class="btn-notify" id="btn-checkout" onclick="goToCheckout()">Continuar al pago</button>
         <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
       </div>
       <div class="success-msg" id="success-msg">Anotado. Te avisamos en cuanto esté listo.</div>
@@ -395,7 +395,10 @@
       window.location.href = 'index.html';
     }
 
+    let currentPlan = null;
+
     function openModal(plan) {
+      currentPlan = plan;
       const titles = { pro: 'Pro — 2.99€/mes', lifetime: 'Lifetime — 14.99€' };
       document.getElementById('modal-title').textContent = titles[plan];
       document.getElementById('modal-form').style.display = 'block';
@@ -408,16 +411,54 @@
       document.getElementById('modal').classList.remove('open');
     }
 
-    function submitNotify() {
+    async function goToCheckout() {
       const email = document.getElementById('notify-email').value.trim();
-      if (!email || !email.includes('@')) return;
-      // Guardar localmente — cuando haya backend se enviará
-      const notifs = JSON.parse(localStorage.getItem('identity_notify') || '[]');
-      notifs.push({ email, plan: document.getElementById('modal-title').textContent, date: new Date().toISOString() });
-      localStorage.setItem('identity_notify', JSON.stringify(notifs));
-      document.getElementById('modal-form').style.display = 'none';
-      document.getElementById('success-msg').style.display = 'block';
+      if (!email || !email.includes('@')) {
+        alert('Introduce un email válido');
+        return;
+      }
+      const btn = document.getElementById('btn-checkout');
+      btn.disabled = true;
+      btn.textContent = 'Conectando...';
+
+      try {
+        const res = await fetch('/api/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan: currentPlan, email })
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.error || 'Error al conectar con el pago');
+          btn.disabled = false;
+          btn.textContent = 'Continuar al pago';
+        }
+      } catch (err) {
+        alert('Error de conexión');
+        btn.disabled = false;
+        btn.textContent = 'Continuar al pago';
+      }
     }
+
+    (async function checkPaymentReturn() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      if (!sessionId) return;
+
+      try {
+        const res = await fetch(`/api/check-session?session_id=${sessionId}`);
+        const data = await res.json();
+        if (data.paid && data.plan) {
+          localStorage.setItem('identity_plan', data.plan);
+          alert('¡Pago confirmado! Tu plan ' + data.plan + ' está activo.');
+          window.location.href = 'index.html';
+        }
+      } catch (err) {
+        console.error('Error verificando pago:', err);
+      }
+    })();
   </script>
 
 </body>
