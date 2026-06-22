@@ -19,6 +19,24 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const isHTML = event.request.mode === 'navigate' ||
+                 new URL(event.request.url).pathname.endsWith('.html');
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const toCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

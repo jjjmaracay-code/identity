@@ -2197,6 +2197,7 @@
     height: 122px;
     object-fit: contain;
     mix-blend-mode: screen;
+    opacity: 0;
     animation: butterfly-land 0.7s ease forwards,
                aleteo 8s ease-in-out infinite 0.7s,
                neon-flicker 4s ease-in-out infinite 0.7s;
@@ -2518,6 +2519,7 @@
   <div class="pin-first-time pin-enter-anim" id="pin-hint" style="animation-delay:0.85s">Primera vez — crea tu contraseña de 6 caracteres</div>
   <button class="pin-enter pin-enter-anim" id="pin-enter-btn" disabled style="animation-delay:0.85s">Entrar</button>
   <a href="install.html" class="pin-enter-anim" style="display:block;margin-top:16px;font-size:9px;color:rgba(170,255,0,0.3);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;animation-delay:0.85s">¿Primera vez? Instala la app en tu móvil</a>
+  <a href="register.html" id="link-no-account" class="pin-enter-anim" style="display:none;margin-top:8px;font-size:9px;color:rgba(170,255,0,0.3);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;animation-delay:0.95s">¿No tienes cuenta? Regístrate</a>
 </div>
 
 <!-- =================== PANTALLA PRINCIPAL =================== -->
@@ -3143,6 +3145,8 @@ if (!isFirstTime) {
   pinHint.textContent = 'Introduce tu contraseña';
   const lbl = document.querySelector('.pin-label');
   if (lbl) lbl.textContent = 'Contraseña de acceso';
+  const noAccountLink = document.getElementById('link-no-account');
+  if (noAccountLink) noAccountLink.style.display = 'block';
 }
 
 function updateDots() {
