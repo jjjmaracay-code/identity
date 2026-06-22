@@ -3331,12 +3331,55 @@ function pinSuccess() {
   check2FAAndEnter();
 }
 
+let iplanIdx = 0;
+function showIPlans() {
+  const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+  const days = Math.floor((Date.now() - new Date(reg.timestamp)) / (1000*60*60*24));
+  const left = Math.max(0, 30 - days);
+  const daysEl = document.getElementById('iplan-days');
+  if (daysEl) daysEl.textContent = left;
+  iplanIdx = 0;
+  document.querySelectorAll('#plans-box .pslide').forEach((el, i) => {
+    el.style.display = i === 0 ? 'block' : 'none';
+  });
+  document.querySelectorAll('#iplan-dots .pdot').forEach((d, i) => {
+    d.classList.toggle('pdot-on', i === 0);
+  });
+  document.getElementById('iplan-prev').style.display = 'none';
+  const ov = document.getElementById('plans-ov');
+  if (ov) ov.style.display = 'flex';
+}
+function closeIPlans() {
+  const ov = document.getElementById('plans-ov');
+  if (ov) ov.style.display = 'none';
+}
+function iplanNav(dir) {
+  const slides = document.querySelectorAll('#plans-box .pslide');
+  iplanIdx = Math.max(0, Math.min(slides.length - 1, iplanIdx + dir));
+  slides.forEach((el, i) => { el.style.display = i === iplanIdx ? 'block' : 'none'; });
+  document.querySelectorAll('#iplan-dots .pdot').forEach((d, i) => {
+    d.classList.toggle('pdot-on', i === iplanIdx);
+  });
+  document.getElementById('iplan-prev').style.display = iplanIdx === 0 ? 'none' : 'inline-block';
+  document.getElementById('iplan-next').textContent = iplanIdx === slides.length - 1 ? 'Cerrar' : 'Siguiente →';
+  if (iplanIdx === slides.length - 1 && dir > 0) {
+    document.getElementById('iplan-next').onclick = closeIPlans;
+  } else {
+    document.getElementById('iplan-next').onclick = () => iplanNav(1);
+  }
+}
+
 function doEnter() {
   document.getElementById('screen-pin').classList.add('hidden');
   document.getElementById('screen-main').classList.add('visible');
   renderCard();
   generateQR();
   window.idxTour?.onMain();
+  if (localStorage.getItem('identity_plan') !== 'free' &&
+      localStorage.getItem('identity_plan') !== 'pro' &&
+      localStorage.getItem('identity_plan') !== 'lifetime') {
+    showIPlans();
+  }
 }
 
 const pinEnterBtn = document.getElementById('pin-enter-btn');
