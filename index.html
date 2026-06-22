@@ -4153,7 +4153,9 @@ document.getElementById('btn-save').addEventListener('click', () => {
       linkedin:document.getElementById('t-linkedin').checked,
       github:  document.getElementById('t-github').checked,
       web:     document.getElementById('t-web').checked,
-    }
+    },
+    qrDesign:      { ...qrDesign },
+    qrTemplateId:  selectedTemplateId,
   };
 
   // Restaurar media en memoria si era video objectUrl
