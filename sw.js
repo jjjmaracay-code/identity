@@ -1,4 +1,4 @@
-const CACHE_NAME = 'identity-v7';
+const CACHE_NAME = 'identity-v8';
 const CACHE_URLS = [
   './index.html',
   './register.html',
@@ -15,6 +15,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_URLS))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', event => {
@@ -39,4 +40,5 @@ self.addEventListener('activate', event => {
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
+  self.clients.claim();
 });
