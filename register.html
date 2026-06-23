@@ -1014,6 +1014,19 @@ emailjs.init(EMAILJS_PUBLIC_KEY);
 
 // =================== ESTADO ===================
 const REG_KEY = 'identity_registration';
+
+if (localStorage.getItem('identity_data') || localStorage.getItem(REG_KEY)) {
+  document.body.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#000;font-family:'Inter',sans-serif;text-align:center;">
+      <div style="max-width:360px;">
+        <div style="font-size:14px;font-weight:700;color:#AAFF00;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">Ya existe una cuenta en este dispositivo</div>
+        <p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.6;margin-bottom:24px;">Para crear una identidad nueva, primero elimina la cuenta actual desde Configuración → Zona de eliminación de datos.</p>
+        <a href="index.html" style="display:inline-block;padding:12px 24px;border-radius:10px;background:#AAFF00;color:#000;font-weight:700;font-size:12px;letter-spacing:1px;text-decoration:none;">Ir a mi cuenta</a>
+      </div>
+    </div>`;
+  throw new Error('Registro bloqueado: ya existe un perfil');
+}
+
 let step1Data = {};
 let emailCode = '';
 let codeBuffer = '';

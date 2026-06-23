@@ -4349,7 +4349,9 @@ document.getElementById('btn-confirm-delete').addEventListener('click', () => {
   // Eliminar TODOS los datos de localStorage
   const keys = [
     'identity_data', 'identity_pin', 'identity_consent',
-    'identity_totp_secret', 'identity_bio_credential', 'identity_2fa_config'
+    'identity_totp_secret', 'identity_2fa_config',
+    'identity_registration', 'identity_plan', 'identity_backup_code',
+    'identity_attempts', 'identity_block_until'
   ];
   keys.forEach(k => localStorage.removeItem(k));
 
