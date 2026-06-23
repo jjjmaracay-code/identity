@@ -958,16 +958,19 @@ async function sendTempCode() {
   const email = reg.email || '';
   const name  = reg.name  || 'Usuario';
   try {
-    await emailjs.send(EMAILJS_SERVICE_ID, 'template_vone66l', {
-      to_name:       name,
-      to_email:      email,
-      code:          tempCode,
-      app_name:      'RECUPERACIÓN DE CUENTA',
-      subject:       'IDENTIFLY — Código de verificación temporal',
-      alert:         'CÓDIGO TEMPORAL — VÁLIDO 10 MINUTOS',
-      intro:         'Hemos recibido una solicitud de acceso a tu cuenta IDENTIFLY. Introduce este código ahora:',
-      message_title: 'Código de un solo uso',
-      message:       'Úsalo en la pantalla de verificación de IDENTIFLY. Caduca en 10 minutos. Si no has solicitado este acceso, ignora este correo — tu cuenta permanece segura.',
+    await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        template: 'backup',
+        to_name: name, to_email: email, code: tempCode,
+        app_name: 'RECUPERACIÓN DE CUENTA',
+        subject: 'IDENTIFLY — Código de verificación temporal',
+        alert: 'CÓDIGO TEMPORAL — VÁLIDO 10 MINUTOS',
+        intro: 'Hemos recibido una solicitud de acceso a tu cuenta IDENTIFLY. Introduce este código ahora:',
+        message_title: 'Código de un solo uso',
+        message: 'Úsalo en la pantalla de verificación de IDENTIFLY. Caduca en 10 minutos. Si no has solicitado este acceso, ignora este correo — tu cuenta permanece segura.',
+      })
     });
     showToast('Código enviado a ' + email);
   } catch(e) {

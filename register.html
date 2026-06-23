@@ -1284,11 +1284,10 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   step1Data = { name, email, pwd: pwd1Buffer };
 
   try {
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_name:  name,
-      to_email: email,
-      code:     emailCode,
-      app_name: 'IDENTIFLY',
+    await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template: 'verification', to_name: name, to_email: email, code: emailCode })
     });
 
     // Pasar a paso 2
@@ -1334,11 +1333,10 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
 document.getElementById('btn-resend').addEventListener('click', async () => {
   emailCode = generateCode();
   try {
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_name:  step1Data.name,
-      to_email: step1Data.email,
-      code:     emailCode,
-      app_name: 'IDENTIFLY',
+    await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template: 'verification', to_name: step1Data.name, to_email: step1Data.email, code: emailCode })
     });
     showToast('Nuevo código enviado');
   } catch(e) {
@@ -1389,17 +1387,20 @@ document.getElementById('btn-step2').addEventListener('click', () => {
   // Código de respaldo permanente para la recuperación de cuenta
   const backupCode = generateCode();
   localStorage.setItem('identity_backup_code', backupCode);
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_BACKUP_TEMPLATE_ID, {
-    to_name:       step1Data.name,
-    to_email:      step1Data.email,
-    code:          backupCode,
-    app_name:      'CÓDIGO DE RESPALDO',
-    subject:       'IDENTIFLY — Tu código de respaldo permanente',
-    alert:         'CÓDIGO PERMANENTE — NO BORRES ESTE CORREO',
-    intro:         'Tu registro en IDENTIFLY está completo. A continuación tu código de respaldo permanente:',
-    message_title: 'Código de respaldo — no caduca nunca',
-    message:       'Guárdalo en un lugar seguro fuera de la app. Si olvidas tu contraseña maestra es la única forma de recuperar tu cuenta. IDENTIFLY no puede recuperarla sin este código.',
-  }).catch(e => console.error('EmailJS (código de respaldo):', e.status, e.text));
+  fetch('/api/send-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      template: 'backup',
+      to_name: step1Data.name, to_email: step1Data.email, code: backupCode,
+      app_name: 'CÓDIGO DE RESPALDO',
+      subject: 'IDENTIFLY — Tu código de respaldo permanente',
+      alert: 'CÓDIGO PERMANENTE — NO BORRES ESTE CORREO',
+      intro: 'Tu registro en IDENTIFLY está completo. A continuación tu código de respaldo permanente:',
+      message_title: 'Código de respaldo — no caduca nunca',
+      message: 'Guárdalo en un lugar seguro fuera de la app. Si olvidas tu contraseña maestra es la única forma de recuperar tu cuenta. IDENTIFLY no puede recuperarla sin este código.',
+    })
+  }).catch(e => console.error('Resend (código de respaldo):', e));
 
   // Pasar a éxito
   document.getElementById('screen-2').classList.remove('active');
