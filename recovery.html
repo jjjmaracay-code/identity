@@ -305,39 +305,22 @@
   .key-btn.empty { border-color: transparent; background: transparent; pointer-events: none; }
   .key-btn.del { color: var(--muted); font-size: 14px; }
 
-  .char-keyboard { margin-bottom: 8px; }
-  .char-keyboard-label { font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: rgba(170,255,0,0.35); margin-bottom: 6px; text-align: center; }
-  .letters-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 2px; margin-bottom: 6px; }
-  .symbols-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; }
-  .char-key { aspect-ratio: 1; border-radius: 50%; border: 1.5px solid rgba(170,255,0,0.18); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: clamp(13px, 4vw, 16px); font-weight: 500; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; user-select: none; }
-  .char-key:hover { background: rgba(170,255,0,0.1); border-color: rgba(170,255,0,0.3); }
-  .char-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.9); }
-
-  /* Contraseña display */
-  .pwd-display {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-bottom: 10px;
-  }
-
-  .pwd-char {
-    width: 36px;
-    height: 44px;
-    border-radius: 8px;
-    border: 1.5px solid rgba(170,255,0,0.2);
-    background: rgba(170,255,0,0.04);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--green);
-    transition: all 0.15s;
-    font-family: 'Inter', monospace;
-  }
-
-  .pwd-char.filled { border-color: var(--green); background: rgba(170,255,0,0.1); box-shadow: 0 0 8px rgba(170,255,0,0.3); }
+  /* ── Teclado QWERTY ── */
+  .qwerty-row { display: flex; gap: 5px; margin-bottom: 5px; }
+  .qwerty-row:last-child { margin-bottom: 0; }
+  .qwerty-key { flex: 1; height: 42px; border-radius: 8px; border: 1px solid rgba(170,255,0,0.12); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; color: var(--text); cursor: pointer; min-width: 0; display: flex; align-items: center; justify-content: center; transition: background 0.08s, transform 0.08s; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .qwerty-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.92); }
+  .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 13px; color: rgba(170,255,0,0.7); }
+  .qwerty-shift-on { background: rgba(170,255,0,0.22) !important; border-color: rgba(170,255,0,0.55) !important; color: var(--green) !important; }
+  .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); }
+  .pwd-dots { min-height: 44px; padding: 6px 12px; border-radius: 8px; border: 1.5px solid rgba(170,255,0,0.2); background: rgba(170,255,0,0.04); font-size: 18px; font-weight: 700; color: var(--green); text-align: center; letter-spacing: 5px; word-break: break-all; line-height: 1.6; margin-bottom: 10px; transition: border-color 0.15s; font-family: 'Inter', monospace; }
+  .pwd-dots.empty { color: rgba(170,255,0,0.2); letter-spacing: 2px; font-size: 14px; }
+  .pwd-dots.valid { border-color: var(--green); box-shadow: 0 0 8px rgba(170,255,0,0.25); }
+  .pwd-strength { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 10px; }
+  .pwd-req { font-size: 10px; font-weight: 500; letter-spacing: 0.2px; color: rgba(170,255,0,0.3); transition: color 0.2s; }
+  .pwd-req::before { content: '○ '; }
+  .pwd-req.ok { color: var(--green); }
+  .pwd-req.ok::before { content: '✓ '; }
 
   .pwd-validation { font-size: 10px; font-weight: 300; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 10px; letter-spacing: 1px; min-height: 16px; }
 
@@ -694,43 +677,19 @@
 
       <div class="info-box">
         <div class="info-box-text">
-          Crea tu nueva contraseña. Recuerda: <strong>4 números + 1 letra + 1 símbolo</strong>. Combínalos en cualquier orden. Ej: <strong>12@34A</strong>
+          Crea tu nueva contraseña: mínimo <strong>8 caracteres</strong>, al menos <strong>1 número</strong> y <strong>1 símbolo</strong>.
         </div>
       </div>
 
-      <div class="pwd-display">
-        <div class="pwd-char" id="np0">·</div>
-        <div class="pwd-char" id="np1">·</div>
-        <div class="pwd-char" id="np2">·</div>
-        <div class="pwd-char" id="np3">·</div>
-        <div class="pwd-char" id="np4">·</div>
-        <div class="pwd-char" id="np5">·</div>
-      </div>
-      <div class="pwd-validation" id="newpwd-hint">Introduce 4 números, 1 letra y 1 símbolo</div>
-
-      <div class="pin-keypad">
-        <button class="key-btn green-key" data-target="newpwd" data-val="1">1</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="2">2</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="3">3</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="4">4</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="5">5</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="6">6</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="7">7</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="8">8</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="9">9</button>
-        <button class="key-btn green-key" id="clr-newpwd">CLR</button>
-        <button class="key-btn green-key" data-target="newpwd" data-val="0">0</button>
-        <button class="key-btn del green-key" id="del-newpwd">⌫</button>
+      <div class="pwd-dots empty" id="np-dots">· · · · · · · ·</div>
+      <div class="pwd-validation" id="newpwd-hint">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
+      <div class="pwd-strength" id="str-newpwd">
+        <span class="pwd-req" id="np-len">Mínimo 8 caracteres</span>
+        <span class="pwd-req" id="np-num">Al menos 1 número</span>
+        <span class="pwd-req" id="np-sym">Al menos 1 símbolo</span>
       </div>
 
-      <div class="char-keyboard">
-        <div class="char-keyboard-label">Letra</div>
-        <div class="letters-grid" id="letters-new"></div>
-      </div>
-      <div class="char-keyboard">
-        <div class="char-keyboard-label">Símbolo</div>
-        <div class="symbols-grid" id="symbols-new"></div>
-      </div>
+      <div id="qwerty-kbd-np"></div>
     </div>
 
     <button class="btn-primary green-btn" id="btn-phase3" disabled>Guardar nueva contraseña</button>
@@ -783,8 +742,6 @@
 <script>
 // =================== CONFIG ===================
 
-const LETTERS  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const SYMBOLS = ['@','#','$','%','&','*','!','?','+','-','=','_','.',',',':',';','(',')','{','}','[',']','|','~','`','<','>','/','\\','"',"'",'!'];
 const PIN_LEN  = 6;
 
 let backupBuffer = '';
@@ -798,29 +755,77 @@ let resendCooldown = 60;
 const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
 const storedBackup = localStorage.getItem('identity_backup_code') || '';
 
-// =================== TECLADO LETRAS/SÍMBOLOS ===================
-function buildCharKeyboard(lettersId, symbolsId, target) {
-  const lg = document.getElementById(lettersId);
-  const sg = document.getElementById(symbolsId);
-  if (!lg || !sg) return;
-  LETTERS.forEach(l => {
-    const btn = document.createElement('button');
-    btn.className = 'char-key';
-    btn.textContent = l;
-    btn.addEventListener('click', () => handleInput(target, l));
-    lg.appendChild(btn);
-  });
-  SYMBOLS.forEach(s => {
-    const btn = document.createElement('button');
-    btn.className = 'char-key';
-    btn.textContent = s;
-    btn.addEventListener('click', () => handleInput(target, s));
-    sg.appendChild(btn);
-  });
+// =================== TECLADO QWERTY (nueva contraseña) ===================
+function buildQwertyKbd(containerId, appendFn, deleteFn) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const ROWS_LETTERS = [
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['SHIFT','z','x','c','v','b','n','m','DEL'],
+    ['NUMS','SPACE']
+  ];
+  const ROWS_NUMS = [
+    ['1','2','3','4','5','6','7','8','9','0'],
+    ['-','/','_',';','(',')','&','@','"',"'"],
+    ['.', ',','?','!','%','*','DEL'],
+    ['BACK','SPACE']
+  ];
+  let mode = 'letters', shift = false;
+  function render() {
+    container.innerHTML = '';
+    const rows = mode === 'letters' ? ROWS_LETTERS : ROWS_NUMS;
+    rows.forEach((row, ri) => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'qwerty-row';
+      if (mode === 'letters' && ri === 1) rowEl.style.cssText = 'padding:0 4.5%;display:flex;gap:5px;margin-bottom:5px;';
+      row.forEach(key => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        if (key === 'SHIFT') {
+          btn.className = 'qwerty-key qwerty-action' + (shift ? ' qwerty-shift-on' : '');
+          btn.textContent = '⇧'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { shift = !shift; render(); });
+        } else if (key === 'DEL') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = '⌫'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => deleteFn());
+        } else if (key === 'NUMS') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = '123'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { mode = 'nums'; render(); });
+        } else if (key === 'BACK') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = 'ABC'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { mode = 'letters'; render(); });
+        } else if (key === 'SPACE') {
+          btn.className = 'qwerty-key qwerty-space';
+          btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
+          btn.addEventListener('click', () => appendFn(' '));
+        } else {
+          btn.className = 'qwerty-key';
+          btn.textContent = (shift && mode === 'letters') ? key.toUpperCase() : key;
+          btn.style.flex = '1';
+          btn.addEventListener('click', ((k) => () => {
+            const c = (shift && mode === 'letters') ? k.toUpperCase() : k;
+            appendFn(c);
+            if (shift && mode === 'letters') { shift = false; render(); }
+          })(key));
+        }
+        rowEl.appendChild(btn);
+      });
+      container.appendChild(rowEl);
+    });
+  }
+  render();
 }
-buildCharKeyboard('letters-new', 'symbols-new', 'newpwd');
 
-// =================== INPUT HANDLER ===================
+buildQwertyKbd('qwerty-kbd-np',
+  c => { newPwdBuffer += c; updateDisplay('newpwd'); },
+  ()  => { newPwdBuffer = newPwdBuffer.slice(0,-1); updateDisplay('newpwd'); }
+);
+
+// =================== INPUT HANDLER (backup y temp — numéricos) ===================
 function handleInput(target, val) {
   if (target === 'backup') {
     if (backupBuffer.length >= PIN_LEN) return;
@@ -830,10 +835,6 @@ function handleInput(target, val) {
     if (tempBuffer.length >= PIN_LEN) return;
     tempBuffer += val;
     updateDisplay('temp');
-  } else if (target === 'newpwd') {
-    if (newPwdBuffer.length >= PIN_LEN) return;
-    newPwdBuffer += val;
-    updateDisplay('newpwd');
   }
 }
 
@@ -843,10 +844,8 @@ document.querySelectorAll('.key-btn[data-target]').forEach(btn => {
 
 document.getElementById('del-backup').addEventListener('click', () => { backupBuffer = backupBuffer.slice(0,-1); updateDisplay('backup'); });
 document.getElementById('del-temp').addEventListener('click', () => { tempBuffer = tempBuffer.slice(0,-1); updateDisplay('temp'); });
-document.getElementById('del-newpwd').addEventListener('click', () => { newPwdBuffer = newPwdBuffer.slice(0,-1); updateDisplay('newpwd'); });
 document.getElementById('clr-backup').addEventListener('click', () => { backupBuffer = ''; updateDisplay('backup'); });
 document.getElementById('clr-temp').addEventListener('click', () => { tempBuffer = ''; updateDisplay('temp'); });
-document.getElementById('clr-newpwd').addEventListener('click', () => { newPwdBuffer = ''; updateDisplay('newpwd'); });
 
 // =================== UPDATE DISPLAYS ===================
 function updateDisplay(target) {
@@ -869,41 +868,28 @@ function updateDisplay(target) {
     document.getElementById('btn-phase2').disabled = tempBuffer.length !== PIN_LEN;
 
   } else if (target === 'newpwd') {
-    for (let i = 0; i < PIN_LEN; i++) {
-      const el = document.getElementById('np'+i);
-      el.classList.remove('filled');
-      el.textContent = i < newPwdBuffer.length ? '●' : '·';
-      if (i < newPwdBuffer.length) el.classList.add('filled');
+    const dotsEl = document.getElementById('np-dots');
+    if (dotsEl) {
+      if (newPwdBuffer.length === 0) {
+        dotsEl.textContent = '· · · · · · · ·';
+        dotsEl.classList.add('empty'); dotsEl.classList.remove('valid');
+      } else {
+        dotsEl.textContent = '●'.repeat(newPwdBuffer.length);
+        dotsEl.classList.remove('empty');
+        dotsEl.classList.toggle('valid', validatePwd(newPwdBuffer).valid);
+      }
     }
-    const hint = document.getElementById('newpwd-hint');
-    if (newPwdBuffer.length === 0) {
-      hint.textContent = 'Introduce 4 números, 1 letra y 1 símbolo';
-      hint.style.color = 'rgba(255,255,255,0.3)';
-    } else if (newPwdBuffer.length < PIN_LEN) {
-      const v = validatePwd(newPwdBuffer);
-      const missing = [];
-      const nums = (newPwdBuffer.match(/[0-9]/g)||[]).length;
-      if (nums < 4) missing.push((4-nums)+'número'+(4-nums>1?'s':''));
-      if (!v.hasLetter) missing.push('1 letra');
-      if (!v.hasSymbol) missing.push('1 símbolo');
-      hint.textContent = missing.length ? 'Falta: '+missing.join(', ') : '✓ Completa los 6 caracteres';
-      hint.style.color = 'rgba(255,200,100,0.7)';
-    } else {
-      const v = validatePwd(newPwdBuffer);
-      hint.textContent = v.valid ? '✓ Contraseña válida' : '✗ Revisa los requisitos';
-      hint.style.color = v.valid ? '#AAFF00' : '#ff4444';
-      document.getElementById('btn-phase3').disabled = !v.valid;
-    }
+    document.getElementById('np-len').classList.toggle('ok', newPwdBuffer.length >= 8);
+    document.getElementById('np-num').classList.toggle('ok', /[0-9]/.test(newPwdBuffer));
+    document.getElementById('np-sym').classList.toggle('ok', /[^A-Za-z0-9\s]/.test(newPwdBuffer));
+
+    const v = validatePwd(newPwdBuffer);
+    document.getElementById('btn-phase3').disabled = !v.valid;
   }
 }
 
 function validatePwd(pwd) {
-  const nums = (pwd.match(/[0-9]/g)||[]).length;
-  return {
-    valid: nums >= 4 && /[A-Za-z]/.test(pwd) && /[@#$%&*!?+\-=_.,;:]/.test(pwd) && pwd.length === PIN_LEN,
-    hasLetter: /[A-Za-z]/.test(pwd),
-    hasSymbol: /[@#$%&*!?+\-=_.,:;()\[\]{}|~`<>/\\'"]/g.test(pwd)
-  };
+  return { valid: pwd.length >= 8 && /[0-9]/.test(pwd) && /[^A-Za-z0-9\s]/.test(pwd) };
 }
 
 // =================== TEMPORIZADOR BLOQUEO ===================

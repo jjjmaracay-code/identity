@@ -248,40 +248,17 @@
     margin-top: 14px;
   }
 
-  .pin-display {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-bottom: 14px;
-  }
-
-  .pin-char {
-    width: 36px;
-    height: 44px;
-    border-radius: 8px;
+  .pwd-dots {
+    min-height: 44px; padding: 6px 12px; border-radius: 8px;
     border: 1.5px solid rgba(170,255,0,0.2);
     background: rgba(170,255,0,0.04);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--green);
-    transition: all 0.15s;
+    font-size: 18px; font-weight: 700; color: var(--green);
+    text-align: center; letter-spacing: 5px; word-break: break-all;
+    line-height: 1.6; margin-bottom: 12px; transition: border-color 0.15s;
     font-family: 'Inter', monospace;
   }
-
-  .pin-char.filled {
-    border-color: var(--green);
-    background: rgba(170,255,0,0.1);
-    box-shadow: 0 0 8px rgba(170,255,0,0.3);
-  }
-
-  .pin-char.error {
-    border-color: var(--red);
-    background: rgba(255,68,68,0.1);
-    animation: shake 0.4s ease;
-  }
+  .pwd-dots.empty { color: rgba(170,255,0,0.2); letter-spacing: 2px; font-size: 14px; }
+  .pwd-dots.valid { border-color: var(--green); box-shadow: 0 0 8px rgba(170,255,0,0.25); }
 
   @keyframes shake {
     0%,100% { transform: translateX(0); }
@@ -333,52 +310,28 @@
   .key-btn.empty { border-color: transparent; background: transparent; pointer-events: none; }
   .key-btn.del { font-size: 14px; color: var(--muted); }
 
-  .char-keyboard {
-    margin-bottom: 8px;
-  }
-
-  .char-keyboard-label {
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: rgba(170,255,0,0.35);
-    margin-bottom: 6px;
-    text-align: center;
-  }
-
-  .letters-grid {
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    gap: 2px;
-    margin-bottom: 6px;
-  }
-
-  .symbols-grid {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 2px;
-  }
-
-  .char-key {
-    aspect-ratio: 1;
-    border-radius: 50%;
-    border: 1.5px solid rgba(170,255,0,0.18);
+  /* ── Teclado QWERTY ── */
+  .qwerty-row { display: flex; gap: 5px; margin-bottom: 5px; }
+  .qwerty-row:last-child { margin-bottom: 0; }
+  .qwerty-key {
+    flex: 1; height: 42px; border-radius: 8px;
+    border: 1px solid rgba(170,255,0,0.12);
     background: rgba(170,255,0,0.04);
-    font-family: 'Inter', sans-serif;
-    font-size: clamp(13px, 4vw, 16px);
-    font-weight: 500;
-    color: var(--text);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.1s;
-    user-select: none;
+    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
+    color: var(--text); cursor: pointer; min-width: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.08s, transform 0.08s; user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
-
-  .char-key:hover { background: rgba(170,255,0,0.1); border-color: rgba(170,255,0,0.3); }
-  .char-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.9); }
+  .qwerty-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.92); }
+  .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 13px; color: rgba(170,255,0,0.7); }
+  .qwerty-shift-on { background: rgba(170,255,0,0.22) !important; border-color: rgba(170,255,0,0.55) !important; color: var(--green) !important; }
+  .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); }
+  .pwd-strength { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 8px 0 10px; }
+  .pwd-req { font-size: 10px; font-weight: 500; letter-spacing: 0.2px; color: rgba(170,255,0,0.3); transition: color 0.2s; }
+  .pwd-req::before { content: '○ '; }
+  .pwd-req.ok { color: var(--green); }
+  .pwd-req.ok::before { content: '✓ '; }
 
   /* Checkbox */
   .checkbox-wrap {
@@ -791,55 +744,24 @@
 
     <div class="form-card">
       <div class="form-card-title">Crea tu contraseña maestra</div>
-      <div class="field-hint" style="margin-bottom:6px;color:rgba(170,255,0,0.45);">
-        Debe contener: 4 números · 1 letra · 1 símbolo (@#$%&*!?)
-      </div>
-      <div style="font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;line-height:1.5;margin-bottom:14px;">
-        Combínalos en cualquier orden · Ej: 12@34A
+      <div class="field-hint" style="margin-bottom:14px;color:rgba(170,255,0,0.45);">
+        Mínimo 8 caracteres · al menos 1 número y 1 símbolo · cuanto más larga, más segura
       </div>
 
       <!-- Display contraseña -->
-      <div class="pin-display" id="pwd1-display">
-        <div class="pin-char" id="p1-0">·</div>
-        <div class="pin-char" id="p1-1">·</div>
-        <div class="pin-char" id="p1-2">·</div>
-        <div class="pin-char" id="p1-3">·</div>
-        <div class="pin-char" id="p1-4">·</div>
-        <div class="pin-char" id="p1-5">·</div>
-      </div>
-      <div class="pin-validation" id="pwd1-hint">Introduce 4 números, 1 letra y 1 símbolo</div>
-
-      <!-- Teclado numérico -->
-      <div class="pin-keypad" id="pwd1-keypad">
-        <button class="key-btn" data-pwd="1" data-val="1">1</button>
-        <button class="key-btn" data-pwd="1" data-val="2">2</button>
-        <button class="key-btn" data-pwd="1" data-val="3">3</button>
-        <button class="key-btn" data-pwd="1" data-val="4">4</button>
-        <button class="key-btn" data-pwd="1" data-val="5">5</button>
-        <button class="key-btn" data-pwd="1" data-val="6">6</button>
-        <button class="key-btn" data-pwd="1" data-val="7">7</button>
-        <button class="key-btn" data-pwd="1" data-val="8">8</button>
-        <button class="key-btn" data-pwd="1" data-val="9">9</button>
-        <button class="key-btn" id="clr-pwd1">CLR</button>
-        <button class="key-btn" data-pwd="1" data-val="0">0</button>
-        <button class="key-btn del" id="del-pwd1">⌫</button>
+      <div class="pwd-dots empty" id="pwd1-dots">· · · · · · · ·</div>
+      <div class="pin-validation" id="pwd1-hint">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
+      <div class="pwd-strength" id="str-pwd1">
+        <span class="pwd-req" id="r1-len">Mínimo 8 caracteres</span>
+        <span class="pwd-req" id="r1-num">Al menos 1 número</span>
+        <span class="pwd-req" id="r1-sym">Al menos 1 símbolo</span>
       </div>
 
-      <!-- Letras y símbolos -->
-      <div class="char-keyboard">
-        <div class="char-keyboard-label">Letra</div>
-        <div class="letters-grid" id="letters-1"></div>
-      </div>
-      <div class="char-keyboard">
-        <div class="char-keyboard-label">Símbolo</div>
-        <div class="symbols-grid" id="symbols-1"></div>
-      </div>
+      <div id="qwerty-kbd-1"></div>
 
       <div class="security-badge">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/><polyline points="9 12 11 14 15 10"/></svg>
-        <div class="security-badge-text">
-          689.000.000.000 combinaciones posibles · 21.000 años para romperla
-        </div>
+        <div class="security-badge-text">Cuanto más larga y variada, más difícil de romper</div>
       </div>
     </div>
 
@@ -927,40 +849,10 @@
         Introduce la misma contraseña que creaste en el paso anterior
       </div>
 
-      <div class="pin-display">
-        <div class="pin-char" id="p2-0">·</div>
-        <div class="pin-char" id="p2-1">·</div>
-        <div class="pin-char" id="p2-2">·</div>
-        <div class="pin-char" id="p2-3">·</div>
-        <div class="pin-char" id="p2-4">·</div>
-        <div class="pin-char" id="p2-5">·</div>
-      </div>
+      <div class="pwd-dots empty" id="pwd2-dots">· · · · · · · ·</div>
       <div class="pin-validation" id="pwd2-hint">Confirma tu contraseña maestra</div>
 
-      <!-- Teclado numérico -->
-      <div class="pin-keypad" id="pwd2-keypad">
-        <button class="key-btn" data-pwd="2" data-val="1">1</button>
-        <button class="key-btn" data-pwd="2" data-val="2">2</button>
-        <button class="key-btn" data-pwd="2" data-val="3">3</button>
-        <button class="key-btn" data-pwd="2" data-val="4">4</button>
-        <button class="key-btn" data-pwd="2" data-val="5">5</button>
-        <button class="key-btn" data-pwd="2" data-val="6">6</button>
-        <button class="key-btn" data-pwd="2" data-val="7">7</button>
-        <button class="key-btn" data-pwd="2" data-val="8">8</button>
-        <button class="key-btn" data-pwd="2" data-val="9">9</button>
-        <button class="key-btn" id="clr-pwd2">CLR</button>
-        <button class="key-btn" data-pwd="2" data-val="0">0</button>
-        <button class="key-btn del" id="del-pwd2">⌫</button>
-      </div>
-
-      <div class="char-keyboard">
-        <div class="char-keyboard-label">Letra</div>
-        <div class="letters-grid" id="letters-2"></div>
-      </div>
-      <div class="char-keyboard">
-        <div class="char-keyboard-label">Símbolo</div>
-        <div class="symbols-grid" id="symbols-2"></div>
-      </div>
+      <div id="qwerty-kbd-2"></div>
     </div>
 
     <!-- Checkbox paso 2 -->
@@ -1029,35 +921,79 @@ let timerInterval = null;
 let timerSeconds = 600; // 10 minutos
 let resendCooldown = 60;
 
-const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const SYMBOLS = ['@','#','$','%','&','*','!','?','+','-','=','_','.',',',':',';','(',')','{','}','[',']','|','~','`','<','>','/','\\','"',"'",'!'];
-const PIN_LENGTH = 6;
-
-// =================== TECLADOS — 32 símbolos ===================
-function buildKeyboard(lettersId, symbolsId, pwdNum) {
-  const lg = document.getElementById(lettersId);
-  const sg = document.getElementById(symbolsId);
-  if (!lg || !sg) return;
-
-  LETTERS.forEach(l => {
-    const btn = document.createElement('button');
-    btn.className = 'char-key';
-    btn.textContent = l;
-    btn.addEventListener('click', () => handlePwdInput(pwdNum, l));
-    lg.appendChild(btn);
-  });
-
-  SYMBOLS.forEach(s => {
-    const btn = document.createElement('button');
-    btn.className = 'char-key';
-    btn.textContent = s;
-    btn.addEventListener('click', () => handlePwdInput(pwdNum, s));
-    sg.appendChild(btn);
-  });
+// =================== TECLADOS QWERTY ===================
+function buildQwertyKbd(containerId, appendFn, deleteFn) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const ROWS_LETTERS = [
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['SHIFT','z','x','c','v','b','n','m','DEL'],
+    ['NUMS','SPACE']
+  ];
+  const ROWS_NUMS = [
+    ['1','2','3','4','5','6','7','8','9','0'],
+    ['-','/','_',';','(',')','&','@','"',"'"],
+    ['.', ',','?','!','%','*','DEL'],
+    ['BACK','SPACE']
+  ];
+  let mode = 'letters', shift = false;
+  function render() {
+    container.innerHTML = '';
+    const rows = mode === 'letters' ? ROWS_LETTERS : ROWS_NUMS;
+    rows.forEach((row, ri) => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'qwerty-row';
+      if (mode === 'letters' && ri === 1) rowEl.style.cssText = 'padding:0 4.5%;display:flex;gap:5px;margin-bottom:5px;';
+      row.forEach(key => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        if (key === 'SHIFT') {
+          btn.className = 'qwerty-key qwerty-action' + (shift ? ' qwerty-shift-on' : '');
+          btn.textContent = '⇧'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { shift = !shift; render(); });
+        } else if (key === 'DEL') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = '⌫'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => deleteFn());
+        } else if (key === 'NUMS') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = '123'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { mode = 'nums'; render(); });
+        } else if (key === 'BACK') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = 'ABC'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { mode = 'letters'; render(); });
+        } else if (key === 'SPACE') {
+          btn.className = 'qwerty-key qwerty-space';
+          btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
+          btn.addEventListener('click', () => appendFn(' '));
+        } else {
+          btn.className = 'qwerty-key';
+          btn.textContent = (shift && mode === 'letters') ? key.toUpperCase() : key;
+          btn.style.flex = '1';
+          btn.addEventListener('click', ((k) => () => {
+            const c = (shift && mode === 'letters') ? k.toUpperCase() : k;
+            appendFn(c);
+            if (shift && mode === 'letters') { shift = false; render(); }
+          })(key));
+        }
+        rowEl.appendChild(btn);
+      });
+      container.appendChild(rowEl);
+    });
+  }
+  render();
 }
 
-buildKeyboard('letters-1', 'symbols-1', 1);
-buildKeyboard('letters-2', 'symbols-2', 2);
+buildQwertyKbd('qwerty-kbd-1',
+  c => handlePwdInput(1, c),
+  () => { pwd1Buffer = pwd1Buffer.slice(0,-1); updatePwdDisplay(1); }
+);
+buildQwertyKbd('qwerty-kbd-2',
+  c => handlePwdInput(2, c),
+  () => { pwd2Buffer = pwd2Buffer.slice(0,-1); updatePwdDisplay(2); }
+);
 
 setTimeout(() => {
   const gate = document.getElementById('boot-gate');
@@ -1068,63 +1004,42 @@ setTimeout(() => {
   }
 }, 600);
 
-// =================== CONTRASEÑA =================== 
+// =================== CONTRASEÑA ===================
 function handlePwdInput(num, char) {
-  if (num === 1) {
-    if (pwd1Buffer.length >= PIN_LENGTH) return;
-    pwd1Buffer += char;
-    updatePwdDisplay(1);
-  } else {
-    if (pwd2Buffer.length >= PIN_LENGTH) return;
-    pwd2Buffer += char;
-    updatePwdDisplay(2);
-  }
+  if (num === 1) { pwd1Buffer += char; updatePwdDisplay(1); }
+  else           { pwd2Buffer += char; updatePwdDisplay(2); }
 }
 
 function updatePwdDisplay(num) {
-  const buf = num === 1 ? pwd1Buffer : pwd2Buffer;
-  const prefix = num === 1 ? 'p1-' : 'p2-';
+  const buf    = num === 1 ? pwd1Buffer : pwd2Buffer;
+  const dotsId = num === 1 ? 'pwd1-dots' : 'pwd2-dots';
   const hintId = num === 1 ? 'pwd1-hint' : 'pwd2-hint';
 
-  for (let i = 0; i < PIN_LENGTH; i++) {
-    const el = document.getElementById(prefix + i);
-    if (!el) continue;
-    el.classList.remove('filled', 'error');
-    if (i < buf.length) {
-      el.textContent = '●';
-      el.classList.add('filled');
+  const dotsEl = document.getElementById(dotsId);
+  if (dotsEl) {
+    if (buf.length === 0) {
+      dotsEl.textContent = '· · · · · · · ·';
+      dotsEl.classList.add('empty'); dotsEl.classList.remove('valid');
     } else {
-      el.textContent = '·';
+      dotsEl.textContent = '●'.repeat(buf.length);
+      dotsEl.classList.remove('empty');
+      dotsEl.classList.toggle('valid', validatePwd(buf).valid);
     }
   }
 
+  if (num === 1) {
+    document.getElementById('r1-len').classList.toggle('ok', buf.length >= 8);
+    document.getElementById('r1-num').classList.toggle('ok', /[0-9]/.test(buf));
+    document.getElementById('r1-sym').classList.toggle('ok', /[^A-Za-z0-9\s]/.test(buf));
+  }
+
   const hint = document.getElementById(hintId);
-  if (buf.length === 0) {
-    hint.textContent = num === 1 ? 'Introduce 4 números, 1 letra y 1 símbolo' : 'Confirma tu contraseña maestra';
-    hint.style.color = 'rgba(255,255,255,0.3)';
-  } else if (buf.length < PIN_LENGTH) {
-    const v = validatePwd(buf);
-    const missing = [];
-    const nums = (buf.match(/[0-9]/g)||[]).length;
-    if (nums < 4) missing.push((4-nums) + ' número' + (4-nums>1?'s':''));
-    if (!v.hasLetter) missing.push('1 letra');
-    if (!v.hasSymbol) missing.push('1 símbolo');
-    hint.textContent = missing.length ? 'Falta: ' + missing.join(', ') : '✓ Completa los 6 caracteres';
-    hint.style.color = 'rgba(255,200,100,0.7)';
+  if (num === 2 && buf.length > 0) {
+    if (pwd2Buffer === pwd1Buffer) { hint.textContent = '✓ Las contraseñas coinciden'; hint.style.color = '#AAFF00'; }
+    else                           { hint.textContent = '✗ Las contraseñas no coinciden'; hint.style.color = '#ff4444'; }
   } else {
-    if (num === 2) {
-      if (pwd2Buffer === pwd1Buffer) {
-        hint.textContent = '✓ Las contraseñas coinciden';
-        hint.style.color = '#AAFF00';
-      } else {
-        hint.textContent = '✗ Las contraseñas no coinciden';
-        hint.style.color = '#ff4444';
-      }
-    } else {
-      const v = validatePwd(buf);
-      hint.textContent = v.valid ? '✓ Contraseña válida' : '✗ Revisa los requisitos';
-      hint.style.color = v.valid ? '#AAFF00' : '#ff4444';
-    }
+    hint.textContent = num === 1 ? 'Mínimo 8 caracteres, 1 número y 1 símbolo' : 'Confirma tu contraseña maestra';
+    hint.style.color = 'rgba(255,255,255,0.3)';
   }
 
   checkStep1Ready();
@@ -1132,40 +1047,9 @@ function updatePwdDisplay(num) {
 }
 
 function validatePwd(pwd) {
-  const nums    = (pwd.match(/[0-9]/g)||[]).length;
-  const letters = (pwd.match(/[A-Za-z]/g)||[]).length;
-  const symbols = (pwd.match(/[@#$%&*!?+\-=_.,:;()\[\]{}|~`<>/\\'"]/g)||[]).length;
-  return { valid: nums >= 4 && letters >= 1 && symbols >= 1 && pwd.length === PIN_LENGTH, hasLetter: letters >= 1, hasSymbol: symbols >= 1 };
+  return { valid: pwd.length >= 8 && /[0-9]/.test(pwd) && /[^A-Za-z0-9\s]/.test(pwd) };
 }
 
-// Borrar contraseña
-document.getElementById('del-pwd1').addEventListener('click', () => {
-  pwd1Buffer = pwd1Buffer.slice(0, -1);
-  updatePwdDisplay(1);
-});
-
-document.getElementById('del-pwd2').addEventListener('click', () => {
-  pwd2Buffer = pwd2Buffer.slice(0, -1);
-  updatePwdDisplay(2);
-});
-
-// Borrar todo (CLR) — limpia el buffer completo
-document.getElementById('clr-pwd1').addEventListener('click', () => {
-  pwd1Buffer = '';
-  updatePwdDisplay(1);
-});
-
-document.getElementById('clr-pwd2').addEventListener('click', () => {
-  pwd2Buffer = '';
-  updatePwdDisplay(2);
-});
-
-// Teclado numérico contraseña
-document.querySelectorAll('.key-btn[data-pwd]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    handlePwdInput(parseInt(btn.dataset.pwd), btn.dataset.val);
-  });
-});
 
 // =================== CÓDIGO EMAIL ===================
 document.querySelectorAll('.key-btn[data-code]').forEach(btn => {
@@ -1228,8 +1112,8 @@ function checkStep1Ready() {
 }
 
 function checkStep2Ready() {
-  const codeOk = codeBuffer.length === 6;
-  const pwdMatch = pwd2Buffer.length === PIN_LENGTH && pwd2Buffer === pwd1Buffer;
+  const codeOk   = codeBuffer.length === 6;
+  const pwdMatch = pwd2Buffer.length >= 8 && pwd2Buffer === pwd1Buffer;
   const ready = codeOk && pwdMatch && chk2;
   document.getElementById('btn-step2').disabled = !ready;
 }
