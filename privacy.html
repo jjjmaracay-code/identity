@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Política de Privacidad — IDENTIFLY</title>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#AAFF00"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green: #AAFF00;
+      --bg: #080808;
+      --surface: #111111;
+      --border: rgba(170,255,0,0.12);
+      --text: #e8e8e8;
+      --muted: rgba(255,255,255,0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(170,255,0,0.03) 40px, rgba(170,255,0,0.03) 41px),
+        repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(170,255,0,0.03) 40px, rgba(170,255,0,0.03) 41px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* Header */
+    .site-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 48px;
+    }
+
+    .site-logo {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: var(--green);
+      text-transform: uppercase;
+      text-decoration: none;
+      text-shadow: 0 0 10px var(--green), 0 0 25px rgba(170,255,0,0.4);
+    }
+
+    /* Títulos del documento */
+    h1 {
+      font-size: clamp(20px, 5vw, 26px);
+      font-weight: 600;
+      color: var(--green);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .doc-meta {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin: 36px 0 12px;
+    }
+
+    p {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    /* Tabla */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(170,255,0,0.06);
+      color: rgba(255,255,255,0.6);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    td strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Lista */
+    ul {
+      list-style: none;
+      margin: 8px 0 12px;
+      padding: 0;
+    }
+
+    ul li {
+      font-size: 14px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.75;
+      padding-left: 16px;
+      position: relative;
+    }
+
+    ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-weight: 400;
+    }
+
+    /* Divisor y nota al pie */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0 24px;
+    }
+
+    .footnote {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    /* Enlace */
+    a {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Botón volver */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 40px;
+      transition: color 0.15s;
+    }
+
+    .back-link:hover {
+      color: var(--green);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <div class="site-header">
+      <a class="site-logo" href="index.html">IDENTIFLY</a>
+    </div>
+
+    <a class="back-link" href="index.html">&#8592; Volver</a>
+
+    <h1>Política de Privacidad</h1>
+    <p class="doc-meta">Última actualización: 24 de junio de 2026</p>
+
+    <h2>1. Responsable del tratamiento</h2>
+    <ul>
+      <li><strong>Titular:</strong> Jhonatan David Maracay Ortiz</li>
+      <li><strong>Nombre comercial:</strong> Hydra Apex Labs</li>
+      <li><strong>Contacto:</strong> <a href="mailto:privacidad@identifly.app">privacidad@identifly.app</a></li>
+      <li><strong>Domicilio:</strong> Madrid, España</li>
+    </ul>
+
+    <h2>2. Datos que recogemos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dato</th>
+            <th>Para qué</th>
+            <th>Dónde se almacena</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Email de registro</td>
+            <td>Crear tu cuenta, recuperación de acceso</td>
+            <td>Servidor (Cloudflare)</td>
+          </tr>
+          <tr>
+            <td>Contenido de tu tarjeta de identidad (nombre, contacto, redes, enlaces)</td>
+            <td>Mostrar tu tarjeta digital y generar tu QR</td>
+            <td><strong>En tu dispositivo</strong> — no se envía a nuestros servidores</td>
+          </tr>
+          <tr>
+            <td>Estado de tu plan (prueba / Pro / Lifetime)</td>
+            <td>Saber qué funciones tienes activas</td>
+            <td>Servidor (Cloudflare KV), asociado a tu email</td>
+          </tr>
+          <tr>
+            <td>Datos de pago</td>
+            <td>Procesar tu suscripción o compra única</td>
+            <td><strong>Stripe</strong> — nosotros no almacenamos ni vemos tu tarjeta</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>IDENTIFLY está diseñada para que el contenido de tu tarjeta de identidad viva principalmente en tu propio dispositivo. No accedemos a esos datos salvo que tú los compartas activamente generando y mostrando tu código QR.</p>
+
+    <h2>3. Finalidad del tratamiento</h2>
+    <ul>
+      <li>Prestarte el servicio: crear, mostrar y compartir tu tarjeta digital.</li>
+      <li>Gestionar tu período de prueba y tu suscripción.</li>
+      <li>Enviarte emails de verificación de cuenta y de recuperación de acceso.</li>
+      <li>Cumplir obligaciones legales (facturación, atención a tus derechos).</li>
+    </ul>
+
+    <h2>4. Base legal</h2>
+    <ul>
+      <li><strong>Ejecución de un contrato</strong> (art. 6.1.b RGPD): para prestarte el servicio que has solicitado.</li>
+      <li><strong>Consentimiento</strong> (art. 6.1.a RGPD): para el envío de comunicaciones que no sean estrictamente necesarias para el servicio, si las hubiera.</li>
+    </ul>
+
+    <h2>5. Conservación de los datos</h2>
+    <p>Conservamos tu email y estado de plan mientras tu cuenta permanezca activa. Si solicitas la baja, eliminamos estos datos salvo que exista una obligación legal de conservarlos (por ejemplo, facturación).</p>
+
+    <h2>6. Encargados del tratamiento y destinatarios</h2>
+    <p>Compartimos datos limitados con los siguientes proveedores, estrictamente para prestar el servicio:</p>
+    <ul>
+      <li><strong>Stripe</strong> (procesamiento de pagos) — Stripe, Inc.</li>
+      <li><strong>Resend</strong> (envío de emails transaccionales) — Resend, Inc.</li>
+      <li><strong>Cloudflare</strong> (hosting y almacenamiento del estado de tu plan) — Cloudflare, Inc.</li>
+    </ul>
+    <p>Ninguno de estos proveedores utiliza tus datos con fines propios de marketing.</p>
+
+    <h2>7. Transferencias internacionales</h2>
+    <p>Algunos de los proveedores anteriores pueden procesar datos fuera del Espacio Económico Europeo (Estados Unidos). En esos casos, el proveedor cuenta con mecanismos de garantía reconocidos por el RGPD, como las Cláusulas Contractuales Tipo de la Comisión Europea.</p>
+
+    <h2>8. Tus derechos</h2>
+    <p>Puedes ejercer en cualquier momento tus derechos de:</p>
+    <ul>
+      <li>Acceso a tus datos.</li>
+      <li>Rectificación de datos inexactos.</li>
+      <li>Supresión ("derecho al olvido").</li>
+      <li>Oposición y limitación del tratamiento.</li>
+      <li>Portabilidad de tus datos.</li>
+    </ul>
+    <p>Para ejercerlos, escribe a <a href="mailto:privacidad@identifly.app">privacidad@identifly.app</a>. También puedes eliminar tu cuenta directamente desde la app, en la sección correspondiente.</p>
+    <p>Si consideras que no hemos atendido correctamente tu solicitud, puedes presentar una reclamación ante la <strong>Agencia Española de Protección de Datos</strong> (<a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>).</p>
+
+    <h2>9. Cambios en esta política</h2>
+    <p>Si modificamos esta política de forma sustancial, te lo notificaremos a través de la app o por email antes de que entre en vigor el cambio.</p>
+
+    <hr class="divider"/>
+    <p class="footnote">Este documento es una base de cumplimiento RGPD/LOPDGDD redactada según las prácticas de datos descritas. Antes de publicarlo, revisa que cada punto coincide exactamente con la implementación real, y considera una revisión por un asesor legal si vas a procesar datos a mayor escala.</p>
+
+  </div>
+</body>
+</html>
