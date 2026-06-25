@@ -11,6 +11,18 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Defensa en profundidad: bloquear re-registro de emails ya registrados.
+    // Solo aplica a 'verification' (flujo de registro nuevo).
+    // 'backup' y templates de recovery se usan cuando el email YA está registrado — no bloquear.
+    if (template === 'verification') {
+      const existing = await env.PLANS_KV.get('reg:' + to_email.toLowerCase());
+      if (existing) {
+        return new Response(JSON.stringify({ error: 'already_registered' }), {
+          status: 409, headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     let html, finalSubject;
 
     if (template === 'verification') {

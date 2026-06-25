@@ -1166,6 +1166,34 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   const btn   = document.getElementById('btn-step1');
 
   btn.disabled = true;
+  btn.textContent = 'Comprobando...';
+
+  // Comprobar si el email ya tiene una cuenta registrada
+  try {
+    const checkRes = await fetch('/api/check-email?email=' + encodeURIComponent(email));
+    const checkData = await checkRes.json();
+    if (checkData.registered) {
+      btn.disabled = false;
+      btn.textContent = 'Continuar — Enviar código al correo';
+      showToast('Este correo ya tiene una cuenta en IDENTIFLY');
+      const emailInput = document.getElementById('r-email');
+      if (emailInput) {
+        emailInput.style.borderColor = 'rgba(255,68,68,0.6)';
+        emailInput.style.boxShadow = '0 0 8px rgba(255,68,68,0.25)';
+      }
+      if (!document.getElementById('email-exists-msg')) {
+        const msg = document.createElement('div');
+        msg.id = 'email-exists-msg';
+        msg.style.cssText = 'font-size:12px;color:rgba(255,100,100,0.85);text-align:center;margin-top:8px;line-height:1.6;font-family:Inter,sans-serif;';
+        msg.innerHTML = 'Este correo ya tiene una cuenta. Si perdiste acceso a tu dispositivo, <a href="recovery.html" style="color:#AAFF00;text-decoration:underline;">recupera tu cuenta aquí</a>.';
+        btn.insertAdjacentElement('afterend', msg);
+      }
+      return;
+    }
+  } catch (_) {
+    // Si check-email falla (sin conexión), dejamos continuar — el servidor lo bloqueará en send-email
+  }
+
   btn.textContent = 'Enviando código...';
 
   emailCode = generateCode();
@@ -1271,6 +1299,13 @@ document.getElementById('btn-step2').addEventListener('click', () => {
 
   localStorage.setItem(REG_KEY, JSON.stringify(registration));
   localStorage.setItem('identity_pin', pwd1Buffer);
+
+  // Registrar email en KV para bloquear re-registros futuros (fire-and-forget)
+  fetch('/api/register-complete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: step1Data.email, name: step1Data.name })
+  }).catch(() => {});
 
   // Código de respaldo permanente para la recuperación de cuenta
   const backupCode = generateCode();
