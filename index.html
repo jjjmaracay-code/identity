@@ -156,16 +156,23 @@
   .qwerty-wrap { width: min(320px, 88vw); position: relative; z-index: 101; }
   .qwerty-row { display: flex; gap: 5px; margin-bottom: 5px; }
   .qwerty-row:last-child { margin-bottom: 0; }
-  .qwerty-key { flex: 1; height: 42px; border-radius: 8px; border: 1px solid rgba(170,255,0,0.12); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; color: #e8e8e8; cursor: pointer; min-width: 0; display: flex; align-items: center; justify-content: center; transition: background 0.08s, transform 0.08s; user-select: none; -webkit-tap-highlight-color: transparent; position: relative; z-index: 101; }
+  .qwerty-key { flex: 1; height: 48px; border-radius: 16px; border: 1px solid rgba(170,255,0,0.12); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #e8e8e8; cursor: pointer; min-width: 0; display: flex; align-items: center; justify-content: center; transition: background 0.08s, transform 0.08s; user-select: none; -webkit-tap-highlight-color: transparent; position: relative; z-index: 101; }
   .qwerty-key:active { background: rgba(170,255,0,0.2) !important; transform: scale(0.92); }
-  .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 13px; color: rgba(170,255,0,0.7); }
+  .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 15px; color: rgba(170,255,0,0.7); aspect-ratio: unset; height: 48px; border-radius: 24px; }
   .qwerty-shift-on { background: rgba(170,255,0,0.22) !important; border-color: rgba(170,255,0,0.55) !important; color: var(--green) !important; }
-  .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); }
+  .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); aspect-ratio: unset; height: 48px; border-radius: 24px; }
   .pwd-strength { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 8px 0 12px; width: min(320px, 88vw); }
   .pwd-req { font-size: 10px; font-weight: 500; letter-spacing: 0.2px; color: rgba(170,255,0,0.3); transition: color 0.2s; }
   .pwd-req::before { content: '○ '; }
   .pwd-req.ok { color: var(--green); }
   .pwd-req.ok::before { content: '✓ '; }
+  .pin-dots-wrap, .pwd-dots-wrap { position: relative; width: min(320px, 88vw); }
+  .eye-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: rgba(170,255,0,0.5); padding: 4px; display: flex; align-items: center; z-index: 2; }
+  .eye-btn:hover { color: rgba(170,255,0,0.9); }
+  .domain-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .domain-btn { flex: 1; padding: 6px 4px; border-radius: 6px; border: 1px solid rgba(170,255,0,0.2); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; color: rgba(170,255,0,0.7); cursor: pointer; white-space: nowrap; transition: background 0.1s; }
+  .domain-btn:active { background: rgba(170,255,0,0.15); }
+  .pwd-hint-static { font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.5; margin: 6px 0 10px; font-family: 'Inter', sans-serif; }
 
   .pin-enter {
     margin-top: 16px;
@@ -2468,12 +2475,17 @@
   <div class="pin-label pin-enter-anim" style="animation-delay:0.6s" id="pin-label-text">Crea tu contraseña de acceso</div>
   <div class="pin-sublabel pin-enter-anim" id="pin-sublabel-text" style="animation-delay:0.6s">Mínimo 8 caracteres · 1 número · 1 símbolo</div>
 
-  <div class="pin-dots empty pin-enter-anim" id="pin-dots-display" style="animation-delay:0.85s">· · · · · · · ·</div>
+  <div class="pin-dots-wrap pin-enter-anim" style="animation-delay:0.85s">
+    <div class="pin-dots empty" id="pin-dots-display">· · · · · · · ·</div>
+    <button type="button" class="eye-btn" id="eye-pin" aria-label="Ver contraseña"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
   <div class="pwd-strength pin-enter-anim" id="pin-strength" style="animation-delay:0.85s;justify-content:center;">
     <span class="pwd-req" id="p-len">Mínimo 8 caracteres</span>
     <span class="pwd-req" id="p-num">Al menos 1 número</span>
     <span class="pwd-req" id="p-sym">Al menos 1 símbolo</span>
+    <span class="pwd-req" id="p-up">Al menos 1 mayúscula</span>
   </div>
+  <div class="pwd-hint-static pin-enter-anim" id="pin-hint-static" style="animation-delay:0.85s;text-align:center;">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
   <div class="qwerty-wrap pin-enter-anim" style="animation-delay:0.85s">
     <div id="qwerty-kbd-pin"></div>
@@ -2601,6 +2613,11 @@
       <div class="field-wrap">
         <div class="field-label">Email</div>
         <input class="field-input" id="f-email" type="email" placeholder="tu@email.com">
+        <div class="domain-btns">
+          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+        </div>
       </div>
       <div class="field-wrap">
         <div class="field-label">Teléfono móvil</div>
@@ -2613,10 +2630,20 @@
       <div class="field-wrap">
         <div class="field-label">Correo secundario</div>
         <input class="field-input" id="f-email2" type="email" placeholder="personal@email.com">
+        <div class="domain-btns">
+          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+        </div>
       </div>
       <div class="field-wrap">
         <div class="field-label">Correo empresa</div>
         <input class="field-input" id="f-email-work" type="email" placeholder="nombre@empresa.com">
+        <div class="domain-btns">
+          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+        </div>
       </div>
       <div class="field-wrap">
         <div class="field-label">Empresa / Organización</div>
@@ -3059,8 +3086,22 @@ let isFlipped = false;
 const pinDotsEl = document.getElementById('pin-dots-display');
 const pinHint   = document.getElementById('pin-hint');
 
+let pinVisible = false;
+
+let _clickCtx;
+function playKeyClick() {
+  if (!_clickCtx) _clickCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const osc = _clickCtx.createOscillator();
+  const gain = _clickCtx.createGain();
+  osc.connect(gain); gain.connect(_clickCtx.destination);
+  osc.frequency.value = 800;
+  gain.gain.setValueAtTime(0.04, _clickCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, _clickCtx.currentTime + 0.05);
+  osc.start(); osc.stop(_clickCtx.currentTime + 0.05);
+}
+
 function validatePassword(pwd) {
-  return { valid: pwd.length >= 8 && /[0-9]/.test(pwd) && /[^A-Za-z0-9\s]/.test(pwd) };
+  return { valid: pwd.length >= 8 && /[0-9]/.test(pwd) && /[^A-Za-z0-9\s]/.test(pwd) && /[A-Z]/.test(pwd) };
 }
 
 function updateDots() {
@@ -3069,7 +3110,7 @@ function updateDots() {
     pinDotsEl.textContent = '· · · · · · · ·';
     pinDotsEl.classList.add('empty'); pinDotsEl.classList.remove('valid','error');
   } else {
-    pinDotsEl.textContent = '●'.repeat(pinBuffer.length);
+    pinDotsEl.textContent = pinVisible ? pinBuffer : '●'.repeat(pinBuffer.length);
     pinDotsEl.classList.remove('empty','error');
     if (isFirstTime) {
       pinDotsEl.classList.toggle('valid', validatePassword(pinBuffer).valid);
@@ -3079,6 +3120,7 @@ function updateDots() {
     document.getElementById('p-len').classList.toggle('ok', pinBuffer.length >= 8);
     document.getElementById('p-num').classList.toggle('ok', /[0-9]/.test(pinBuffer));
     document.getElementById('p-sym').classList.toggle('ok', /[^A-Za-z0-9\s]/.test(pinBuffer));
+    document.getElementById('p-up').classList.toggle('ok', /[A-Z]/.test(pinBuffer));
   }
   const v = validatePassword(pinBuffer);
   const canEnter = isFirstTime ? v.valid : pinBuffer.length >= 1;
@@ -3099,13 +3141,13 @@ function handlePinInput(char) {
     ['q','w','e','r','t','y','u','i','o','p'],
     ['a','s','d','f','g','h','j','k','l'],
     ['SHIFT','z','x','c','v','b','n','m','DEL'],
-    ['NUMS','SPACE']
+    ['NUMS','CLR','SPACE']
   ];
   const ROWS_NUMS = [
     ['1','2','3','4','5','6','7','8','9','0'],
     ['-','/','_',';','(',')','&','@','"',"'"],
     ['.', ',','?','!','%','*','DEL'],
-    ['BACK','SPACE']
+    ['BACK','CLR','SPACE']
   ];
   let mode = 'letters', shift = false;
   function render() {
@@ -3121,28 +3163,33 @@ function handlePinInput(char) {
         if (key === 'SHIFT') {
           btn.className = 'qwerty-key qwerty-action' + (shift ? ' qwerty-shift-on' : '');
           btn.textContent = '⇧'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { shift = !shift; render(); });
+          btn.addEventListener('click', () => { playKeyClick(); shift = !shift; render(); });
         } else if (key === 'DEL') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = '⌫'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { pinBuffer = pinBuffer.slice(0,-1); updateDots(); });
+          btn.addEventListener('click', () => { playKeyClick(); pinBuffer = pinBuffer.slice(0,-1); updateDots(); });
+        } else if (key === 'CLR') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = 'Limpiar'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { playKeyClick(); pinBuffer = ''; updateDots(); });
         } else if (key === 'NUMS') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = '123'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { mode = 'nums'; render(); });
+          btn.addEventListener('click', () => { playKeyClick(); mode = 'nums'; render(); });
         } else if (key === 'BACK') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = 'ABC'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { mode = 'letters'; render(); });
+          btn.addEventListener('click', () => { playKeyClick(); mode = 'letters'; render(); });
         } else if (key === 'SPACE') {
           btn.className = 'qwerty-key qwerty-space';
           btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
-          btn.addEventListener('click', () => { handlePinInput(' '); });
+          btn.addEventListener('click', () => { playKeyClick(); handlePinInput(' '); });
         } else {
           btn.className = 'qwerty-key';
           btn.textContent = (shift && mode === 'letters') ? key.toUpperCase() : key;
           btn.style.flex = '1';
           btn.addEventListener('click', ((k) => () => {
+            playKeyClick();
             const c = (shift && mode === 'letters') ? k.toUpperCase() : k;
             handlePinInput(c);
             if (shift && mode === 'letters') { shift = false; render(); }
@@ -3156,6 +3203,28 @@ function handlePinInput(char) {
   render();
 })();
 
+// ===== OJO PIN =====
+document.getElementById('eye-pin').addEventListener('click', () => {
+  pinVisible = !pinVisible;
+  const btn = document.getElementById('eye-pin');
+  btn.innerHTML = pinVisible
+    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  updateDots();
+});
+
+// ===== BOTONES DOMINIO EMAIL =====
+document.querySelectorAll('.domain-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const domain = btn.dataset.domain;
+    const input = btn.closest('.field-wrap').querySelector('input[type="email"]');
+    if (!input) return;
+    const val = input.value;
+    input.value = val.includes('@') ? val.slice(0, val.indexOf('@')) + domain : val + domain;
+    input.dispatchEvent(new Event('input'));
+  });
+});
+
 if (!isFirstTime) {
   pinHint.textContent = 'Introduce tu contraseña';
   const lbl = document.getElementById('pin-label-text');
@@ -3164,6 +3233,8 @@ if (!isFirstTime) {
   if (sub) sub.style.display = 'none';
   const str = document.getElementById('pin-strength');
   if (str) str.style.display = 'none';
+  const hintStatic = document.getElementById('pin-hint-static');
+  if (hintStatic) hintStatic.style.display = 'none';
   const noAccountLink = document.getElementById('link-no-account');
   if (noAccountLink) noAccountLink.style.display = 'block';
 }

@@ -314,19 +314,26 @@
   .qwerty-row { display: flex; gap: 5px; margin-bottom: 5px; }
   .qwerty-row:last-child { margin-bottom: 0; }
   .qwerty-key {
-    flex: 1; height: 42px; border-radius: 8px;
+    flex: 1; height: 48px; border-radius: 16px;
     border: 1px solid rgba(170,255,0,0.12);
     background: rgba(170,255,0,0.04);
-    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
     color: var(--text); cursor: pointer; min-width: 0;
     display: flex; align-items: center; justify-content: center;
     transition: background 0.08s, transform 0.08s; user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
   .qwerty-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.92); }
-  .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 13px; color: rgba(170,255,0,0.7); }
+  .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 15px; color: rgba(170,255,0,0.7); aspect-ratio: unset; height: 48px; border-radius: 24px; }
   .qwerty-shift-on { background: rgba(170,255,0,0.22) !important; border-color: rgba(170,255,0,0.55) !important; color: var(--green) !important; }
-  .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); }
+  .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); aspect-ratio: unset; height: 48px; border-radius: 24px; }
+  .pwd-dots-wrap { position: relative; }
+  .eye-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: rgba(170,255,0,0.5); padding: 4px; display: flex; align-items: center; z-index: 2; }
+  .eye-btn:hover { color: rgba(170,255,0,0.9); }
+  .domain-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .domain-btn { flex: 1; padding: 6px 4px; border-radius: 6px; border: 1px solid rgba(170,255,0,0.2); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; color: rgba(170,255,0,0.7); cursor: pointer; white-space: nowrap; transition: background 0.1s; }
+  .domain-btn:active { background: rgba(170,255,0,0.15); }
+  .pwd-hint-static { font-size: 10px; color: rgba(255,255,255,0.35); line-height: 1.5; margin: 6px 0 10px; font-family: 'Inter', sans-serif; }
   .pwd-strength { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 8px 0 10px; }
   .pwd-req { font-size: 10px; font-weight: 500; letter-spacing: 0.2px; color: rgba(170,255,0,0.3); transition: color 0.2s; }
   .pwd-req::before { content: '○ '; }
@@ -738,6 +745,11 @@
       <div class="field-wrap">
         <div class="field-label">Correo electrónico</div>
         <input class="field-input" id="r-email" type="email" placeholder="tu@email.com" autocomplete="email">
+        <div class="domain-btns">
+          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+        </div>
         <div class="field-hint">Recibirás un código de verificación en este correo</div>
       </div>
     </div>
@@ -749,13 +761,18 @@
       </div>
 
       <!-- Display contraseña -->
-      <div class="pwd-dots empty" id="pwd1-dots">· · · · · · · ·</div>
+      <div class="pwd-dots-wrap">
+        <div class="pwd-dots empty" id="pwd1-dots">· · · · · · · ·</div>
+        <button type="button" class="eye-btn" id="eye-pwd1" aria-label="Ver contraseña"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
       <div class="pin-validation" id="pwd1-hint">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
       <div class="pwd-strength" id="str-pwd1">
         <span class="pwd-req" id="r1-len">Mínimo 8 caracteres</span>
         <span class="pwd-req" id="r1-num">Al menos 1 número</span>
         <span class="pwd-req" id="r1-sym">Al menos 1 símbolo</span>
+        <span class="pwd-req" id="r1-up">Al menos 1 mayúscula</span>
       </div>
+      <div class="pwd-hint-static">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
       <div id="qwerty-kbd-1"></div>
 
@@ -849,8 +866,12 @@
         Introduce la misma contraseña que creaste en el paso anterior
       </div>
 
-      <div class="pwd-dots empty" id="pwd2-dots">· · · · · · · ·</div>
+      <div class="pwd-dots-wrap">
+        <div class="pwd-dots empty" id="pwd2-dots">· · · · · · · ·</div>
+        <button type="button" class="eye-btn" id="eye-pwd2" aria-label="Ver contraseña"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
       <div class="pin-validation" id="pwd2-hint">Confirma tu contraseña maestra</div>
+      <div class="pwd-hint-static">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
       <div id="qwerty-kbd-2"></div>
     </div>
@@ -921,21 +942,36 @@ let timerInterval = null;
 let timerSeconds = 600; // 10 minutos
 let resendCooldown = 60;
 
+// ===== SONIDO TECLA =====
+let _clickCtx;
+function playKeyClick() {
+  if (!_clickCtx) _clickCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const osc = _clickCtx.createOscillator();
+  const gain = _clickCtx.createGain();
+  osc.connect(gain); gain.connect(_clickCtx.destination);
+  osc.frequency.value = 800;
+  gain.gain.setValueAtTime(0.04, _clickCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, _clickCtx.currentTime + 0.05);
+  osc.start(); osc.stop(_clickCtx.currentTime + 0.05);
+}
+
+let pwd1Visible = false, pwd2Visible = false;
+
 // =================== TECLADOS QWERTY ===================
-function buildQwertyKbd(containerId, appendFn, deleteFn) {
+function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
   const container = document.getElementById(containerId);
   if (!container) return;
   const ROWS_LETTERS = [
     ['q','w','e','r','t','y','u','i','o','p'],
     ['a','s','d','f','g','h','j','k','l'],
     ['SHIFT','z','x','c','v','b','n','m','DEL'],
-    ['NUMS','SPACE']
+    ['NUMS','CLR','SPACE']
   ];
   const ROWS_NUMS = [
     ['1','2','3','4','5','6','7','8','9','0'],
     ['-','/','_',';','(',')','&','@','"',"'"],
     ['.', ',','?','!','%','*','DEL'],
-    ['BACK','SPACE']
+    ['BACK','CLR','SPACE']
   ];
   let mode = 'letters', shift = false;
   function render() {
@@ -951,28 +987,33 @@ function buildQwertyKbd(containerId, appendFn, deleteFn) {
         if (key === 'SHIFT') {
           btn.className = 'qwerty-key qwerty-action' + (shift ? ' qwerty-shift-on' : '');
           btn.textContent = '⇧'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { shift = !shift; render(); });
+          btn.addEventListener('click', () => { playKeyClick(); shift = !shift; render(); });
         } else if (key === 'DEL') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = '⌫'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => deleteFn());
+          btn.addEventListener('click', () => { playKeyClick(); deleteFn(); });
+        } else if (key === 'CLR') {
+          btn.className = 'qwerty-key qwerty-action';
+          btn.textContent = 'Limpiar'; btn.style.flex = '1.5';
+          btn.addEventListener('click', () => { playKeyClick(); if (clearFn) clearFn(); });
         } else if (key === 'NUMS') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = '123'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { mode = 'nums'; render(); });
+          btn.addEventListener('click', () => { playKeyClick(); mode = 'nums'; render(); });
         } else if (key === 'BACK') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = 'ABC'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { mode = 'letters'; render(); });
+          btn.addEventListener('click', () => { playKeyClick(); mode = 'letters'; render(); });
         } else if (key === 'SPACE') {
           btn.className = 'qwerty-key qwerty-space';
           btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
-          btn.addEventListener('click', () => appendFn(' '));
+          btn.addEventListener('click', () => { playKeyClick(); appendFn(' '); });
         } else {
           btn.className = 'qwerty-key';
           btn.textContent = (shift && mode === 'letters') ? key.toUpperCase() : key;
           btn.style.flex = '1';
           btn.addEventListener('click', ((k) => () => {
+            playKeyClick();
             const c = (shift && mode === 'letters') ? k.toUpperCase() : k;
             appendFn(c);
             if (shift && mode === 'letters') { shift = false; render(); }
@@ -988,12 +1029,44 @@ function buildQwertyKbd(containerId, appendFn, deleteFn) {
 
 buildQwertyKbd('qwerty-kbd-1',
   c => handlePwdInput(1, c),
-  () => { pwd1Buffer = pwd1Buffer.slice(0,-1); updatePwdDisplay(1); }
+  () => { pwd1Buffer = pwd1Buffer.slice(0,-1); updatePwdDisplay(1); checkStep1Ready(); },
+  () => { pwd1Buffer = ''; updatePwdDisplay(1); checkStep1Ready(); }
 );
 buildQwertyKbd('qwerty-kbd-2',
   c => handlePwdInput(2, c),
-  () => { pwd2Buffer = pwd2Buffer.slice(0,-1); updatePwdDisplay(2); }
+  () => { pwd2Buffer = pwd2Buffer.slice(0,-1); updatePwdDisplay(2); checkStep2Ready(); },
+  () => { pwd2Buffer = ''; updatePwdDisplay(2); checkStep2Ready(); }
 );
+
+// ===== BOTONES DOMINIO EMAIL =====
+document.querySelectorAll('.domain-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const domain = btn.dataset.domain;
+    const input = btn.closest('.field-wrap').querySelector('input[type="email"]');
+    if (!input) return;
+    const val = input.value;
+    input.value = val.includes('@') ? val.slice(0, val.indexOf('@')) + domain : val + domain;
+    input.dispatchEvent(new Event('input'));
+  });
+});
+
+// ===== OJO CONTRASEÑA =====
+document.getElementById('eye-pwd1').addEventListener('click', () => {
+  pwd1Visible = !pwd1Visible;
+  const btn = document.getElementById('eye-pwd1');
+  btn.innerHTML = pwd1Visible
+    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  updatePwdDisplay(1);
+});
+document.getElementById('eye-pwd2').addEventListener('click', () => {
+  pwd2Visible = !pwd2Visible;
+  const btn = document.getElementById('eye-pwd2');
+  btn.innerHTML = pwd2Visible
+    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  updatePwdDisplay(2);
+});
 
 setTimeout(() => {
   const gate = document.getElementById('boot-gate');
@@ -1016,12 +1089,13 @@ function updatePwdDisplay(num) {
   const hintId = num === 1 ? 'pwd1-hint' : 'pwd2-hint';
 
   const dotsEl = document.getElementById(dotsId);
+  const visible = num === 1 ? pwd1Visible : pwd2Visible;
   if (dotsEl) {
     if (buf.length === 0) {
       dotsEl.textContent = '· · · · · · · ·';
       dotsEl.classList.add('empty'); dotsEl.classList.remove('valid');
     } else {
-      dotsEl.textContent = '●'.repeat(buf.length);
+      dotsEl.textContent = visible ? buf : '●'.repeat(buf.length);
       dotsEl.classList.remove('empty');
       dotsEl.classList.toggle('valid', validatePwd(buf).valid);
     }
@@ -1031,6 +1105,7 @@ function updatePwdDisplay(num) {
     document.getElementById('r1-len').classList.toggle('ok', buf.length >= 8);
     document.getElementById('r1-num').classList.toggle('ok', /[0-9]/.test(buf));
     document.getElementById('r1-sym').classList.toggle('ok', /[^A-Za-z0-9\s]/.test(buf));
+    document.getElementById('r1-up').classList.toggle('ok', /[A-Z]/.test(buf));
   }
 
   const hint = document.getElementById(hintId);
@@ -1047,7 +1122,7 @@ function updatePwdDisplay(num) {
 }
 
 function validatePwd(pwd) {
-  return { valid: pwd.length >= 8 && /[0-9]/.test(pwd) && /[^A-Za-z0-9\s]/.test(pwd) };
+  return { valid: pwd.length >= 8 && /[0-9]/.test(pwd) && /[^A-Za-z0-9\s]/.test(pwd) && /[A-Z]/.test(pwd) };
 }
 
 
