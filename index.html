@@ -2679,6 +2679,13 @@
     <div class="edit-section-title">¿Qué incluir en el QR?</div>
     <div class="field-group">
       <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Título / Profesión</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-job" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-job">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
         <div class="field-toggle-label">Teléfono</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-phone" checked><span class="toggle-slider"></span></label>
@@ -3742,7 +3749,7 @@ function buildVCard() {
     vc += `N:${lastName};${firstName};;;\n`;
     vc += `FN:${d.name}\n`;
   }
-  if (d.job)                      vc += `TITLE:${d.job}\n`;
+  if (d.job && t.job !== false)   vc += `TITLE:${d.job}\n`;
   if (d.phone  && t.phone  !== false) vc += `TEL:${d.phone}\n`;
   if (d.mobile    && t.mobile !== false)  vc += `TEL;type=CELL:${d.mobile}\n`;
   if (d.landline  && t.landline)          vc += `TEL;type=HOME:${d.landline}\n`;
@@ -4134,6 +4141,7 @@ function openEdit() {
   document.getElementById('f-github').value  = d.github  || '';
   document.getElementById('f-web').value     = d.web     || '';
 
+  document.getElementById('t-job').checked      = t.job     !== false;
   document.getElementById('t-phone').checked   = t.phone   !== false;
   document.getElementById('t-email').checked   = t.email   !== false;
   document.getElementById('t-mobile').checked     = t.mobile  !== false;
@@ -4147,7 +4155,7 @@ function openEdit() {
   document.getElementById('t-web').checked     = t.web      !== false;
 
   // Sincronizar etiquetas
-  ['phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web'].forEach(field => {
+  ['job','phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web'].forEach(field => {
     const chk = document.getElementById('t-'+field);
     const lbl = document.getElementById('s-'+field);
     if (chk && lbl) {
@@ -4242,6 +4250,7 @@ document.getElementById('btn-save').addEventListener('click', () => {
     web:      document.getElementById('f-web').value.trim(),
     media:    mediaToSave,
     toggles: {
+      job:     document.getElementById('t-job').checked,
       phone:   document.getElementById('t-phone').checked,
       email:   document.getElementById('t-email').checked,
       mobile:    document.getElementById('t-mobile').checked,
