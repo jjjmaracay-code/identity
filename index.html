@@ -158,6 +158,7 @@
   .qwerty-row:last-child { margin-bottom: 0; }
   .qwerty-key { flex: 1; height: 48px; border-radius: 16px; border: 1px solid rgba(170,255,0,0.12); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #e8e8e8; cursor: pointer; min-width: 0; display: flex; align-items: center; justify-content: center; transition: background 0.08s, transform 0.08s; user-select: none; -webkit-tap-highlight-color: transparent; position: relative; z-index: 101; }
   .qwerty-key:active { background: rgba(170,255,0,0.2) !important; transform: scale(0.92); }
+  .kbd-pressed { background: rgba(170,255,0,0.45) !important; box-shadow: 0 0 16px rgba(170,255,0,0.65) !important; transform: scale(1.08) !important; transition: transform 90ms ease, box-shadow 90ms ease !important; }
   .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 15px; color: rgba(170,255,0,0.7); aspect-ratio: unset; height: 48px; border-radius: 24px; }
   .qwerty-shift-on { background: rgba(170,255,0,0.22) !important; border-color: rgba(170,255,0,0.55) !important; color: var(--green) !important; }
   .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); aspect-ratio: unset; height: 48px; border-radius: 24px; }
@@ -3163,44 +3164,94 @@ function handlePinInput(char) {
         if (key === 'SHIFT') {
           btn.className = 'qwerty-key qwerty-action' + (shift ? ' qwerty-shift-on' : '');
           btn.textContent = '⇧'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { playKeyClick(); shift = !shift; render(); });
+          btn._kbdAction = () => { playKeyClick(); shift = !shift; render(); };
+          btn.addEventListener('click', (e) => {
+            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            btn._kbdAction();
+          });
         } else if (key === 'DEL') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = '⌫'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { playKeyClick(); pinBuffer = pinBuffer.slice(0,-1); updateDots(); });
+          btn._kbdAction = () => { playKeyClick(); pinBuffer = pinBuffer.slice(0,-1); updateDots(); };
+          btn.addEventListener('click', (e) => {
+            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            btn._kbdAction();
+          });
         } else if (key === 'CLR') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = 'Limpiar'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { playKeyClick(); pinBuffer = ''; updateDots(); });
+          btn._kbdAction = () => { playKeyClick(); pinBuffer = ''; updateDots(); };
+          btn.addEventListener('click', (e) => {
+            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            btn._kbdAction();
+          });
         } else if (key === 'NUMS') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = '123'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { playKeyClick(); mode = 'nums'; render(); });
+          btn._kbdAction = () => { playKeyClick(); mode = 'nums'; render(); };
+          btn.addEventListener('click', (e) => {
+            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            btn._kbdAction();
+          });
         } else if (key === 'BACK') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = 'ABC'; btn.style.flex = '1.5';
-          btn.addEventListener('click', () => { playKeyClick(); mode = 'letters'; render(); });
+          btn._kbdAction = () => { playKeyClick(); mode = 'letters'; render(); };
+          btn.addEventListener('click', (e) => {
+            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            btn._kbdAction();
+          });
         } else if (key === 'SPACE') {
           btn.className = 'qwerty-key qwerty-space';
           btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
-          btn.addEventListener('click', () => { playKeyClick(); handlePinInput(' '); });
+          btn._kbdAction = () => { playKeyClick(); handlePinInput(' '); };
+          btn.addEventListener('click', (e) => {
+            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            btn._kbdAction();
+          });
         } else {
           btn.className = 'qwerty-key';
           btn.textContent = (shift && mode === 'letters') ? key.toUpperCase() : key;
           btn.style.flex = '1';
-          btn.addEventListener('click', ((k) => () => {
+          btn._kbdAction = ((k) => () => {
             playKeyClick();
             const c = (shift && mode === 'letters') ? k.toUpperCase() : k;
             handlePinInput(c);
             if (shift && mode === 'letters') { shift = false; render(); }
-          })(key));
+          })(key);
+          btn.addEventListener('click', (e) => {
+            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            btn._kbdAction();
+          });
         }
         rowEl.appendChild(btn);
       });
       container.appendChild(rowEl);
     });
   }
+  let _dragKey = null;
   render();
+  container.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    var t = e.changedTouches[0];
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    var btn = el && el.closest('button.qwerty-key');
+    if (btn && btn._kbdAction) { _dragKey = btn; btn._kbdAction(); btn._touchHandledAt = Date.now(); btn.classList.add('kbd-pressed'); }
+  }, { passive: false });
+  container.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    var t = e.changedTouches[0];
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    var btn = el && el.closest('button.qwerty-key');
+    if (!btn) { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } return; }
+    if (btn !== _dragKey) {
+      if (_dragKey) _dragKey.classList.remove('kbd-pressed');
+      _dragKey = btn;
+      if (btn._kbdAction) { btn._kbdAction(); btn._touchHandledAt = Date.now(); btn.classList.add('kbd-pressed'); }
+    }
+  }, { passive: false });
+  container.addEventListener('touchend', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } });
+  container.addEventListener('touchcancel', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } });
 })();
 
 // ===== OJO PIN =====
