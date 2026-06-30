@@ -2534,6 +2534,130 @@
       <button class="btn-action" id="btn-lock">Bloquear</button>
       <button class="btn-action primary" id="btn-share">Compartir QR</button>
     </div>
+
+    <!-- ===== UBICACIÓN DE EMERGENCIA ===== -->
+    <div style="margin-top:16px;padding:0 2px;">
+      <div style="font-size:10px;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;
+                  margin-bottom:6px;text-shadow:0 0 8px rgba(170,255,0,0.5);">
+        EMERGENCIA — UBICACIÓN
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:10px;
+                  letter-spacing:0.4px;line-height:1.6;">
+        Genera un enlace de Google Maps con tu posición actual.
+        Se obtiene una sola vez y no queda guardada en ningún sitio.
+      </div>
+
+      <button id="btn-share-location" onclick="shareLocation()" style="
+        width:100%;padding:14px;
+        background:transparent;
+        border:1px solid rgba(170,255,0,0.4);
+        border-radius:16px;color:#AAFF00;
+        font-family:inherit;font-size:11px;
+        font-weight:700;letter-spacing:2px;
+        text-transform:uppercase;cursor:pointer;
+        text-shadow:0 0 8px rgba(170,255,0,0.4);
+        box-shadow:0 0 10px rgba(170,255,0,0.08);
+        margin-bottom:8px;
+        -webkit-tap-highlight-color:transparent;">
+        COMPARTIR MI UBICACION AHORA
+      </button>
+
+      <div id="location-result" style="display:none;margin-bottom:8px;">
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;letter-spacing:1px;">
+          Enlace generado — toca para abrir o comparte:
+        </div>
+        <a id="location-link" href="#" target="_blank" rel="noopener" style="
+          display:block;padding:10px 12px;
+          background:rgba(170,255,0,0.05);
+          border:1px solid rgba(170,255,0,0.25);
+          border-radius:10px;
+          font-size:10px;color:#AAFF00;
+          text-decoration:none;letter-spacing:0.4px;
+          word-break:break-all;margin-bottom:8px;">
+        </a>
+        <div style="display:flex;gap:8px;">
+          <button onclick="sendLocationWhatsApp()" style="
+            flex:1;padding:10px;background:transparent;
+            border:1px solid rgba(170,255,0,0.25);border-radius:12px;
+            font-family:inherit;font-size:10px;font-weight:700;
+            letter-spacing:1.5px;text-transform:uppercase;
+            color:#AAFF00;cursor:pointer;
+            -webkit-tap-highlight-color:transparent;">
+            WhatsApp
+          </button>
+          <button onclick="copyLocationLink()" style="
+            flex:1;padding:10px;background:transparent;
+            border:1px solid rgba(170,255,0,0.25);border-radius:12px;
+            font-family:inherit;font-size:10px;font-weight:700;
+            letter-spacing:1.5px;text-transform:uppercase;
+            color:#AAFF00;cursor:pointer;
+            -webkit-tap-highlight-color:transparent;">
+            Copiar
+          </button>
+          <button onclick="shareLocationNative()" style="
+            flex:1;padding:10px;background:transparent;
+            border:1px solid rgba(170,255,0,0.25);border-radius:12px;
+            font-family:inherit;font-size:10px;font-weight:700;
+            letter-spacing:1.5px;text-transform:uppercase;
+            color:#AAFF00;cursor:pointer;
+            -webkit-tap-highlight-color:transparent;">
+            Compartir
+          </button>
+        </div>
+      </div>
+
+      <div id="location-error" style="display:none;
+        font-size:10px;color:rgba(255,68,68,0.8);
+        letter-spacing:0.5px;margin-bottom:8px;line-height:1.6;">
+      </div>
+
+      <!-- Alertas oficiales -->
+      <div style="font-size:10px;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;
+                  margin:18px 0 6px;text-shadow:0 0 8px rgba(170,255,0,0.5);">
+        ALERTAS OFICIALES EN TU ZONA
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:10px;
+                  letter-spacing:0.4px;line-height:1.6;">
+        Fuentes oficiales de acceso publico — sin registro.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px;">
+        <a href="https://earthquake.usgs.gov/earthquakes/map/" target="_blank" rel="noopener" style="
+          display:block;padding:12px 14px;
+          background:rgba(170,255,0,0.03);
+          border:1px solid rgba(170,255,0,0.15);
+          border-radius:12px;text-decoration:none;">
+          <div style="font-size:11px;font-weight:700;color:#AAFF00;
+                      letter-spacing:1px;margin-bottom:2px;">USGS Terremotos</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;">
+            Mapa en tiempo real · earthquake.usgs.gov
+          </div>
+        </a>
+        <a href="https://www.meteoalarm.org/" target="_blank" rel="noopener" style="
+          display:block;padding:12px 14px;
+          background:rgba(170,255,0,0.03);
+          border:1px solid rgba(170,255,0,0.15);
+          border-radius:12px;text-decoration:none;">
+          <div style="font-size:11px;font-weight:700;color:#AAFF00;
+                      letter-spacing:1px;margin-bottom:2px;">MeteoAlarm Europa</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;">
+            Alertas meteorologicas oficiales · meteoalarm.org
+          </div>
+        </a>
+        <a href="https://www.proteccioncivil.es/alertas-y-emergencias" target="_blank" rel="noopener" style="
+          display:block;padding:12px 14px;
+          background:rgba(170,255,0,0.03);
+          border:1px solid rgba(170,255,0,0.15);
+          border-radius:12px;text-decoration:none;">
+          <div style="font-size:11px;font-weight:700;color:#AAFF00;
+                      letter-spacing:1px;margin-bottom:2px;">Proteccion Civil Espana</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;">
+            Alertas y emergencias · proteccioncivil.es
+          </div>
+        </a>
+      </div>
+    </div>
+    <!-- ===== FIN UBICACIÓN DE EMERGENCIA ===== -->
+
   </div>
 </div>
 
@@ -4920,6 +5044,87 @@ if (_trialReg.timestamp) {
     </div>
   </div>
 </div>
+
+<!-- ===== COMPARTIR UBICACIÓN ===== -->
+<script>
+(function() {
+  let _locationUrl = '';
+
+  window.shareLocation = function() {
+    const btn       = document.getElementById('btn-share-location');
+    const resultDiv = document.getElementById('location-result');
+    const errorDiv  = document.getElementById('location-error');
+    const link      = document.getElementById('location-link');
+
+    errorDiv.style.display  = 'none';
+    resultDiv.style.display = 'none';
+    btn.textContent = 'OBTENIENDO UBICACION...';
+    btn.disabled = true;
+
+    if (!navigator.geolocation) {
+      errorDiv.textContent = 'Tu navegador no admite geolocalizacion.';
+      errorDiv.style.display = 'block';
+      btn.textContent = 'COMPARTIR MI UBICACION AHORA';
+      btn.disabled = false;
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lon = pos.coords.longitude.toFixed(6);
+        _locationUrl = 'https://maps.google.com/?q=' + lat + ',' + lon;
+        link.href        = _locationUrl;
+        link.textContent = _locationUrl;
+        resultDiv.style.display = 'block';
+        btn.textContent  = 'COMPARTIR MI UBICACION AHORA';
+        btn.disabled     = false;
+      },
+      function(err) {
+        const msgs = {
+          1: 'Permiso denegado. Activa la ubicacion en los ajustes del navegador.',
+          2: 'No se pudo obtener la posicion. Comprueba tu conexion GPS.',
+          3: 'Tiempo de espera agotado. Intentalo de nuevo.'
+        };
+        errorDiv.textContent = msgs[err.code] || 'Error al obtener la ubicacion.';
+        errorDiv.style.display = 'block';
+        btn.textContent = 'COMPARTIR MI UBICACION AHORA';
+        btn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  window.shareLocationNative = function() {
+    if (!_locationUrl) return;
+    if (navigator.share) {
+      navigator.share({
+        title: 'Mi ubicacion — IDENTIFLY',
+        text: 'Esta es mi ubicacion actual:',
+        url: _locationUrl
+      }).catch(function() {});
+    } else {
+      window.copyLocationLink();
+    }
+  };
+
+  window.sendLocationWhatsApp = function() {
+    if (!_locationUrl) return;
+    const text = encodeURIComponent('Mi ubicacion actual (IDENTIFLY): ' + _locationUrl);
+    window.open('https://wa.me/?text=' + text, '_blank', 'noopener');
+  };
+
+  window.copyLocationLink = function() {
+    if (!_locationUrl) return;
+    navigator.clipboard.writeText(_locationUrl).then(function() {
+      showToast('Enlace copiado');
+    }).catch(function() {
+      showToast('No se pudo copiar');
+    });
+  };
+})();
+</script>
+<!-- ===== FIN COMPARTIR UBICACIÓN ===== -->
 
 <!-- Service Worker -->
 <script>
