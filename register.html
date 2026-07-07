@@ -288,12 +288,12 @@
   }
 
   .key-btn {
-    aspect-ratio: 1.4;
+    aspect-ratio: 1.15;
     border-radius: 8px;
     border: 1px solid rgba(170,255,0,0.15);
     background: rgba(170,255,0,0.04);
     font-family: 'Inter', sans-serif;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 400;
     color: var(--text);
     cursor: pointer;
@@ -306,9 +306,9 @@
   }
 
   .key-btn:hover { background: rgba(170,255,0,0.1); border-color: rgba(170,255,0,0.35); }
-  .key-btn:active { background: var(--green) !important; color: #000 !important; transform: scale(0.93); }
+  .key-btn:active { background: var(--green) !important; color: #000 !important; transform: scale(0.90); box-shadow: 0 0 12px var(--green), 0 0 28px rgba(170,255,0,0.6); }
   .key-btn.empty { border-color: transparent; background: transparent; pointer-events: none; }
-  .key-btn.del { font-size: 14px; color: var(--muted); }
+  .key-btn.del { font-size: 17px; color: var(--muted); }
 
   /* ── Teclado QWERTY ── */
   .qwerty-row { display: flex; gap: 5px; margin-bottom: 5px; }
@@ -950,10 +950,11 @@ function playKeyClick() {
   const osc = _clickCtx.createOscillator();
   const gain = _clickCtx.createGain();
   osc.connect(gain); gain.connect(_clickCtx.destination);
-  osc.frequency.value = 800;
-  gain.gain.setValueAtTime(0.04, _clickCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, _clickCtx.currentTime + 0.05);
-  osc.start(); osc.stop(_clickCtx.currentTime + 0.05);
+  osc.type = 'square';
+  osc.frequency.value = 1000;
+  gain.gain.setValueAtTime(0.12, _clickCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, _clickCtx.currentTime + 0.04);
+  osc.start(); osc.stop(_clickCtx.currentTime + 0.04);
 }
 
 let pwd1Visible = false, pwd2Visible = false;

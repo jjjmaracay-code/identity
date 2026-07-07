@@ -281,12 +281,12 @@
   }
 
   .key-btn {
-    aspect-ratio: 1.4;
+    aspect-ratio: 1.15;
     border-radius: 8px;
     border: 1px solid rgba(255,68,68,0.15);
     background: rgba(255,68,68,0.04);
     font-family: 'Inter', sans-serif;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 400;
     color: var(--text);
     cursor: pointer;
@@ -298,12 +298,12 @@
   }
 
   .key-btn:hover { background: rgba(255,68,68,0.1); border-color: rgba(255,68,68,0.4); }
-  .key-btn:active { background: var(--red) !important; color: #fff !important; transform: scale(0.93); }
+  .key-btn:active { background: var(--red) !important; color: #fff !important; transform: scale(0.90); box-shadow: 0 0 12px var(--red), 0 0 28px rgba(255,68,68,0.6); }
   .key-btn.green-key { border-color: rgba(170,255,0,0.15); background: rgba(170,255,0,0.04); }
   .key-btn.green-key:hover { background: rgba(170,255,0,0.1); border-color: rgba(170,255,0,0.4); }
-  .key-btn.green-key:active { background: var(--green) !important; color: #000 !important; }
+  .key-btn.green-key:active { background: var(--green) !important; color: #000 !important; box-shadow: 0 0 12px var(--green), 0 0 28px rgba(170,255,0,0.6); }
   .key-btn.empty { border-color: transparent; background: transparent; pointer-events: none; }
-  .key-btn.del { color: var(--muted); font-size: 14px; }
+  .key-btn.del { color: var(--muted); font-size: 17px; }
 
   /* ── Teclado QWERTY ── */
   .qwerty-row { display: flex; gap: 5px; margin-bottom: 5px; }
@@ -772,10 +772,11 @@ function playKeyClick() {
   const osc = _clickCtx.createOscillator();
   const gain = _clickCtx.createGain();
   osc.connect(gain); gain.connect(_clickCtx.destination);
-  osc.frequency.value = 800;
-  gain.gain.setValueAtTime(0.04, _clickCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, _clickCtx.currentTime + 0.05);
-  osc.start(); osc.stop(_clickCtx.currentTime + 0.05);
+  osc.type = 'square';
+  osc.frequency.value = 1000;
+  gain.gain.setValueAtTime(0.12, _clickCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, _clickCtx.currentTime + 0.04);
+  osc.start(); osc.stop(_clickCtx.currentTime + 0.04);
 }
 
 let npVisible = false;
