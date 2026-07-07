@@ -26,7 +26,7 @@ export async function onRequestPost(context) {
     let html, finalSubject;
 
     if (template === 'verification') {
-      finalSubject = `Tu código IDENTIFLY: ${code}`;
+      finalSubject = `Tu código de verificación IDENTIFLY está listo`;
       html = `
 <div style="background:#080808;padding:40px 24px;font-family:Arial,sans-serif;max-width:480px;margin:0 auto;border:1px solid #AAFF00;border-radius:16px;">
   <div style="text-align:center;margin-bottom:32px;">
