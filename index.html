@@ -271,22 +271,19 @@
   }
 
   .btn-settings {
-    padding: 8px 14px;
-    border-radius: 20px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
     background: rgba(170,255,0,0.1);
     border: 1px solid rgba(170,255,0,0.6);
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    justify-content: center;
     color: rgba(170,255,0,0.95);
     transition: background 0.15s;
-    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .btn-settings:active { background: rgba(170,255,0,0.18); }
@@ -2507,7 +2504,7 @@
 <div id="screen-main">
   <div class="main-header">
     <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
-    <button class="btn-settings" id="btn-open-edit">Permisos y configuración</button>
+    <button class="btn-settings" id="btn-open-edit" aria-label="Permisos y configuración"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   </div>
 
   <div class="card-container" id="card-container">
