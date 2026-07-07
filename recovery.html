@@ -812,7 +812,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           btn.textContent = '⇧'; btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); shift = !shift; render(); };
           btn.addEventListener('click', (e) => {
-            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            if (btn._touchHandled) { btn._touchHandled = false; return; }
             btn._kbdAction();
           });
         } else if (key === 'DEL') {
@@ -820,7 +820,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           btn.textContent = '⌫'; btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); deleteFn(); };
           btn.addEventListener('click', (e) => {
-            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            if (btn._touchHandled) { btn._touchHandled = false; return; }
             btn._kbdAction();
           });
         } else if (key === 'CLR') {
@@ -828,7 +828,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           btn.textContent = 'Limpiar'; btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); if (clearFn) clearFn(); };
           btn.addEventListener('click', (e) => {
-            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            if (btn._touchHandled) { btn._touchHandled = false; return; }
             btn._kbdAction();
           });
         } else if (key === 'NUMS') {
@@ -836,7 +836,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           btn.textContent = '123'; btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'nums'; render(); };
           btn.addEventListener('click', (e) => {
-            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            if (btn._touchHandled) { btn._touchHandled = false; return; }
             btn._kbdAction();
           });
         } else if (key === 'BACK') {
@@ -844,7 +844,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           btn.textContent = 'ABC'; btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'letters'; render(); };
           btn.addEventListener('click', (e) => {
-            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            if (btn._touchHandled) { btn._touchHandled = false; return; }
             btn._kbdAction();
           });
         } else if (key === 'SPACE') {
@@ -852,7 +852,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
           btn._kbdAction = () => { playKeyClick(); appendFn(' '); };
           btn.addEventListener('click', (e) => {
-            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            if (btn._touchHandled) { btn._touchHandled = false; return; }
             btn._kbdAction();
           });
         } else {
@@ -866,7 +866,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
             if (shift && mode === 'letters') { shift = false; render(); }
           })(key);
           btn.addEventListener('click', (e) => {
-            if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
+            if (btn._touchHandled) { btn._touchHandled = false; return; }
             btn._kbdAction();
           });
         }
@@ -876,28 +876,33 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
     });
   }
   let _dragKey = null;
+  let _touchStartX = 0, _touchStartY = 0;
+  const DRAG_THRESHOLD = 15; // px — ignora micro-drift de un tap estático
   render();
   container.addEventListener('touchstart', function(e) {
     e.preventDefault();
     var t = e.changedTouches[0];
+    _touchStartX = t.clientX; _touchStartY = t.clientY;
     var el = document.elementFromPoint(t.clientX, t.clientY);
     var btn = el && el.closest('button.qwerty-key');
-    if (btn && btn._kbdAction) { _dragKey = btn; btn._kbdAction(); btn._touchHandledAt = Date.now(); btn.classList.add('kbd-pressed'); }
+    if (btn && btn._kbdAction) { _dragKey = btn; btn._kbdAction(); btn._touchHandled = true; btn.classList.add('kbd-pressed'); }
   }, { passive: false });
   container.addEventListener('touchmove', function(e) {
     e.preventDefault();
     var t = e.changedTouches[0];
+    var dx = t.clientX - _touchStartX, dy = t.clientY - _touchStartY;
+    if (Math.sqrt(dx*dx + dy*dy) < DRAG_THRESHOLD) return;
     var el = document.elementFromPoint(t.clientX, t.clientY);
     var btn = el && el.closest('button.qwerty-key');
     if (!btn) { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } return; }
     if (btn !== _dragKey) {
       if (_dragKey) _dragKey.classList.remove('kbd-pressed');
       _dragKey = btn;
-      if (btn._kbdAction) { btn._kbdAction(); btn._touchHandledAt = Date.now(); btn.classList.add('kbd-pressed'); }
+      if (btn._kbdAction) { btn._kbdAction(); btn._touchHandled = true; btn.classList.add('kbd-pressed'); }
     }
   }, { passive: false });
   container.addEventListener('touchend', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } });
-  container.addEventListener('touchcancel', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } });
+  container.addEventListener('touchcancel', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey._touchHandled = false; _dragKey = null; } });
 }
 
 buildQwertyKbd('qwerty-kbd-np',
@@ -1031,7 +1036,7 @@ async function sendTempCode() {
   const email = reg.email || '';
   const name  = reg.name  || 'Usuario';
   try {
-    await fetch('/api/send-email', {
+    const sendRes = await fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1045,7 +1050,12 @@ async function sendTempCode() {
         message: 'Úsalo en la pantalla de verificación de IDENTIFLY. Caduca en 10 minutos. Si no has solicitado este acceso, ignora este correo — tu cuenta permanece segura.',
       })
     });
-    showToast('Código enviado a ' + email);
+    if (!sendRes.ok) {
+      const errData = await sendRes.json().catch(() => ({}));
+      showToast(errData.error || 'Error al enviar el código — inténtalo de nuevo');
+    } else {
+      showToast('Código enviado a ' + email);
+    }
   } catch(e) {
     console.error('EmailJS:', e.status, e.text);
     console.log('🔑 Código temporal de prueba:', tempCode);
