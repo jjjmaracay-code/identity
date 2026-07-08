@@ -1369,7 +1369,6 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     btn.textContent = 'Continuar — Enviar código al correo';
     // Para desarrollo: simular envío
     emailCode = generateCode();
-    console.log('🔑 Código de prueba:', emailCode);
 
     document.getElementById('screen-1').classList.remove('active');
     document.getElementById('screen-2').classList.add('active');
@@ -1381,7 +1380,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     document.getElementById('line-1').classList.add('done');
     document.getElementById('step-label').textContent = 'Paso 2 de 2 — Verificación y confirmación';
     startTimer();
-    showToast('Modo desarrollo — código en consola');
+    showToast('No se pudo enviar el código. Revisa tu conexión e inténtalo de nuevo.');
     window.regTour?.onScreen2();
   }
 });
@@ -1403,8 +1402,7 @@ document.getElementById('btn-resend').addEventListener('click', async () => {
     }
   } catch(e) {
     console.error('EmailJS:', e.status, e.text);
-    console.log('🔑 Nuevo código de prueba:', emailCode);
-    showToast('Modo desarrollo — código en consola');
+    showToast('No se pudo enviar el código. Revisa tu conexión e inténtalo de nuevo.');
   }
   startTimer();
   codeBuffer = '';
