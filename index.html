@@ -3642,7 +3642,7 @@ document.querySelectorAll('.pin-key[data-n]').forEach(btn => {
   });
 });
 
-pinEnterBtn.addEventListener('click', () => {
+pinEnterBtn.addEventListener('click', async () => {
   if (pinEnterBtn.disabled) return;
   const stored = localStorage.getItem(PIN_KEY);
   if (isFirstTime) {
@@ -3651,9 +3651,13 @@ pinEnterBtn.addEventListener('click', () => {
     pinEnterBtn.classList.remove('ready');
     pinEnterBtn.disabled = true;
     showToast('Contraseña guardada ✓');
+    sessionCryptoKey = await deriveKeyFromPin(pinBuffer);
+    await migrateTOTPIfNeeded(sessionCryptoKey);
     pinSuccess();
   } else {
     if (pinBuffer === stored) {
+      sessionCryptoKey = await deriveKeyFromPin(pinBuffer);
+      await migrateTOTPIfNeeded(sessionCryptoKey);
       pinSuccess();
     } else {
       pinEnterBtn.classList.remove('ready');
@@ -4356,6 +4360,7 @@ document.getElementById('btn-share').addEventListener('click', async () => {
 // =================== BLOQUEAR ===================
 document.getElementById('btn-lock').addEventListener('click', () => {
   pinBuffer = '';
+  sessionCryptoKey = null;
   updateDots();
   isFlipped = false;
   document.getElementById('card-inner').classList.remove('flipped');
@@ -4631,7 +4636,7 @@ document.getElementById('btn-confirm-delete').addEventListener('click', () => {
   // Eliminar TODOS los datos de localStorage
   const keys = [
     'identity_data', 'identity_pin', 'identity_consent',
-    'identity_totp_secret', 'identity_2fa_config',
+    'identity_totp_secret', 'identity_totp_salt', 'identity_2fa_config',
     'identity_registration', 'identity_plan', 'identity_backup_code',
     'identity_attempts', 'identity_block_until'
   ];
@@ -4640,6 +4645,7 @@ document.getElementById('btn-confirm-delete').addEventListener('click', () => {
   // Resetear estado en memoria
   profileData = {};
   pinBuffer = '';
+  sessionCryptoKey = null;
   twoFAConfig = { totp: false };
 
   // Cerrar todo y volver al consentimiento
@@ -4660,11 +4666,14 @@ document.getElementById('btn-confirm-delete').addEventListener('click', () => {
 });
 
 // =================== 2FA SISTEMA ===================
-const TOTP_KEY    = 'identity_totp_secret';
-const TWOFA_KEY   = 'identity_2fa_config';
+const TOTP_KEY      = 'identity_totp_secret';
+const TWOFA_KEY     = 'identity_2fa_config';
+const TOTP_SALT_KEY = 'identity_totp_salt';
 
 let twoFAConfig = JSON.parse(localStorage.getItem(TWOFA_KEY) || '{"totp":false}');
 let pendingTOTPSecret = null;
+let sessionCryptoKey = null;  // CryptoKey en memoria, vive mientras dure la sesión desbloqueada
+let currentTOTPSecret = null; // secreto TOTP ya descifrado, para btn-verify-totp
 
 function generateTOTPSecret() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -4691,6 +4700,64 @@ function verifyTOTPCode(secret, code) {
     if (!totp) return false;
     return totp.validate({ token: code.toString().padStart(6,'0'), window: 1 }) !== null;
   } catch(e) { return false; }
+}
+
+function getOrCreateSalt() {
+  let saltB64 = localStorage.getItem(TOTP_SALT_KEY);
+  if (!saltB64) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    saltB64 = btoa(String.fromCharCode(...salt));
+    localStorage.setItem(TOTP_SALT_KEY, saltB64);
+  }
+  return Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+}
+
+async function deriveKeyFromPin(pin) {
+  const salt = getOrCreateSalt();
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptTOTPSecret(secret, key) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(secret));
+  return JSON.stringify({
+    v: 1,
+    iv: btoa(String.fromCharCode(...iv)),
+    data: btoa(String.fromCharCode(...new Uint8Array(ciphertext)))
+  });
+}
+
+async function decryptTOTPSecret(stored, key) {
+  try {
+    const obj = JSON.parse(stored);
+    if (!obj.v || !obj.iv || !obj.data) return null;
+    const iv = Uint8Array.from(atob(obj.iv), c => c.charCodeAt(0));
+    const data = Uint8Array.from(atob(obj.data), c => c.charCodeAt(0));
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+    return new TextDecoder().decode(plain);
+  } catch(e) { return null; }
+}
+
+async function migrateTOTPIfNeeded(key) {
+  const stored = localStorage.getItem(TOTP_KEY);
+  if (!stored) return;
+  try {
+    const obj = JSON.parse(stored);
+    if (obj.v && obj.iv && obj.data) return; // ya migrado
+  } catch(e) {
+    // No es JSON válido => es el formato viejo en texto plano, migrar
+    const encrypted = await encryptTOTPSecret(stored, key);
+    localStorage.setItem(TOTP_KEY, encrypted);
+  }
 }
 
 // Toggle TOTP
@@ -4741,11 +4808,12 @@ document.getElementById('btn-close-totp').addEventListener('click', () => {
   }
 });
 
-document.getElementById('btn-confirm-totp').addEventListener('click', () => {
+document.getElementById('btn-confirm-totp').addEventListener('click', async () => {
   const code = document.getElementById('totp-verify-code').value.trim();
   if (!code || code.length !== 6) { showToast('Introduce 6 dígitos'); return; }
   if (verifyTOTPCode(pendingTOTPSecret, code)) {
-    localStorage.setItem(TOTP_KEY, pendingTOTPSecret);
+    const encrypted = await encryptTOTPSecret(pendingTOTPSecret, sessionCryptoKey);
+    localStorage.setItem(TOTP_KEY, encrypted);
     twoFAConfig.totp = true;
     localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
     document.getElementById('s-totp').textContent = 'Permitido';
@@ -4763,7 +4831,9 @@ document.getElementById('btn-confirm-totp').addEventListener('click', () => {
 
 // Verificación 2FA en login
 async function check2FAAndEnter() {
-  const hasTOTP = twoFAConfig.totp && localStorage.getItem(TOTP_KEY);
+  const rawSecret = localStorage.getItem(TOTP_KEY);
+  currentTOTPSecret = rawSecret ? await decryptTOTPSecret(rawSecret, sessionCryptoKey) : null;
+  const hasTOTP = twoFAConfig.totp && currentTOTPSecret;
   if (!hasTOTP) { doEnter(); return; }
 
   const screen = document.getElementById('screen-2fa-verify');
@@ -4777,8 +4847,7 @@ async function check2FAAndEnter() {
 
 document.getElementById('btn-verify-totp').addEventListener('click', () => {
   const code = document.getElementById('verify-totp-input').value.trim();
-  const secret = localStorage.getItem(TOTP_KEY);
-  if (verifyTOTPCode(secret, code)) {
+  if (verifyTOTPCode(currentTOTPSecret, code)) {
     document.getElementById('screen-2fa-verify').classList.remove('open');
     doEnter();
   } else {
