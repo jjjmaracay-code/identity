@@ -2257,6 +2257,17 @@
 <!-- =================== FONDO ANIMADO =================== -->
 <div id="bg-media"></div>
 
+<!-- =================== SIN IDENTIDAD LOCAL EN ESTE DISPOSITIVO =================== -->
+<div id="screen-no-identity" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;font-family:'Inter',sans-serif;">
+  <div style="max-width:340px;">
+    <div style="font-size:13px;font-weight:600;letter-spacing:1px;color:rgba(255,255,255,0.85);line-height:1.7;margin-bottom:28px;">
+      Este dispositivo no tiene ninguna identidad guardada. Si ya creaste una identidad en otro dispositivo, IDENTIFLY no puede recuperarla aquí porque los datos se guardan solo localmente, no en un servidor.
+    </div>
+    <button id="btn-no-identity-register" style="width:100%;padding:14px;margin-bottom:12px;border-radius:12px;border:none;background:var(--green);color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Crear identidad nueva</button>
+    <button id="btn-no-identity-cancel" style="width:100%;padding:13px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:none;color:rgba(255,255,255,0.5);font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Cancelar</button>
+  </div>
+</div>
+
 <!-- =================== PANTALLA CONSENTIMIENTO RGPD =================== -->
 <div id="screen-consent">
   <div class="consent-header">
@@ -3150,8 +3161,15 @@ if (_reg.timestamp) {
 }
 
 if (!localStorage.getItem('identity_registration')) {
-  window.location.replace('register.html');
-  throw new Error('Redirigiendo a registro'); // detener el resto del script
+  document.getElementById('screen-no-identity').style.display = 'flex';
+  document.getElementById('btn-no-identity-register').addEventListener('click', () => {
+    window.location.href = 'register.html';
+  });
+  document.getElementById('btn-no-identity-cancel').addEventListener('click', () => {
+    if (history.length > 1) history.back();
+    else window.location.href = 'register.html';
+  });
+  throw new Error('Sin identidad local — mostrando pantalla informativa'); // detener el resto del script
 }
 
 // Cuenta bloqueada por intentos fallidos: continuar en la pantalla de recuperación
