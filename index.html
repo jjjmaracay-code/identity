@@ -772,6 +772,42 @@
     text-transform: uppercase;
   }
 
+  .edit-tabs-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    background: var(--bg);
+    padding: 8px 0 16px;
+    margin-bottom: 16px;
+  }
+
+  .edit-tab-btn {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: rgba(170,255,0,0.08);
+    border: 1px solid rgba(170,255,0,0.3);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: rgba(170,255,0,0.85);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+
+  .edit-tab-btn:active {
+    background: rgba(170,255,0,0.18);
+  }
+
+  #sec-diseno, #sec-perfil, #sec-privacidad, #sec-seguridad, #sec-cuenta {
+    scroll-margin-top: 84px;
+  }
+
   .btn-close {
     border-radius: 12px;
     padding: 8px 16px;
@@ -2677,7 +2713,15 @@
     </div>
   </div>
 
-  <div class="edit-section gallery-section">
+  <div class="edit-tabs-bar" id="edit-tabs-bar">
+    <button class="edit-tab-btn" data-target="sec-diseno">Diseño</button>
+    <button class="edit-tab-btn" data-target="sec-perfil">Perfil</button>
+    <button class="edit-tab-btn" data-target="sec-privacidad">Privacidad</button>
+    <button class="edit-tab-btn" data-target="sec-seguridad">Seguridad</button>
+    <button class="edit-tab-btn" data-target="sec-cuenta">Cuenta</button>
+  </div>
+
+  <div class="edit-section gallery-section" id="sec-diseno">
     <div class="edit-section-title">Imagen de tarjeta y fondo</div>
 
     <!-- Galería integrada -->
@@ -2721,7 +2765,7 @@
     </div>
   </div>
 
-  <div class="edit-section">
+  <div class="edit-section" id="sec-perfil">
     <button class="btn-import" id="btn-open-import">IMPORTAR DATOS AUTOMATICAMENTE</button>
     <div class="edit-section-title">Información personal</div>
     <div class="field-group">
@@ -2801,7 +2845,7 @@
     </div>
   </div>
 
-  <div class="edit-section">
+  <div class="edit-section" id="sec-privacidad">
     <div class="edit-section-title">¿Qué incluir en el QR?</div>
     <div class="field-group">
       <div class="field-toggle-wrap">
@@ -2892,7 +2936,7 @@
   </div>
 
   <!-- SECCIÓN 2FA -->
-  <div class="edit-section">
+  <div class="edit-section" id="sec-seguridad">
     <div class="edit-section-title">Doble factor de autenticación (2FA)</div>
     <div class="twofa-info">
       Con 2FA activo, tras introducir tu contraseña necesitarás un segundo factor para entrar. Nivel de seguridad militar.
@@ -2918,7 +2962,7 @@
   <button class="btn-save" id="btn-save">Guardar identidad</button>
 
   <!-- BAJA VOLUNTARIA -->
-  <div class="delete-account-section">
+  <div class="delete-account-section" id="sec-cuenta">
     <div class="delete-account-label">Zona de eliminación de datos</div>
     <div class="delete-account-info">
       Conforme al <strong>Art. 17 RGPD</strong> (derecho al olvido), puedes eliminar todos tus datos de IDENTIFLY en cualquier momento. Esta acción es <strong>irreversible</strong>.
@@ -4356,6 +4400,13 @@ function openEdit() {
 function closeEdit() {
   document.getElementById('screen-edit').classList.remove('open');
 }
+
+// =================== TABS DE NAVEGACIÓN INTERNA (Mi Perfil) ===================
+document.querySelectorAll('.edit-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById(btn.dataset.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
 
 // Foto file input legacy (por si acaso)
 document.getElementById('photo-file-input').addEventListener('change', (e) => {
