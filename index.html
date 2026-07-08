@@ -3078,7 +3078,7 @@
 
   <div class="totp-secret-box" id="totp-secret-display">Generando...</div>
 
-  <input class="totp-verify-input" id="totp-verify-code" type="number" maxlength="6" placeholder="000000" inputmode="numeric">
+  <input class="totp-verify-input" id="totp-verify-code" type="text" maxlength="6" placeholder="000000" inputmode="numeric" pattern="[0-9]*">
 
   <button class="btn-save" id="btn-confirm-totp" style="margin-top:0;">Verificar y activar</button>
   <div style="font-family:Inter,sans-serif;font-size:10px;color:rgba(255,255,255,0.3);text-align:center;margin-top:12px;letter-spacing:1px;">
@@ -3095,7 +3095,7 @@
 
     <!-- Input TOTP -->
     <div id="verify-totp-area" style="width:100%;display:none;">
-      <input class="totp-verify-input" id="verify-totp-input" type="number" placeholder="000000" inputmode="numeric" maxlength="6">
+      <input class="totp-verify-input" id="verify-totp-input" type="text" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]*">
       <button class="btn-save" id="btn-verify-totp">Verificar código</button>
     </div>
 
@@ -3405,7 +3405,7 @@ function handlePinInput(char) {
         if (key === 'SHIFT') {
           btn.className = 'qwerty-key qwerty-action' + (shift ? ' qwerty-shift-on' : '');
           btn.textContent = '⇧'; btn.style.flex = '1.5';
-          btn._kbdAction = () => { playKeyClick(); shift = !shift; render(); };
+          btn._kbdAction = () => { playKeyClick(); shift = !shift; _dragKey = null; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
             btn._kbdAction();
@@ -3429,7 +3429,7 @@ function handlePinInput(char) {
         } else if (key === 'NUMS') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = '123'; btn.style.flex = '1.5';
-          btn._kbdAction = () => { playKeyClick(); mode = 'nums'; render(); };
+          btn._kbdAction = () => { playKeyClick(); mode = 'nums'; _dragKey = null; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
             btn._kbdAction();
@@ -3437,7 +3437,7 @@ function handlePinInput(char) {
         } else if (key === 'BACK') {
           btn.className = 'qwerty-key qwerty-action';
           btn.textContent = 'ABC'; btn.style.flex = '1.5';
-          btn._kbdAction = () => { playKeyClick(); mode = 'letters'; render(); };
+          btn._kbdAction = () => { playKeyClick(); mode = 'letters'; _dragKey = null; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
             btn._kbdAction();
@@ -3458,7 +3458,7 @@ function handlePinInput(char) {
             playKeyClick();
             const c = (shift && mode === 'letters') ? k.toUpperCase() : k;
             handlePinInput(c);
-            if (shift && mode === 'letters') { shift = false; render(); }
+            if (shift && mode === 'letters') { shift = false; _dragKey = null; render(); }
           })(key);
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
@@ -3471,10 +3471,13 @@ function handlePinInput(char) {
     });
   }
   let _dragKey = null;
+  let _touchStartX = 0, _touchStartY = 0;
+  const DRAG_THRESHOLD = 15; // px — ignora micro-drift de un tap estático
   render();
   container.addEventListener('touchstart', function(e) {
     e.preventDefault();
     var t = e.changedTouches[0];
+    _touchStartX = t.clientX; _touchStartY = t.clientY;
     var el = document.elementFromPoint(t.clientX, t.clientY);
     var btn = el && el.closest('button.qwerty-key');
     if (btn && btn._kbdAction) { _dragKey = btn; btn._kbdAction(); btn._touchHandledAt = Date.now(); btn.classList.add('kbd-pressed'); }
@@ -3482,6 +3485,8 @@ function handlePinInput(char) {
   container.addEventListener('touchmove', function(e) {
     e.preventDefault();
     var t = e.changedTouches[0];
+    var dx = t.clientX - _touchStartX, dy = t.clientY - _touchStartY;
+    if (Math.sqrt(dx*dx + dy*dy) < DRAG_THRESHOLD) return;
     var el = document.elementFromPoint(t.clientX, t.clientY);
     var btn = el && el.closest('button.qwerty-key');
     if (!btn) { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } return; }
