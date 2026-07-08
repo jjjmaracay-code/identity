@@ -37,6 +37,9 @@ async function verifyStripeSignature(payload, signatureHeader, secret) {
   const signature = parts.v1;
   if (!timestamp || !signature) return false;
 
+  const age = Date.now() / 1000 - parseInt(timestamp, 10);
+  if (age > 300) return false;
+
   const signedPayload = `${timestamp}.${payload}`;
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
@@ -46,5 +49,16 @@ async function verifyStripeSignature(payload, signatureHeader, secret) {
   const expectedSignature = Array.from(new Uint8Array(sig))
     .map(b => b.toString(16).padStart(2, '0')).join('');
 
-  return expectedSignature === signature;
+  return timingSafeEqual(expectedSignature, signature);
+}
+
+// crypto.subtle no expone timingSafeEqual en el runtime de Cloudflare Workers —
+// comparación en tiempo constante manual (longitud igual + XOR acumulado byte a byte)
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
 }
