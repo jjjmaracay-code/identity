@@ -3317,6 +3317,7 @@ btnListenTerms.addEventListener('click', () => {
 // =================== ESTADO ===================
 const STORAGE_KEY = 'identity_data';
 const PIN_KEY = 'identity_pin';
+const PIN_SALT_KEY = 'identity_pin_salt';
 
 let pinBuffer = '';
 let isFirstTime = !localStorage.getItem(PIN_KEY);
@@ -3646,7 +3647,8 @@ pinEnterBtn.addEventListener('click', async () => {
   if (pinEnterBtn.disabled) return;
   const stored = localStorage.getItem(PIN_KEY);
   if (isFirstTime) {
-    localStorage.setItem(PIN_KEY, pinBuffer);
+    const hashed = await hashPin(pinBuffer);
+    localStorage.setItem(PIN_KEY, hashed);
     isFirstTime = false;
     pinEnterBtn.classList.remove('ready');
     pinEnterBtn.disabled = true;
@@ -3655,7 +3657,12 @@ pinEnterBtn.addEventListener('click', async () => {
     await migrateTOTPIfNeeded(sessionCryptoKey);
     pinSuccess();
   } else {
-    if (pinBuffer === stored) {
+    const result = await verifyPin(pinBuffer, stored);
+    if (result.valid) {
+      if (result.needsMigration) {
+        const hashed = await hashPin(pinBuffer);
+        localStorage.setItem(PIN_KEY, hashed);
+      }
       sessionCryptoKey = await deriveKeyFromPin(pinBuffer);
       await migrateTOTPIfNeeded(sessionCryptoKey);
       pinSuccess();
@@ -4758,6 +4765,51 @@ async function migrateTOTPIfNeeded(key) {
     const encrypted = await encryptTOTPSecret(stored, key);
     localStorage.setItem(TOTP_KEY, encrypted);
   }
+}
+
+function getOrCreatePinSalt() {
+  let saltB64 = localStorage.getItem(PIN_SALT_KEY);
+  if (!saltB64) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    saltB64 = btoa(String.fromCharCode(...salt));
+    localStorage.setItem(PIN_SALT_KEY, saltB64);
+  }
+  return Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+}
+
+async function hashPin(pin) {
+  const salt = getOrCreatePinSalt();
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    baseKey,
+    256
+  );
+  const hashB64 = btoa(String.fromCharCode(...new Uint8Array(bits)));
+  return JSON.stringify({ v: 1, hash: hashB64 });
+}
+
+function timingSafeEqualStr(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function verifyPin(inputPin, storedValue) {
+  // Devuelve { valid: bool, needsMigration: bool }
+  try {
+    const obj = JSON.parse(storedValue);
+    if (obj.v === 1 && obj.hash) {
+      const candidate = await hashPin(inputPin);
+      const candidateObj = JSON.parse(candidate);
+      return { valid: timingSafeEqualStr(candidateObj.hash, obj.hash), needsMigration: false };
+    }
+  } catch(e) {
+    // No es JSON válido => formato viejo en texto plano
+  }
+  return { valid: inputPin === storedValue, needsMigration: true };
 }
 
 // Toggle TOTP
