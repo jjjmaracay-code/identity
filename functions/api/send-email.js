@@ -11,6 +11,32 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Rate limiting por email — máx 3 envíos/10min y 10 envíos/24h, vía PLANS_KV
+    const rlKey = 'ratelimit:' + to_email.toLowerCase();
+    const now = Math.floor(Date.now() / 1000);
+    const SHORT_WINDOW = 600, SHORT_LIMIT = 3;
+    const LONG_WINDOW = 86400, LONG_LIMIT = 10;
+
+    const rlRaw = await env.PLANS_KV.get(rlKey);
+    const rl = rlRaw ? JSON.parse(rlRaw) : { count: 0, windowStart: now, dayCount: 0, dayStart: now };
+
+    if (now - rl.windowStart >= SHORT_WINDOW) { rl.count = 0; rl.windowStart = now; }
+    if (now - rl.dayStart >= LONG_WINDOW) { rl.dayCount = 0; rl.dayStart = now; }
+
+    if (rl.count >= SHORT_LIMIT) {
+      return new Response(JSON.stringify({ error: 'rate_limited', retryAfter: SHORT_WINDOW - (now - rl.windowStart) }), {
+        status: 429, headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    if (rl.dayCount >= LONG_LIMIT) {
+      return new Response(JSON.stringify({ error: 'rate_limited', retryAfter: LONG_WINDOW - (now - rl.dayStart) }), {
+        status: 429, headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    rl.count++; rl.dayCount++;
+    await env.PLANS_KV.put(rlKey, JSON.stringify(rl), { expirationTtl: LONG_WINDOW });
+
     // Defensa en profundidad: bloquear re-registro de emails ya registrados.
     // Solo aplica a 'verification' (flujo de registro nuevo).
     // 'backup' y templates de recovery se usan cuando el email YA está registrado — no bloquear.
