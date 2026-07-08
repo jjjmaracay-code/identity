@@ -1,9 +1,20 @@
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
     const body = await request.json();
     const { template, to_email, to_name, code, app_name, subject, alert, intro, message_title, message } = body;
+    const safeName = escapeHtml(to_name);
 
     if (!to_email || !code) {
       return new Response(JSON.stringify({ error: 'Faltan to_email o code' }), {
@@ -59,7 +70,7 @@ export async function onRequestPost(context) {
     <div style="font-size:22px;font-weight:900;letter-spacing:10px;color:#AAFF00;text-transform:uppercase;text-shadow:0 0 10px #AAFF00,0 0 25px rgba(170,255,0,0.6);">IDENTIFLY</div>
     <div style="font-size:11px;letter-spacing:3px;color:rgba(255,255,255,0.3);margin-top:4px;">IDENTIDAD DIGITAL SEGURA</div>
   </div>
-  <p style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:8px;">Hola <strong style="color:#fff;">${to_name}</strong>,</p>
+  <p style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:8px;">Hola <strong style="color:#fff;">${safeName}</strong>,</p>
   <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:24px;">Tu código de verificación IDENTIFLY es:</p>
   <div style="background:#111;border:2px solid #AAFF00;border-radius:12px;padding:20px;text-align:center;margin-bottom:28px;">
     <span style="font-size:36px;font-weight:900;letter-spacing:12px;color:#AAFF00;font-family:monospace;">${code}</span>
@@ -88,7 +99,7 @@ export async function onRequestPost(context) {
         <div style="background:#f0a500;color:#000;font-size:12px;font-weight:900;letter-spacing:2px;padding:8px 16px;border-radius:6px;display:inline-block;">${alert || ''}</div>
       </td></tr>
       <tr><td style="padding:40px 30px;text-align:center;">
-        <p style="color:#ccc;font-size:15px;margin:0 0 8px;">Hola, <strong style="color:#fff;">${to_name}</strong></p>
+        <p style="color:#ccc;font-size:15px;margin:0 0 8px;">Hola, <strong style="color:#fff;">${safeName}</strong></p>
         <p style="color:#999;font-size:13px;margin:0 0 30px;">${intro || ''}</p>
         <div style="background:#1a0f00;border:2px solid #f0a500;border-radius:12px;padding:24px;display:inline-block;margin:0 auto;">
           <div style="font-size:42px;font-weight:900;color:#f0a500;letter-spacing:12px;">${code}</div>
