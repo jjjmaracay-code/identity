@@ -3169,7 +3169,10 @@ if (!localStorage.getItem('identity_registration')) {
     if (history.length > 1) history.back();
     else window.location.href = 'register.html';
   });
-  throw new Error('Sin identidad local — mostrando pantalla informativa'); // detener el resto del script
+  // No se lanza excepción aquí: el resto del script debe seguir corriendo con normalidad
+  // (incluye el setTimeout que retira #boot-gate) — #screen-no-identity ya cubre visualmente
+  // la pantalla por su z-index, y el resto del flujo ya está preparado para un estado vacío
+  // (mismo comportamiento que un usuario de primera vez).
 }
 
 // Cuenta bloqueada por intentos fallidos: continuar en la pantalla de recuperación
