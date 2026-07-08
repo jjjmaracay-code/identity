@@ -3865,6 +3865,10 @@ document.getElementById('media-file-img').addEventListener('change', (e) => {
     renderCard();
     showToast(isGif ? 'GIF cargado ✓' : 'Imagen cargada ✓');
   };
+  reader.onerror = () => {
+    showToast('No se pudo cargar la imagen — intenta de nuevo');
+    e.target.value = '';
+  };
   reader.readAsDataURL(file);
 });
 
@@ -4416,6 +4420,10 @@ document.getElementById('photo-file-input').addEventListener('change', (e) => {
   reader.onload = (ev) => {
     profileData.media = { src: ev.target.result, type: 'image', galleryId: null };
     renderCard();
+  };
+  reader.onerror = () => {
+    showToast('No se pudo cargar la imagen — intenta de nuevo');
+    e.target.value = '';
   };
   reader.readAsDataURL(file);
 });
