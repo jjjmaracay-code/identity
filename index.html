@@ -2614,6 +2614,13 @@
       <button class="btn-action primary" id="btn-share">Compartir QR</button>
     </div>
 
+    <div id="share-channels" style="display:none;margin-top:10px;grid-template-columns:repeat(4,1fr);gap:8px;">
+      <button class="btn-channel" id="btn-share-whatsapp" style="background:#25D366;color:#000;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">WhatsApp</button>
+      <button class="btn-channel" id="btn-share-telegram" style="background:#229ED9;color:#fff;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">Telegram</button>
+      <button class="btn-channel" id="btn-share-email" style="background:#444;color:#fff;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">Correo</button>
+      <button class="btn-channel" id="btn-share-sms" style="background:#666;color:#fff;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">SMS</button>
+    </div>
+
     <!-- ===== UBICACIÓN DE EMERGENCIA ===== -->
     <div style="margin-top:16px;padding:0 2px;">
       <div style="font-size:10px;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;
@@ -4343,22 +4350,28 @@ document.getElementById('btn-qr-apply').addEventListener('click', () => {
 
 
 // =================== COMPARTIR QR ===================
+async function generateShareLink() {
+  const res = await fetch('/api/share-qr', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vcard: buildVCard(), name: profileData.name || '' })
+  });
+  const data = await res.json();
+  if (!data.token) throw new Error('No se pudo generar el enlace');
+  return `${window.location.origin}/share.html?token=${data.token}`;
+}
+
 document.getElementById('btn-share').addEventListener('click', async () => {
   if (!isFlipped) {
     isFlipped = true;
     document.getElementById('card-inner').classList.add('flipped');
   }
+  const panel = document.getElementById('share-channels');
+  if (panel) panel.style.display = panel.style.display === 'none' ? 'grid' : 'none';
+
   setTimeout(async () => {
     try {
-      const res = await fetch('/api/share-qr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vcard: buildVCard(), name: profileData.name || '' })
-      });
-      const data = await res.json();
-      if (!data.token) { showToast('No se pudo generar el enlace'); return; }
-
-      const shareUrl = `${window.location.origin}/share.html?token=${data.token}`;
+      const shareUrl = await generateShareLink();
       const shareQR = new QRCodeStyling(buildQROptions(qrDesign, 280, shareUrl));
       const tempDiv = document.createElement('div');
       shareQR.append(tempDiv);
@@ -4376,6 +4389,39 @@ document.getElementById('btn-share').addEventListener('click', async () => {
       }
     } catch(e) { showToast('Compartir no disponible'); }
   }, 400);
+});
+
+document.getElementById('btn-share-whatsapp')?.addEventListener('click', async () => {
+  try {
+    const shareUrl = await generateShareLink();
+    const text = encodeURIComponent(`Mi contacto IDENTIFLY: ${shareUrl}`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  } catch(e) { showToast('No se pudo generar el enlace'); }
+});
+
+document.getElementById('btn-share-telegram')?.addEventListener('click', async () => {
+  try {
+    const shareUrl = await generateShareLink();
+    const text = encodeURIComponent('Mi contacto IDENTIFLY');
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${text}`, '_blank');
+  } catch(e) { showToast('No se pudo generar el enlace'); }
+});
+
+document.getElementById('btn-share-email')?.addEventListener('click', async () => {
+  try {
+    const shareUrl = await generateShareLink();
+    const subject = encodeURIComponent('Mi contacto IDENTIFLY');
+    const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  } catch(e) { showToast('No se pudo generar el enlace'); }
+});
+
+document.getElementById('btn-share-sms')?.addEventListener('click', async () => {
+  try {
+    const shareUrl = await generateShareLink();
+    const body = encodeURIComponent(`Mi contacto IDENTIFLY: ${shareUrl}`);
+    window.location.href = `sms:?body=${body}`;
+  } catch(e) { showToast('No se pudo generar el enlace'); }
 });
 
 
