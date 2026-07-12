@@ -2600,7 +2600,7 @@
       <!-- REVERSO -->
       <div class="card-face card-back">
         <div class="card-back-label">Escanea para contactar</div>
-        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:280px;height:280px;display:flex;align-items:center;justify-content:center;"></div>
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:320px;height:320px;display:flex;align-items:center;justify-content:center;"></div>
         <div class="card-back-name" id="qr-name">—</div>
         <div class="card-back-sub">IDENTIFLY · Tarjeta Digital</div>
       </div>
@@ -4153,7 +4153,7 @@ function generateQR() {
   if (!container) return;
   container.innerHTML = '';
   try {
-    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 280, buildVCard()));
+    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 320, buildVCard()));
     qrStylingInstance.append(container);
     setTimeout(() => {
       const el = container.firstChild;
