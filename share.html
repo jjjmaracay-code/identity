@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDENTIFLY · Contacto compartido</title>
+<style>
+  body { background:#080808; color:#fff; font-family:Arial,sans-serif; min-height:100vh; margin:0;
+         display:flex; align-items:center; justify-content:center; padding:24px; }
+  .card { max-width:420px; width:100%; background:#111; border:1px solid #AAFF00; border-radius:16px; padding:32px 24px; text-align:center; }
+  .logo { font-size:20px; font-weight:900; letter-spacing:8px; color:#AAFF00; text-shadow:0 0 10px #AAFF00; margin-bottom:24px; }
+  .name { font-size:22px; font-weight:900; margin-bottom:4px; }
+  .job  { font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:20px; }
+  .row  { text-align:left; font-size:13px; color:rgba(255,255,255,0.75); margin-bottom:10px; }
+  .row strong { color:#AAFF00; display:block; font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; }
+  .watermark { font-size:10px; color:rgba(255,255,255,0.25); margin-top:24px; line-height:1.6; }
+  .btn { display:inline-block; margin-top:20px; background:#AAFF00; color:#000; font-weight:900; letter-spacing:1px;
+         padding:12px 24px; border-radius:8px; text-decoration:none; font-size:13px; }
+  .used-msg { font-size:15px; color:rgba(255,255,255,0.7); line-height:1.6; margin-top:8px; }
+  .error-icon { font-size:40px; margin-bottom:12px; }
+</style>
+</head>
+<body>
+  <div class="card" id="card">Cargando...</div>
+
+  <script>
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    function parseVCard(vc) {
+      const lines = vc.split('\n');
+      const out = {};
+      lines.forEach(l => {
+        if (l.startsWith('FN:')) out.name = l.slice(3);
+        else if (l.startsWith('TITLE:')) out.job = l.slice(6);
+        else if (l.startsWith('TEL;type=CELL:')) out.mobile = l.slice(14);
+        else if (l.startsWith('TEL:')) out.phone = l.slice(4);
+        else if (l.startsWith('EMAIL:')) out.email = l.slice(6);
+        else if (l.startsWith('ORG:')) out.company = l.slice(4);
+      });
+      return out;
+    }
+
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      const card = document.getElementById('card');
+
+      if (!token) {
+        card.innerHTML = '<div class="error-icon">⚠</div><div class="used-msg">Enlace no válido.</div>';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/share-qr?token=' + encodeURIComponent(token));
+        const data = await res.json();
+
+        if (!data.valid) {
+          const name = data.name ? esc(data.name) : 'esta persona';
+          card.innerHTML = `
+            <div class="logo">IDENTIFLY</div>
+            <div class="error-icon">🔒</div>
+            <div class="used-msg">Este enlace ya fue utilizado.<br>Si necesitas estos datos, contacta directamente con <strong>${name}</strong>.</div>`;
+          return;
+        }
+
+        const v = parseVCard(data.vcard);
+        const created = data.createdAt ? new Date(data.createdAt).toLocaleString('es-ES') : '';
+        const blob = new Blob([data.vcard], { type: 'text/vcard' });
+        const url = URL.createObjectURL(blob);
+
+        card.innerHTML = `
+          <div class="logo">IDENTIFLY</div>
+          <div class="name">${esc(v.name)}</div>
+          ${v.job ? `<div class="job">${esc(v.job)}</div>` : ''}
+          ${v.company ? `<div class="row"><strong>Empresa</strong>${esc(v.company)}</div>` : ''}
+          ${v.mobile ? `<div class="row"><strong>Teléfono</strong>${esc(v.mobile)}</div>` : ''}
+          ${v.phone ? `<div class="row"><strong>Teléfono fijo</strong>${esc(v.phone)}</div>` : ''}
+          ${v.email ? `<div class="row"><strong>Correo</strong>${esc(v.email)}</div>` : ''}
+          <a class="btn" href="${url}" download="contacto.vcf">Guardar contacto</a>
+          <div class="watermark">Compartido por ${esc(data.name)} · ${created}<br>Enlace de un solo uso · IDENTIFLY</div>`;
+      } catch (e) {
+        card.innerHTML = '<div class="error-icon">⚠</div><div class="used-msg">Error al cargar el contacto.</div>';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

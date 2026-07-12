@@ -4350,14 +4350,29 @@ document.getElementById('btn-share').addEventListener('click', async () => {
   }
   setTimeout(async () => {
     try {
-      if (qrStylingInstance) {
-        const blob = await qrStylingInstance.getRawData('png');
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob],'identity_qr.png',{type:'image/png'})] })) {
-          await navigator.share({ title: 'Mi IDENTITY QR', text: profileData.name || 'Contacto', files: [new File([blob],'identity_qr.png',{type:'image/png'})] });
-        } else {
-          qrStylingInstance.download({ name: 'identity_qr', extension: 'png' });
-          showToast('QR descargado ✓');
-        }
+      const res = await fetch('/api/share-qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vcard: buildVCard(), name: profileData.name || '' })
+      });
+      const data = await res.json();
+      if (!data.token) { showToast('No se pudo generar el enlace'); return; }
+
+      const shareUrl = `${window.location.origin}/share.html?token=${data.token}`;
+      const shareQR = new QRCodeStyling(buildQROptions(qrDesign, 280, shareUrl));
+      const tempDiv = document.createElement('div');
+      shareQR.append(tempDiv);
+      await new Promise(r => setTimeout(r, 300));
+      const blob = await shareQR.getRawData('png');
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] })) {
+        await navigator.share({ title: 'Mi contacto IDENTIFLY', text: profileData.name || 'Contacto', files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'identifly_contacto.png';
+        a.click();
+        showToast('QR de un solo uso descargado ✓');
       }
     } catch(e) { showToast('Compartir no disponible'); }
   }, 400);
