@@ -2600,7 +2600,7 @@
       <!-- REVERSO -->
       <div class="card-face card-back">
         <div class="card-back-label">Escanea para contactar</div>
-        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:320px;height:320px;display:flex;align-items:center;justify-content:center;"></div>
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:400px;height:400px;display:flex;align-items:center;justify-content:center;"></div>
         <div class="card-back-name" id="qr-name">—</div>
         <div class="card-back-sub">IDENTIFLY · Tarjeta Digital</div>
       </div>
@@ -2615,10 +2615,10 @@
     </div>
 
     <div id="share-channels" style="display:none;margin-top:10px;grid-template-columns:repeat(4,1fr);gap:8px;">
-      <button class="btn-channel" id="btn-share-whatsapp" style="background:#25D366;color:#000;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">WhatsApp</button>
-      <button class="btn-channel" id="btn-share-telegram" style="background:#229ED9;color:#fff;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">Telegram</button>
-      <button class="btn-channel" id="btn-share-email" style="background:#444;color:#fff;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">Correo</button>
-      <button class="btn-channel" id="btn-share-sms" style="background:#666;color:#fff;border:none;border-radius:10px;padding:10px 4px;font-size:11px;font-weight:900;cursor:pointer;">SMS</button>
+      <button class="btn-channel" id="btn-share-whatsapp" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">WhatsApp</button>
+      <button class="btn-channel" id="btn-share-telegram" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">Telegram</button>
+      <button class="btn-channel" id="btn-share-email" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">Correo</button>
+      <button class="btn-channel" id="btn-share-sms" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">SMS</button>
     </div>
 
     <!-- ===== UBICACIÓN DE EMERGENCIA ===== -->
@@ -4153,7 +4153,7 @@ function generateQR() {
   if (!container) return;
   container.innerHTML = '';
   try {
-    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 320, buildVCard()));
+    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 400, buildVCard()));
     qrStylingInstance.append(container);
     setTimeout(() => {
       const el = container.firstChild;
@@ -4410,9 +4410,28 @@ document.getElementById('btn-share-telegram')?.addEventListener('click', async (
 document.getElementById('btn-share-email')?.addEventListener('click', async () => {
   try {
     const shareUrl = await generateShareLink();
-    const subject = encodeURIComponent('Mi contacto IDENTIFLY');
-    const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    const shareQR = new QRCodeStyling(buildQROptions(qrDesign, 280, shareUrl));
+    const tempDiv = document.createElement('div');
+    shareQR.append(tempDiv);
+    await new Promise(r => setTimeout(r, 300));
+    const blob = await shareQR.getRawData('png');
+    const file = new File([blob], 'identifly_contacto.png', { type: 'image/png' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: 'Mi contacto IDENTIFLY',
+        text: `Aquí tienes mi contacto (enlace de un solo uso): ${shareUrl}`,
+        files: [file]
+      });
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'identifly_contacto.png';
+      a.click();
+      const subject = encodeURIComponent('Mi contacto IDENTIFLY');
+      const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}\n\nAdjunta también la imagen del QR que se acaba de descargar.`);
+      setTimeout(() => { window.location.href = `mailto:?subject=${subject}&body=${body}`; }, 500);
+    }
   } catch(e) { showToast('No se pudo generar el enlace'); }
 });
 
