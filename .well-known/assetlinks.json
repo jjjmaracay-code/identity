@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.identifly.twa",
+        "sha256_cert_fingerprints": ["62:50:98:F9:A9:DD:68:BD:B5:5A:E9:B7:60:AB:A0:1C:12:BE:F3:53:89:EC:A3:4C:39:74:F4:A0:22:F4:0D:3C"]
+      }
+    }]
