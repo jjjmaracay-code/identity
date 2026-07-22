@@ -4666,6 +4666,39 @@ document.getElementById('btn-save').addEventListener('click', () => {
   showToast('Identidad guardada ✓');
 });
 
+// =================== AUTOGUARDADO RESILIENTE ===================
+
+// Autoguardado en tiempo real (debounced) mientras se edita el perfil.
+// Delegación: un solo listener cubre los 13 campos y los 12 toggles.
+let saveProfileDebounce = null;
+document.getElementById('screen-edit').addEventListener('input', () => {
+  clearTimeout(saveProfileDebounce);
+  saveProfileDebounce = setTimeout(saveProfile, 600);
+});
+
+// Red de seguridad: guardado forzado inmediato al perder visibilidad
+// (minimizar, cambiar de app, proceso matado por el SO, cierre del navegador).
+// Sin 'beforeunload' a propósito — no es fiable en móvil/iOS Safari.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (document.getElementById('screen-edit').classList.contains('open')) {
+      saveProfile();
+    }
+    if (document.getElementById('screen-qr-designer').classList.contains('open')) {
+      saveQRDesign();
+    }
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  if (document.getElementById('screen-edit').classList.contains('open')) {
+    saveProfile();
+  }
+  if (document.getElementById('screen-qr-designer').classList.contains('open')) {
+    saveQRDesign();
+  }
+});
+
 // =================== TOAST ===================
 function showToast(msg) {
   const t = document.getElementById('toast');
