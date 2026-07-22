@@ -308,10 +308,10 @@
   /* ── Teclado QWERTY ── */
   .qwerty-row { display: flex; gap: 6px; margin-bottom: 6px; }
   .qwerty-row:last-child { margin-bottom: 0; }
-  .qwerty-key { flex: 1; height: 58px; border-radius: 16px; border: 1px solid rgba(170,255,0,0.12); background: rgba(170,255,0,0.04); font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 500; color: var(--text); cursor: pointer; min-width: 0; display: flex; align-items: center; justify-content: center; transition: background 0.08s, transform 0.08s; user-select: none; -webkit-tap-highlight-color: transparent; }
-  .qwerty-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.92); }
-  .kbd-pressed { background: var(--green) !important; color: #000 !important; box-shadow: 0 0 16px rgba(170,255,0,0.65) !important; transform: scale(1.08) !important; transition: transform 90ms ease, box-shadow 90ms ease !important; }
-  .qwerty-action { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.22); font-size: 18px; color: rgba(170,255,0,0.7); aspect-ratio: unset; height: 58px; border-radius: 24px; }
+  .qwerty-key { flex: 1; height: 58px; border-radius: 16px; border: 1px solid rgba(170,255,0,0.30); background: rgba(170,255,0,0.10); font-family: 'Inter', sans-serif; font-size: 17px; font-weight: 500; color: var(--text); cursor: pointer; min-width: 0; display: flex; align-items: center; justify-content: center; transition: background 0.08s, transform 0.08s; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .qwerty-key:active { background: var(--green) !important; color: #000 !important; transform: scale(0.90); box-shadow: 0 0 20px var(--green), 0 0 40px rgba(170,255,0,0.6); }
+  .kbd-pressed { background: var(--green) !important; color: #000 !important; box-shadow: 0 0 20px var(--green), 0 0 40px rgba(170,255,0,0.7) !important; transform: scale(1.12) !important; transition: transform 90ms ease, box-shadow 90ms ease !important; }
+  .qwerty-action { background: rgba(170,255,0,0.14); border-color: rgba(170,255,0,0.35); font-size: 18px; color: rgba(170,255,0,0.7); aspect-ratio: unset; height: 58px; border-radius: 24px; }
   .qwerty-shift-on { background: rgba(170,255,0,0.22) !important; border-color: rgba(170,255,0,0.55) !important; color: var(--green) !important; }
   .qwerty-space { font-size: 0; border-color: rgba(170,255,0,0.1); aspect-ratio: unset; height: 58px; border-radius: 24px; }
   .pwd-dots-wrap { position: relative; }
