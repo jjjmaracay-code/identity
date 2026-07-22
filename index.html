@@ -698,6 +698,17 @@
   }
   .btn-qr-apply:active { background:#88cc00; transform:scale(0.98); }
 
+  /* Versión compacta para el header — mismo verde, escala reducida */
+  .btn-qr-apply-header {
+    padding:8px 16px; border-radius:999px; border:none;
+    background:#AAFF00; color:#000;
+    font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
+    letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+    box-shadow:0 0 12px rgba(170,255,0,0.3);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-qr-apply-header:active { background:#88cc00; transform:scale(0.95); }
+
   .card-hint {
     font-size: 12px;
     font-weight: 300;
@@ -1614,6 +1625,8 @@
 
   .btn-qr-apply:hover { background: #ccff44; box-shadow: 0 0 24px rgba(170,255,0,0.5); }
   .btn-qr-apply:active { background: #88cc00 !important; }
+  .btn-qr-apply-header:hover { background: #ccff44; box-shadow: 0 0 16px rgba(170,255,0,0.5); }
+  .btn-qr-apply-header:active { background: #88cc00 !important; }
 
   /* =================== BAJA VOLUNTARIA =================== */
   .delete-account-section {
@@ -3114,7 +3127,10 @@
 <div id="screen-qr-designer">
   <div class="qr-designer-header">
     <div class="qr-designer-title">Diseño del QR</div>
-    <button class="btn-close" id="btn-close-qr-designer">✕ Cerrar</button>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn-qr-apply-header" id="btn-qr-apply-header">✓ Aplicar</button>
+      <button class="btn-close" id="btn-close-qr-designer">✕ Cerrar</button>
+    </div>
   </div>
 
   <!-- Preview en tiempo real -->
@@ -4338,15 +4354,18 @@ document.getElementById('btn-close-qr-designer').addEventListener('click', () =>
   document.getElementById('qr-designer-bg').innerHTML = ''; // detener el video de fondo
 });
 
-// Aplicar diseño
-document.getElementById('btn-qr-apply').addEventListener('click', () => {
+// Aplicar diseño — lógica compartida por el botón del final del scroll y el del header
+function applyQRDesign() {
   profileData.qrDesign = { ...qrDesign };
   profileData.qrTemplateId = selectedTemplateId;
   generateQR();
   renderQRMini();
   document.getElementById('screen-qr-designer').classList.remove('open');
   showToast('Diseño aplicado ✓');
-});
+}
+
+document.getElementById('btn-qr-apply').addEventListener('click', applyQRDesign);
+document.getElementById('btn-qr-apply-header').addEventListener('click', applyQRDesign);
 
 
 
