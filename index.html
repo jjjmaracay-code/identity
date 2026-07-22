@@ -4553,6 +4553,7 @@ function openEdit() {
 }
 
 function closeEdit() {
+  saveProfile();
   document.getElementById('screen-edit').classList.remove('open');
 }
 
@@ -4584,7 +4585,8 @@ document.getElementById('btn-save-tabbar').addEventListener('click', () => {
   document.getElementById('btn-save').click();
 });
 
-document.getElementById('btn-save').addEventListener('click', () => {
+// Guardado real del perfil — usado por btn-save y por closeEdit (autoguardado al cerrar)
+function saveProfile() {
   // Guardar media — los objectUrl de video no se persisten (se pierden al cerrar)
   const mediaToSave = profileData.media && !profileData.media.isObjectUrl
     ? profileData.media
@@ -4638,6 +4640,9 @@ document.getElementById('btn-save').addEventListener('click', () => {
 
   renderCard();
   generateQR();
+}
+
+document.getElementById('btn-save').addEventListener('click', () => {
   closeEdit();
   showToast('Identidad guardada ✓');
 });
