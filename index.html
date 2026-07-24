@@ -759,13 +759,17 @@
   .btn-action.primary:active { background: #88cc00; }
 
   /* =================== PANTALLA EDITAR =================== */
+  /* #screen-edit es ahora el contenedor fijo (posicionamiento y
+     animación de entrada/salida); #screen-edit-scroll es el que
+     realmente hace scroll — mismo patrón que .consent-scroll-wrap /
+     .consent-scroll en #screen-consent, necesario para poder anclar
+     los indicadores de scroll como hermanos del contenido scrolleable
+     en vez de hijos suyos (si no, se desplazarían con el contenido). */
   #screen-edit {
     position: fixed;
     inset: 0;
     background: var(--bg);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 24px 20px 48px;
+    overflow: hidden;
     z-index: 200;
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -773,6 +777,13 @@
 
   #screen-edit.open {
     transform: translateY(0);
+  }
+
+  #screen-edit-scroll {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 20px 48px;
   }
 
   .edit-header {
@@ -1769,6 +1780,57 @@
     color: rgba(170,255,0,0.9);
     text-shadow: 0 0 8px #aaff00, 0 0 20px rgba(170,255,0,0.5);
     margin-bottom: 6px;
+  }
+
+  /* Variante "arriba" del indicador de scroll — mismo estilo visual
+     (chevrons, texto, brillo) que .scroll-indicator, con degradado,
+     posición y animación invertidos. .scroll-text se reutiliza tal
+     cual en ambas variantes. */
+  .scroll-indicator-top {
+    position: absolute;
+    top: 0;
+    left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, rgba(8,8,8,0.95), transparent);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 8px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 10;
+  }
+
+  .scroll-indicator-top.hidden { opacity: 0; }
+
+  .scroll-arrow-up {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    animation: bounceUp 1.6s ease-in-out infinite;
+  }
+
+  .scroll-arrow-up span {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #AAFF00;
+    border-bottom: 2px solid #AAFF00;
+    transform: rotate(225deg);
+    opacity: 0.8;
+  }
+
+  /* Orden invertido respecto a .scroll-arrow: aquí el chevron más
+     brillante queda pegado al texto/contenido (abajo del grupo) y la
+     estela se desvanece hacia arriba, hacia el borde de la pantalla. */
+  .scroll-arrow-up span:nth-child(1) { opacity: 0.25; margin-bottom: -4px; }
+  .scroll-arrow-up span:nth-child(2) { opacity: 0.5;  margin-bottom: -4px; }
+  .scroll-arrow-up span:nth-child(3) { opacity: 0.8; }
+
+  @keyframes bounceUp {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
   }
 
   /* Wrapper relativo para el consent */
@@ -2786,6 +2848,29 @@
 
 <!-- =================== PANTALLA EDITAR =================== -->
 <div id="screen-edit">
+  <!-- Indicadores de scroll — hermanos de #screen-edit-scroll (el que
+       realmente scrollea), no hijos suyos, para que queden anclados
+       visualmente sin moverse con el contenido. Mismo patrón que
+       #scroll-indicator en #screen-consent. Ocultos por defecto; su
+       visibilidad la decide el listener de scroll (ver JS). -->
+  <div class="scroll-indicator-top hidden" id="edit-scroll-indicator-top">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div class="scroll-arrow-up">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="scroll-text">desliza para ver arriba</div>
+    </div>
+  </div>
+  <div class="scroll-indicator hidden" id="edit-scroll-indicator-bottom">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <div class="scroll-text">desliza para ver más</div>
+      <div class="scroll-arrow">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-edit-scroll">
   <div class="edit-header">
     <div class="edit-title">Mi Perfil</div>
     <div class="edit-header-right">
@@ -3070,6 +3155,7 @@
       Eliminar todos mis datos — Baja voluntaria
     </button>
   </div>
+  </div><!-- fin screen-edit-scroll -->
 </div>
 
 <!-- =================== CONFIRMACIÓN BAJA =================== -->
@@ -4611,6 +4697,31 @@ function actualizarPlanBadge() {
   }
 }
 
+// Indicadores de scroll de #screen-edit (arriba/abajo) — mismo umbral de
+// 40px que ya usa el indicador de #screen-consent. Se recalculan en cada
+// evento de scroll de #screen-edit-scroll y también al abrir la pantalla
+// (ver openEdit()), para que el estado inicial sea correcto de entrada:
+// si el contenido cabe entero sin necesidad de scroll, scrollHeight y
+// clientHeight son iguales y ningún indicador se muestra.
+function actualizarIndicadoresScrollEdit() {
+  const scroller = document.getElementById('screen-edit-scroll');
+  const top      = document.getElementById('edit-scroll-indicator-top');
+  const bottom   = document.getElementById('edit-scroll-indicator-bottom');
+  if (!scroller || !top || !bottom) return;
+
+  const UMBRAL = 40;
+  const nearBottom  = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < UMBRAL;
+  const pasadoElTop = scroller.scrollTop > UMBRAL;
+
+  bottom.classList.toggle('hidden', nearBottom);
+  top.classList.toggle('hidden', !pasadoElTop);
+}
+
+const screenEditScrollEl = document.getElementById('screen-edit-scroll');
+if (screenEditScrollEl) {
+  screenEditScrollEl.addEventListener('scroll', actualizarIndicadoresScrollEdit);
+}
+
 function openEdit() {
   const d = profileData;
   const t = d.toggles || {};
@@ -4701,6 +4812,7 @@ function openEdit() {
 
   actualizarPlanBadge();
   document.getElementById('screen-edit').classList.add('open');
+  actualizarIndicadoresScrollEdit();
 }
 
 function closeEdit() {
