@@ -3857,37 +3857,6 @@ async function pdfFirstPageToCanvas(file) {
   return canvas;
 }
 
-// Aplicar regex sobre el texto OCR y rellenar campos; devuelve los nombres rellenados
-function applyExtractedData(text) {
-  const data = extractData(text);
-  const filled = [];
-  const fill = (id, value, label) => {
-    const input = document.getElementById(id);
-    if (!value || !input || input.disabled) return;
-    input.value = value.trim();
-    filled.push(label);
-  };
-
-  if (data.nombre)        fill('f-name',       data.nombre.value,        'nombre');
-  if (data.email_principal) fill('f-email',    data.email_principal.value, 'email');
-  if (data.email_secundario) fill('f-email2',  data.email_secundario.value,'email secundario');
-  if (data.email_trabajo)  fill('f-email-work',data.email_trabajo.value,  'email trabajo');
-  if (data.telefono)      fill('f-phone',      data.telefono.value,       'teléfono');
-  if (data.movil)         fill('f-mobile',     data.movil.value,          'móvil');
-  if (data.empresa)       fill('f-company',    data.empresa.value,        'empresa');
-  if (data.cargo)         fill('f-role',       data.cargo.value,          'cargo');
-  if (data.ciudad)        fill('f-address',    data.ciudad.value,         'ciudad');
-  if (data.linkedin)      fill('f-linkedin',   data.linkedin.value,       'LinkedIn');
-  if (data.github)        fill('f-github',     data.github.value,         'GitHub');
-  if (data.twitter)       fill('f-twitter',    data.twitter.value,        'Twitter');
-  if (data.instagram)     fill('f-instagram',  data.instagram.value,      'Instagram');
-  if (data.web)           fill('f-web',        data.web.value,            'web');
-  if (data.youtube)       fill('f-youtube',    data.youtube.value,        'YouTube');
-  if (data.tiktok)        fill('f-tiktok',     data.tiktok.value,         'TikTok');
-
-  return filled;
-}
-
 document.getElementById('btn-ocr-doc').addEventListener('click', () => {
   document.getElementById('ocr-file-input').click();
 });
@@ -3907,10 +3876,21 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
     }
     const source = file.type === 'application/pdf' ? await pdfFirstPageToCanvas(file) : file;
     const { data } = await Tesseract.recognize(source, 'spa+eng');
-    const filled = applyExtractedData(data.text || '');
-    showToast(filled.length
-      ? 'Detectado automáticamente: ' + filled.join(', ') + ' ✓'
-      : 'No se detectaron datos — rellénalos manualmente');
+    const text = data.text || '';
+    const extracted = extractData(text);
+    const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extracted[k]);
+
+    if (!mappedKeys.length) {
+      showToast('No se detectaron datos — rellénalos manualmente');
+      return;
+    }
+
+    // Igual que "pegar texto": se muestra el modal de revisión y el
+    // usuario confirma qué aplicar — ya no se escribe directo en el
+    // formulario sin que lo vea antes.
+    openImportModal();
+    document.getElementById('import-textarea').value = text;
+    renderImportResults(extracted);
   } catch (err) {
     console.error('OCR:', err);
     showToast('Error al procesar el documento');
@@ -5064,18 +5044,79 @@ buildGallery();
 setTimeout(renderQRMini, 500);
 
 // =================== IMPORTADOR INTELIGENTE ===================
+// Mapeo campo-detectado → campo-real-del-formulario. extractData() puede
+// reconocer MÁS datos de los que aparecen aquí (ver comentario al final
+// de extractData) — pero solo se ofrecen al usuario los que tienen un
+// input real en el formulario. Twitter/Instagram/YouTube/TikTok/WhatsApp
+// se detectan pero NO tienen campo propio en IDENTIFLY hoy (no existe
+// #f-twitter, #f-instagram, #f-youtube, #f-tiktok ni #f-whatsapp en el
+// DOM) — por eso no están en este mapa: añadirlos aquí sin un input real
+// reproduciría el mismo bug que el de #f-role (id inexistente, dato que
+// se pierde en silencio). Si en el futuro se añaden esos campos al
+// formulario, basta con añadir la entrada correspondiente aquí.
 const IMPORT_FIELD_MAP = {
-  nombre:           { id: 'f-name',     label: 'NOMBRE' },
-  cargo:            { id: 'f-job',      label: 'CARGO / PROFESION' },
-  telefono:         { id: 'f-phone',    label: 'TELEFONO' },
-  email_principal:  { id: 'f-email',    label: 'EMAIL PRINCIPAL' },
-  email_secundario: { id: 'f-email2',   label: 'EMAIL SECUNDARIO' },
-  empresa:          { id: 'f-company',  label: 'EMPRESA' },
-  ciudad:           { id: 'f-address',  label: 'CIUDAD' },
-  linkedin:         { id: 'f-linkedin', label: 'LINKEDIN' },
-  github:           { id: 'f-github',   label: 'GITHUB' },
-  web:              { id: 'f-web',      label: 'WEB' },
+  nombre:           { id: 'f-name',       label: 'NOMBRE' },
+  cargo:            { id: 'f-job',        label: 'CARGO / PROFESION' },
+  telefono:         { id: 'f-phone',      label: 'TELEFONO' },
+  movil:            { id: 'f-mobile',     label: 'MOVIL' },
+  email_principal:  { id: 'f-email',      label: 'EMAIL PRINCIPAL' },
+  email_secundario: { id: 'f-email2',     label: 'EMAIL SECUNDARIO' },
+  email_trabajo:    { id: 'f-email-work', label: 'EMAIL TRABAJO' },
+  empresa:          { id: 'f-company',    label: 'EMPRESA' },
+  ciudad:           { id: 'f-address',    label: 'CIUDAD' },
+  linkedin:         { id: 'f-linkedin',   label: 'LINKEDIN' },
+  github:           { id: 'f-github',     label: 'GITHUB' },
+  web:              { id: 'f-web',        label: 'WEB' },
 };
+
+// Distancia de Levenshtein (ediciones mínimas para convertir a en b) —
+// sin librería, tal como se pidió. Captura de forma genérica confusiones
+// típicas de OCR (0↔O, 1↔l/I, rn↔m, cl↔d, etc.) sin tener que listar cada
+// sustitución a mano: cualquiera de ellas cuesta 1-2 ediciones.
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = new Array(n + 1);
+  for (let j = 0; j <= n; j++) dp[j] = j;
+  for (let i = 1; i <= m; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const tmp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
+      prev = tmp;
+    }
+  }
+  return dp[n];
+}
+
+// ¿Alguna palabra de la línea coincide, exacta o con 1-2 ediciones, con
+// alguna palabra conocida de `knownWords`? Se ignoran tokens de menos de
+// 4 letras (ej. "CEO") porque a esa longitud casi cualquier ruido OCR
+// cae dentro del umbral y generaría falsos positivos — esos acrónimos ya
+// los cubre el regex exacto correspondiente, no hace falta la vía fuzzy.
+function lineHasFuzzyWord(line, knownWords) {
+  const tokens = line.split(/[^A-Za-zÁÉÍÓÚÑÜáéíóúñü]+/).filter(t => t.length >= 4);
+  for (const token of tokens) {
+    const tLower = token.toLowerCase();
+    for (const known of knownWords) {
+      const kLower = known.toLowerCase();
+      if (tLower === kLower) continue; // coincidencia exacta: ya la captura el regex, no es "corrección"
+      // Umbral fijo de 1 edición: con umbral 2 para palabras de 6+ letras,
+      // apellidos comunes colisionaban con ciudades por azar (ej. "Garcia"
+      // vs "Murcia", distancia 2) — verificado empíricamente. 1 edición
+      // basta para los errores típicos de OCR car a car (0↔O, 1↔l/I) y
+      // reduce mucho el riesgo de corregir algo que no hacía falta corregir.
+      const maxDist = 1;
+      if (Math.abs(tLower.length - kLower.length) <= maxDist &&
+          levenshtein(tLower, kLower) <= maxDist) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 function extractData(text) {
   const result = {};
@@ -5102,7 +5143,24 @@ function extractData(text) {
   const ghMatch = text.match(/(?:github\.com\/|git\s*hub[:\s]+|githb[:\s]+|github[:\s]+)([\w-]+)/i);
   if (ghMatch) result.github = { value: 'https://github.com/' + ghMatch[1].replace(/^@/, ''), confidence: 'high' };
 
-  const twMatch = text.match(/(?:twitter\.com\/|x\.com\/|tw(?:itter)?[:\s]+|^@)([\w]+)/im);
+  // Twitter/X: los patrones explícitos (dominio o etiqueta "tw:"/"twitter:")
+  // son inequívocos. El patrón genérico "@handle" al inicio de línea, sin
+  // más contexto, NO se trata como Twitter si hay evidencia de Instagram/
+  // TikTok en esa misma línea o en la anterior — evita que un @handle de
+  // otra red se etiquete mal solo por empezar con "@".
+  let twMatch = text.match(/(?:twitter\.com\/|x\.com\/|tw(?:itter)?[:\s]+)([\w]+)/i);
+  if (!twMatch) {
+    const atMatch = text.match(/^@([\w]+)/m);
+    if (atMatch) {
+      const idx = text.indexOf(atMatch[0]);
+      const lineStart = text.lastIndexOf('\n', idx);
+      const prevLineStart = text.lastIndexOf('\n', lineStart - 1);
+      const contexto = text.slice(prevLineStart === -1 ? 0 : prevLineStart, idx + atMatch[0].length);
+      if (!/instagram|\binsta\b|\big\b|tik\s*tok|tiktok/i.test(contexto)) {
+        twMatch = atMatch;
+      }
+    }
+  }
   if (twMatch) result.twitter = { value: '@' + twMatch[1], confidence: 'high' };
 
   const igMatch = text.match(/(?:instagram\.com\/|ig[:\s]+|insta(?:gram)?[:\s]+)([\w.]+)/i);
@@ -5123,15 +5181,21 @@ function extractData(text) {
   // CAPA 2 — Patrones contextuales
   const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
 
-  const CARGO_KW = /Engineer|Developer|Designer|Manager|Director|CEO|CTO|CFO|Founder|Consultor|Analista|T[eé]cnico|Especialista|Coordinador/i;
+  const CARGO_KW = /Engineer|Developer|Designer|Manager|Director|CEO|CTO|CFO|Founder|Consultor|Analista|T[eé]cnico|Especialista|Coordinador|Ingenier[oa]/i;
+  const CARGO_WORDS = ['Engineer','Developer','Designer','Manager','Director','Founder','Consultor','Analista','Técnico','Especialista','Coordinador','Ingeniero','Ingeniera'];
   for (const line of lines) {
-    if (CARGO_KW.test(line) && line.length < 100) {
-      result.cargo = { value: line, confidence: 'medium' };
+    if (line.length >= 100) continue;
+    const exacto = CARGO_KW.test(line);
+    if (exacto || lineHasFuzzyWord(line, CARGO_WORDS)) {
+      result.cargo = { value: line, confidence: exacto ? 'medium' : 'low' };
       break;
     }
   }
 
-  const EMPRESA_RE = /(?:\ben\b|\bat\b|^@|empresa:|company:)\s*(.+)/i;
+  // Antes exigía solo la preposición suelta "en"/"at" en cualquier punto de
+  // la línea (ej. "Nacido en Madrid" → empresa="Madrid", falso positivo).
+  // Ahora exige contexto real de relación laboral o una etiqueta explícita.
+  const EMPRESA_RE = /(?:trabaj[ao]\s+en|trabajando\s+en|empleado\s+en|\bat\b|empresa\s*:|company\s*:)\s*(.+)/i;
   for (const line of lines) {
     const m = line.match(EMPRESA_RE);
     if (m && m[1].trim().length >= 2 && m[1].length < 80) {
@@ -5141,31 +5205,53 @@ function extractData(text) {
   }
 
   const CIUDADES = /Madrid|Barcelona|Valencia|Sevilla|Zaragoza|M[aá]laga|Murcia|Palma|Las Palmas|Bilbao|Alicante|C[oó]rdoba|Valladolid|Vigo|Gij[oó]n|Vitoria|La Coru[ñn]a|Granada|Elche|M[eé]xico|Buenos Aires|Colombia|Argentina|, Espa[ñn]a|, M[eé]xico|, Argentina/i;
+  const CIUDADES_WORDS = ['Madrid','Barcelona','Valencia','Sevilla','Zaragoza','Málaga','Murcia','Palma','Bilbao','Alicante','Córdoba','Valladolid','Vigo','Gijón','Vitoria','Granada','Elche','México','Colombia','Argentina'];
   for (const line of lines) {
-    if (CIUDADES.test(line) && line.length < 80) {
-      result.ciudad = { value: line, confidence: 'medium' };
+    if (line.length >= 80) continue;
+    const exacto = CIUDADES.test(line);
+    if (exacto || lineHasFuzzyWord(line, CIUDADES_WORDS)) {
+      result.ciudad = { value: line, confidence: exacto ? 'medium' : 'low' };
       break;
     }
   }
 
   const UNIV_RE = /Universidad|University|Grado en|M[aá]ster en|Bachelor|Master's/i;
+  const UNIV_WORDS = ['Universidad','University','Bachelor'];
   for (const line of lines) {
-    if (UNIV_RE.test(line) && line.length < 120) {
-      result.universidad = { value: line, confidence: 'medium' };
+    if (line.length >= 120) continue;
+    const exacto = UNIV_RE.test(line);
+    if (exacto || lineHasFuzzyWord(line, UNIV_WORDS)) {
+      result.universidad = { value: line, confidence: exacto ? 'medium' : 'low' };
       break;
     }
   }
 
   // CAPA 3 — Heurística de nombre (primeras 5 líneas)
+  // Excluye líneas que ya se detectaron como empresa, o que contienen
+  // marcas típicas de razón social (S.L., S.A., Group, Solutions, Studio,
+  // Soluciones, Consulting) — el nombre de la empresa puede aparecer
+  // arriba del todo en una tarjeta y cumplir el mismo patrón de
+  // "2-4 palabras capitalizadas" que un nombre de persona.
+  const RAZON_SOCIAL_RE = /\bS\.?L\.?\b|\bS\.?A\.?\b|\bGroup\b|\bSolutions\b|\bStudio\b|\bSoluciones\b|\bConsulting\b/i;
   const NAME_RE = /^[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ][a-záéíóúàèìòùâêîôûäëïöüñ]+(?:\s+[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ][a-záéíóúàèìòùâêîôûäëïöüñ]+){1,3}$/;
   for (let i = 0; i < Math.min(5, lines.length); i++) {
     const line = lines[i];
+    if (result.empresa && line === result.empresa.value) continue;
+    if (RAZON_SOCIAL_RE.test(line)) continue;
     if (NAME_RE.test(line) && line.length >= 5 && line.length <= 50) {
       result.nombre = { value: line, confidence: i < 2 ? 'high' : 'medium' };
       break;
     }
   }
 
+  // NOTA (alcance): extractData() puede seguir detectando datos que no
+  // tienen campo en el formulario (ej. whatsapp, o cualquier otro que se
+  // añada aquí en el futuro) — eso es intencional, no un error. El
+  // filtro de qué se OFRECE realmente al usuario vive en IMPORT_FIELD_MAP
+  // (ver más arriba) y en el bucle que construye las filas del modal de
+  // revisión: solo se muestran las claves presentes en ese mapa. Un dato
+  // reconocido sin campo correspondiente simplemente no se muestra ni se
+  // aplica — no genera error ni ruido.
   return result;
 }
 
@@ -5182,6 +5268,63 @@ function closeImportModal() {
   document.getElementById('import-modal').style.display = 'none';
 }
 
+// Construye las filas de revisión (badge SEGURO/PROBABLE/REVISAR + checkbox)
+// a partir de un resultado ya calculado de extractData(). Función de nivel
+// superior (no anidada en _importModalSetup) para que tanto el flujo de
+// "pegar texto" como el flujo OCR puedan reutilizarla — ambos deben pasar
+// por la misma revisión antes de aplicar nada al formulario.
+function renderImportResults(extracted) {
+  const resultsDiv = document.getElementById('import-results');
+  resultsDiv.innerHTML = '';
+
+  const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extracted[k]);
+
+  if (mappedKeys.length === 0) {
+    resultsDiv.innerHTML = '<div class="import-empty">No se encontraron datos reconocibles. Intenta con mas texto.</div>';
+    resultsDiv.style.display = 'block';
+    document.getElementById('import-actions').style.display = 'none';
+    return;
+  }
+
+  mappedKeys.forEach(key => {
+    const { value, confidence } = extracted[key];
+    const { label } = IMPORT_FIELD_MAP[key];
+    const confText  = confidence === 'high' ? 'SEGURO' : confidence === 'medium' ? 'PROBABLE' : 'REVISAR';
+    const confColor = confidence === 'high' ? '#00ffcc' : confidence === 'medium' ? '#f0a500' : '#ff6b6b';
+
+    const row = document.createElement('div');
+    row.className = 'import-row';
+    row.dataset.key = key;
+
+    const conf = document.createElement('span');
+    conf.className = 'import-conf';
+    conf.style.color = confColor;
+    conf.textContent = confText;
+
+    const lbl = document.createElement('span');
+    lbl.className = 'import-field-label';
+    lbl.textContent = label;
+
+    const val = document.createElement('span');
+    val.className = 'import-value';
+    val.textContent = value;
+
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.className = 'import-check';
+    chk.checked = true;
+
+    row.appendChild(conf);
+    row.appendChild(lbl);
+    row.appendChild(val);
+    row.appendChild(chk);
+    resultsDiv.appendChild(row);
+  });
+
+  resultsDiv.style.display = 'block';
+  document.getElementById('import-actions').style.display = 'flex';
+}
+
 // btn-open-import está en screen-edit (antes del script) — se puede enlazar ya
 document.getElementById('btn-open-import').addEventListener('click', openImportModal);
 
@@ -5194,62 +5337,15 @@ function _importModalSetup() {
 
   document.getElementById('btn-analyze').addEventListener('click', () => {
     const text = document.getElementById('import-textarea').value.trim();
-    const resultsDiv = document.getElementById('import-results');
-    resultsDiv.innerHTML = '';
 
     if (!text) {
+      const resultsDiv = document.getElementById('import-results');
       resultsDiv.innerHTML = '<div class="import-empty">Pega algun texto primero.</div>';
       resultsDiv.style.display = 'block';
       return;
     }
 
-    const extracted = extractData(text);
-    const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extracted[k]);
-
-    if (mappedKeys.length === 0) {
-      resultsDiv.innerHTML = '<div class="import-empty">No se encontraron datos reconocibles. Intenta con mas texto.</div>';
-      resultsDiv.style.display = 'block';
-      document.getElementById('import-actions').style.display = 'none';
-      return;
-    }
-
-    mappedKeys.forEach(key => {
-      const { value, confidence } = extracted[key];
-      const { label } = IMPORT_FIELD_MAP[key];
-      const confText  = confidence === 'high' ? 'SEGURO' : confidence === 'medium' ? 'PROBABLE' : 'REVISAR';
-      const confColor = confidence === 'high' ? '#00ffcc' : confidence === 'medium' ? '#f0a500' : '#ff6b6b';
-
-      const row = document.createElement('div');
-      row.className = 'import-row';
-      row.dataset.key = key;
-
-      const conf = document.createElement('span');
-      conf.className = 'import-conf';
-      conf.style.color = confColor;
-      conf.textContent = confText;
-
-      const lbl = document.createElement('span');
-      lbl.className = 'import-field-label';
-      lbl.textContent = label;
-
-      const val = document.createElement('span');
-      val.className = 'import-value';
-      val.textContent = value;
-
-      const chk = document.createElement('input');
-      chk.type = 'checkbox';
-      chk.className = 'import-check';
-      chk.checked = true;
-
-      row.appendChild(conf);
-      row.appendChild(lbl);
-      row.appendChild(val);
-      row.appendChild(chk);
-      resultsDiv.appendChild(row);
-    });
-
-    resultsDiv.style.display = 'block';
-    document.getElementById('import-actions').style.display = 'flex';
+    renderImportResults(extractData(text));
   });
 
   document.getElementById('btn-apply-all').addEventListener('click', () => {
