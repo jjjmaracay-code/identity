@@ -10,12 +10,27 @@ export async function onRequestPost(context) {
       });
     }
 
+    const emailKey = email.toLowerCase();
+    const existingRaw = await env.PLANS_KV.get('reg:' + emailKey);
+    const existing = existingRaw ? JSON.parse(existingRaw) : null;
+
+    // El cliente reintenta esta llamada hasta 3 veces si falla la red —
+    // si ya existe un registro para este email se conservan registeredAt
+    // y token originales sin pisarlos, o cada reintento alargaría el
+    // trial y regeneraría un token distinto al que el cliente ya pueda
+    // tener guardado.
+    const registeredAt = existing?.registeredAt || new Date().toISOString();
+    const token = existing?.token || crypto.randomUUID();
+
     await env.PLANS_KV.put(
-      'reg:' + email.toLowerCase(),
-      JSON.stringify({ name: name || '', registeredAt: new Date().toISOString() })
+      'reg:' + emailKey,
+      JSON.stringify({ name: name || existing?.name || '', registeredAt, token })
     );
 
-    return new Response(JSON.stringify({ ok: true }), {
+    // El token se devuelve para que el cliente lo guarde en su propio
+    // localStorage — es lo que permite después a check-plan.js verificar
+    // el plan de este email sin exponerlo a nadie más (ver check-plan.js).
+    return new Response(JSON.stringify({ ok: true, token }), {
       status: 200, headers: { 'Content-Type': 'application/json' }
     });
 

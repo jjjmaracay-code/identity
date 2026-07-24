@@ -1455,7 +1455,13 @@ document.getElementById('btn-step2').addEventListener('click', () => {
           headers: { 'Content-Type': 'application/json' },
           body: payload
         });
-        if (res.ok) return;
+        if (res.ok) {
+          const data = await res.json();
+          // Token opaco que después usa check-plan.js para verificar el
+          // plan de este email sin exponerlo a nadie más.
+          if (data.token) localStorage.setItem('identity_access_token', data.token);
+          return;
+        }
       } catch (_) {}
       if (attempt < 3) await new Promise(r => setTimeout(r, 800));
     }

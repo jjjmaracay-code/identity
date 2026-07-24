@@ -3208,14 +3208,104 @@
 <script>
 // =================== VERIFICACIÓN DE REGISTRO ===================
 // Si el usuario no está registrado, redirigir a register.html antes de mostrar nada
-// Verificar trial de 30 días
+// Verificar trial de 30 días.
+//
+// PARTE 1 — cálculo local: es solo un FALLBACK (se usa cuando el
+// servidor no responde o el token no se pudo verificar), saltable
+// manipulando localStorage — la fuente de verdad real es el servidor
+// (ver _verificarTrialServidor más abajo). Antes esta condición estaba
+// invertida ("!== 'free'"): bloqueaba a quien SÍ pagó y dejaba pasar
+// para siempre a quien pulsó "continuar gratis" una sola vez, porque
+// identity_plan='free' nunca volvía a cambiar. Ahora bloquea cuando han
+// pasado 30+ días Y el plan local NO es de pago (pro/lifetime) — incluye
+// tanto identity_plan sin definir como valiendo 'free'.
 const _reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
-if (_reg.timestamp) {
+const PLANES_PAGO = ['pro', 'lifetime'];
+function _trialBloqueadoLocal() {
+  if (!_reg.timestamp) return false;
   const _days = Math.floor((Date.now() - new Date(_reg.timestamp)) / (1000*60*60*24));
-  if (_days >= 30 && localStorage.getItem('identity_plan') !== 'free') {
-    window.location.href = 'paywall.html';
-  }
+  return _days >= 30 && !PLANES_PAGO.includes(localStorage.getItem('identity_plan'));
 }
+
+// PARTE 2 — verificación real en el servidor (fuente de verdad). Se
+// lanza en segundo plano sin bloquear el resto del arranque de la
+// página (el resto del script sigue corriendo de forma síncrona como
+// antes) y redirige en cuanto se resuelve. Si el usuario ya estaba en
+// una pantalla distinta de screen-pin cuando esto resuelve, la
+// redirección igualmente se aplica — es una zona de dinero real, se
+// prioriza corrección sobre evitar el pequeño salto de pantalla.
+(async function _verificarTrialServidor() {
+  if (!_reg.timestamp || !_reg.email) return; // sin registro, nada que verificar aquí
+
+  let token = localStorage.getItem('identity_access_token');
+
+  // Migración automática, una sola vez: cuentas registradas antes de que
+  // existiera el token intentan reclamar uno usando el registeredAt
+  // exacto que ya tienen en este localStorage (ver claim-token.js para
+  // la limitación de seguridad conocida de este mecanismo).
+  if (!token) {
+    try {
+      const claimRes = await fetch('/api/claim-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: _reg.email, registeredAt: _reg.timestamp })
+      });
+      const claimData = await claimRes.json();
+      if (claimData.ok && claimData.token) {
+        token = claimData.token;
+        localStorage.setItem('identity_access_token', token);
+      }
+    } catch (_) { /* sin red — se reintentará en la próxima carga */ }
+  }
+
+  if (!token) {
+    // No hay token y no se pudo reclamar uno (ya reclamado por otra
+    // sesión, sin red, etc.) — único recurso disponible: cálculo local.
+    if (_trialBloqueadoLocal()) window.location.href = 'paywall.html';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/check-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _reg.email, token })
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      // Respuesta válida del servidor — se cachea para dar un margen de
+      // gracia corto si una carga futura no tiene red (ver el catch).
+      localStorage.setItem('identity_plan_verified', JSON.stringify({
+        bloqueado: data.bloqueado, plan: data.plan, verifiedAt: Date.now()
+      }));
+      if (data.bloqueado) window.location.href = 'paywall.html';
+      return;
+    }
+
+    // El servidor respondió pero rechazó el token (reclamado por otra
+    // sesión, dato corrupto, etc.) — sin veredicto de servidor fiable
+    // esta vez, cálculo local como recurso.
+    if (_trialBloqueadoLocal()) window.location.href = 'paywall.html';
+
+  } catch (_) {
+    // Fallo de red real (no una respuesta explícita del servidor):
+    // margen de gracia corto de 24h reutilizando el último veredicto de
+    // servidor verificado con éxito — más conservador que confiar en el
+    // cálculo local puro, que sería más permisivo para quien haya
+    // manipulado localStorage. Sin nada cacheado o si está viejo,
+    // cálculo local como último recurso.
+    let veredictoCacheado = null;
+    try { veredictoCacheado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
+    const cacheValido = veredictoCacheado && (Date.now() - veredictoCacheado.verifiedAt) < 24 * 3600 * 1000;
+
+    if (cacheValido) {
+      if (veredictoCacheado.bloqueado) window.location.href = 'paywall.html';
+    } else if (_trialBloqueadoLocal()) {
+      window.location.href = 'paywall.html';
+    }
+  }
+})();
 
 if (!localStorage.getItem('identity_registration')) {
   // No se lanza excepción: el resto del script sigue corriendo con normalidad

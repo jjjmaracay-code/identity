@@ -392,6 +392,11 @@
     }
 
     function goFree() {
+      // 'free' sigue siendo una elección legítima del usuario (se usa
+      // para la burbuja/textos de la UI) — lo que cambió es que ya NO
+      // exime de la expiración del trial: esa decisión ahora la toma
+      // check-plan.js en el servidor, mirando solo si existe un plan de
+      // pago (pro/lifetime) para este email, sin mirar este valor.
       localStorage.setItem('identity_plan', 'free');
       window.location.href = 'index.html';
     }
