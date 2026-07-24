@@ -3353,7 +3353,7 @@ if (consentGiven) {
   requestAnimationFrame(() => { scConsent.style.transition = ''; });
 }
 
-// =================== DISPOSITIVO CONFIABLE (7 DÍAS) ===================
+// =================== DISPOSITIVO CONFIABLE (15 DÍAS) ===================
 const TRUST_KEY = 'identity_trusted_until';
 const trustDeviceCheck = document.getElementById('trust-device-check');
 let trustDeviceChecked = false;
@@ -3736,7 +3736,7 @@ function doEnter() {
   document.getElementById('screen-pin').classList.add('hidden');
   document.getElementById('screen-main').classList.add('visible');
   if (trustDeviceChecked) {
-    localStorage.setItem(TRUST_KEY, String(Date.now() + 7 * 24 * 3600 * 1000));
+    localStorage.setItem(TRUST_KEY, String(Date.now() + 15 * 24 * 3600 * 1000));
   }
   renderCard();
   generateQR();
