@@ -782,6 +782,29 @@
     margin-bottom: 32px;
   }
 
+  .edit-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .plan-badge {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(170,255,0,0.5);
+    background: rgba(170,255,0,0.1);
+    color: var(--green);
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
   .edit-title {
     font-family: 'Inter', sans-serif;
     font-size: 16px;
@@ -2765,14 +2788,19 @@
 <div id="screen-edit">
   <div class="edit-header">
     <div class="edit-title">Mi Perfil</div>
-    <button class="btn-close" id="btn-close-edit">✕ Cerrar</button>
-    <!-- BURBUJA TRIAL -->
-    <div id="trial-bubble" style="background:rgba(170,255,0,0.08);border:1px solid rgba(170,255,0,0.3);border-radius:12px;padding:14px 16px;margin:12px 0 0;font-family:'Inter',sans-serif;">
-      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaff00;text-transform:uppercase;margin-bottom:6px;">Periodo de prueba</div>
-      <div id="trial-bubble-text" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;">Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.</div>
-      <button onclick="window.location.href='paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Ver planes — desde 2.99€/mes</button>
-      <a href="install.html" style="display:block;text-align:center;margin-top:10px;font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;">¿Cómo instalar la app en mi móvil?</a>
+    <div class="edit-header-right">
+      <span class="plan-badge" id="plan-badge"></span>
+      <button class="btn-close" id="btn-close-edit">✕ Cerrar</button>
     </div>
+  </div>
+
+  <!-- BURBUJA TRIAL — hermana de .edit-header, ya no compite por espacio
+       en su fila junto al título y el botón cerrar -->
+  <div id="trial-bubble" style="background:rgba(170,255,0,0.08);border:1px solid rgba(170,255,0,0.3);border-radius:12px;padding:14px 16px;margin:12px 0 0;font-family:'Inter',sans-serif;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaff00;text-transform:uppercase;margin-bottom:6px;">Periodo de prueba</div>
+    <div id="trial-bubble-text" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;">Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.</div>
+    <button onclick="window.location.href='paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Ver planes — desde 2.99€/mes</button>
+    <a href="install.html" style="display:block;text-align:center;margin-top:10px;font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;">¿Cómo instalar la app en mi móvil?</a>
   </div>
 
   <div class="edit-tabs-bar" id="edit-tabs-bar">
@@ -3279,7 +3307,13 @@ function _trialBloqueadoLocal() {
       localStorage.setItem('identity_plan_verified', JSON.stringify({
         bloqueado: data.bloqueado, plan: data.plan, verifiedAt: Date.now()
       }));
-      if (data.bloqueado) window.location.href = 'paywall.html';
+      if (data.bloqueado) { window.location.href = 'paywall.html'; return; }
+      // Si el usuario ya está en la pantalla de edición cuando esta
+      // verificación (que empezó al cargar la página) por fin resuelve,
+      // refresca la insignia/burbuja con el dato real en cuanto llega.
+      if (document.getElementById('screen-edit')?.classList.contains('open')) {
+        actualizarPlanBadge();
+      }
       return;
     }
 
@@ -4550,6 +4584,33 @@ document.getElementById('btn-lock').addEventListener('click', () => {
 document.getElementById('btn-open-edit').addEventListener('click', openEdit);
 document.getElementById('btn-close-edit').addEventListener('click', closeEdit);
 
+// Decide si mostrar la insignia compacta de plan pagado o la tarjeta de
+// trial, a partir del último veredicto verificado por el servidor
+// (identity_plan_verified, escrito por _verificarTrialServidor()). Se
+// llama al abrir la pantalla de edición y, si esa verificación seguía en
+// curso en ese momento, otra vez en cuanto resuelve. Sin dato verificado
+// todavía, el estado por defecto más seguro es la tarjeta de trial (no
+// la insignia) — nunca se asume plan de pago sin confirmación real.
+function actualizarPlanBadge() {
+  const badge  = document.getElementById('plan-badge');
+  const bubble = document.getElementById('trial-bubble');
+  if (!badge || !bubble) return;
+
+  let verificado = null;
+  try { verificado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
+
+  const esPago = verificado && ['pro', 'lifetime'].includes(verificado.plan);
+
+  if (esPago) {
+    badge.textContent = verificado.plan === 'lifetime' ? '★ LIFETIME' : '★ PRO';
+    badge.style.display = 'inline-flex';
+    bubble.style.display = 'none';
+  } else {
+    badge.style.display = 'none';
+    bubble.style.display = 'block';
+  }
+}
+
 function openEdit() {
   const d = profileData;
   const t = d.toggles || {};
@@ -4638,6 +4699,7 @@ function openEdit() {
     wrap.style.display = 'block';
   }
 
+  actualizarPlanBadge();
   document.getElementById('screen-edit').classList.add('open');
 }
 
