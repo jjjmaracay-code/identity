@@ -3884,9 +3884,28 @@ function pinSuccess() {
 
 let iplanIdx = 0;
 function showIPlans() {
+  // Los planes de pago (pro/lifetime) no tienen periodo de prueba que
+  // contar — este modal es solo para el trial gratuito. Antes se
+  // calculaba siempre contra reg.timestamp sin mirar el plan primero,
+  // y podía mostrar "NaN días restantes" para una cuenta lifetime
+  // asignada a mano (identity_plan local solo se escribe tras una
+  // compra real en paywall.html, así que para esas cuentas queda vacío
+  // aunque el plan real ya sea de pago). Revisa las dos fuentes de
+  // verdad disponibles del lado del cliente: identity_plan (compra
+  // real) e identity_plan_verified (cacheada por
+  // _verificarTrialServidor tras una verificación real del servidor —
+  // la misma que ya usa actualizarPlanBadge()).
+  let verificado = null;
+  try { verificado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
+  const planActual = localStorage.getItem('identity_plan') || verificado?.plan;
+  if (PLANES_PAGO.includes(planActual)) return;
+
   const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
   const days = Math.floor((Date.now() - new Date(reg.timestamp)) / (1000*60*60*24));
   const left = Math.max(0, 30 - days);
+  // Dato local roto o ausente (reg.timestamp inválido) — más seguro no
+  // mostrar nada que inventar un contador roto tipo "NaN días".
+  if (Number.isNaN(left)) return;
   const daysEl = document.getElementById('iplan-days');
   if (daysEl) daysEl.textContent = left;
   iplanIdx = 0;
