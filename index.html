@@ -3020,6 +3020,22 @@
         <div class="field-label">Web personal</div>
         <input class="field-input" id="f-web" type="url" placeholder="tuwebpersonal.com">
       </div>
+      <div class="field-wrap">
+        <div class="field-label">Twitter / X</div>
+        <input class="field-input" id="f-twitter" type="text" placeholder="@tu_usuario">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">Instagram</div>
+        <input class="field-input" id="f-instagram" type="text" placeholder="instagram.com/tu_usuario">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">YouTube</div>
+        <input class="field-input" id="f-youtube" type="text" placeholder="youtube.com/@tu_canal">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">TikTok</div>
+        <input class="field-input" id="f-tiktok" type="text" placeholder="tiktok.com/@tu_usuario">
+      </div>
     </div>
   </div>
 
@@ -3108,6 +3124,34 @@
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-web" checked><span class="toggle-slider"></span></label>
           <div class="toggle-status on" id="s-web">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Twitter / X</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-twitter" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-twitter">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">Instagram</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-instagram" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-instagram">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">YouTube</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-youtube" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-youtube">Permitido</div>
+        </div>
+      </div>
+      <div class="field-toggle-wrap">
+        <div class="field-toggle-label">TikTok</div>
+        <div class="toggle-right">
+          <label class="toggle-switch"><input type="checkbox" id="t-tiktok" checked><span class="toggle-slider"></span></label>
+          <div class="toggle-status on" id="s-tiktok">Permitido</div>
         </div>
       </div>
     </div>
@@ -4110,7 +4154,7 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
 });
 
 // =================== TOGGLES — etiquetas en tiempo real ===================
-['phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web'].forEach(field => {
+['phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web','twitter','instagram','youtube','tiktok'].forEach(field => {
   const chk = document.getElementById('t-'+field);
   const lbl = document.getElementById('s-'+field);
   if (!chk || !lbl) return;
@@ -4232,6 +4276,10 @@ function buildVCard() {
   if (d.linkedin && t.linkedin !== false) vc += `URL;type=LinkedIn:${d.linkedin}\n`;
   if (d.github   && t.github   !== false) vc += `URL;type=GitHub:${d.github}\n`;
   if (d.web      && t.web      !== false) vc += `URL;type=Web:${d.web}\n`;
+  if (d.twitter   && t.twitter   !== false) vc += `URL;type=Twitter:${d.twitter}\n`;
+  if (d.instagram && t.instagram !== false) vc += `URL;type=Instagram:${d.instagram}\n`;
+  if (d.youtube   && t.youtube   !== false) vc += `URL;type=YouTube:${d.youtube}\n`;
+  if (d.tiktok    && t.tiktok    !== false) vc += `URL;type=TikTok:${d.tiktok}\n`;
   vc += 'END:VCARD';
   return vc;
 }
@@ -4741,6 +4789,10 @@ function openEdit() {
   document.getElementById('f-linkedin').value= d.linkedin|| '';
   document.getElementById('f-github').value  = d.github  || '';
   document.getElementById('f-web').value     = d.web     || '';
+  document.getElementById('f-twitter').value   = d.twitter   || '';
+  document.getElementById('f-instagram').value = d.instagram || '';
+  document.getElementById('f-youtube').value   = d.youtube   || '';
+  document.getElementById('f-tiktok').value    = d.tiktok    || '';
 
   document.getElementById('t-job').checked      = t.job     !== false;
   document.getElementById('t-phone').checked   = t.phone   !== false;
@@ -4754,9 +4806,13 @@ function openEdit() {
   document.getElementById('t-linkedin').checked= t.linkedin !== false;
   document.getElementById('t-github').checked  = t.github   !== false;
   document.getElementById('t-web').checked     = t.web      !== false;
+  document.getElementById('t-twitter').checked   = t.twitter   !== false;
+  document.getElementById('t-instagram').checked = t.instagram !== false;
+  document.getElementById('t-youtube').checked   = t.youtube   !== false;
+  document.getElementById('t-tiktok').checked    = t.tiktok    !== false;
 
   // Sincronizar etiquetas
-  ['job','phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web'].forEach(field => {
+  ['job','phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web','twitter','instagram','youtube','tiktok'].forEach(field => {
     const chk = document.getElementById('t-'+field);
     const lbl = document.getElementById('s-'+field);
     if (chk && lbl) {
@@ -4869,6 +4925,10 @@ function saveProfile() {
     linkedin: document.getElementById('f-linkedin').value.trim(),
     github:   document.getElementById('f-github').value.trim(),
     web:      document.getElementById('f-web').value.trim(),
+    twitter:   document.getElementById('f-twitter').value.trim(),
+    instagram: document.getElementById('f-instagram').value.trim(),
+    youtube:   document.getElementById('f-youtube').value.trim(),
+    tiktok:    document.getElementById('f-tiktok').value.trim(),
     media:    mediaToSave,
     toggles: {
       job:     document.getElementById('t-job').checked,
@@ -4883,6 +4943,10 @@ function saveProfile() {
       linkedin:document.getElementById('t-linkedin').checked,
       github:  document.getElementById('t-github').checked,
       web:     document.getElementById('t-web').checked,
+      twitter:   document.getElementById('t-twitter').checked,
+      instagram: document.getElementById('t-instagram').checked,
+      youtube:   document.getElementById('t-youtube').checked,
+      tiktok:    document.getElementById('t-tiktok').checked,
     },
     qrDesign:      { ...qrDesign },
     qrTemplateId:  selectedTemplateId,
@@ -5311,13 +5375,12 @@ setTimeout(renderQRMini, 500);
 // Mapeo campo-detectado → campo-real-del-formulario. extractData() puede
 // reconocer MÁS datos de los que aparecen aquí (ver comentario al final
 // de extractData) — pero solo se ofrecen al usuario los que tienen un
-// input real en el formulario. Twitter/Instagram/YouTube/TikTok/WhatsApp
-// se detectan pero NO tienen campo propio en IDENTIFLY hoy (no existe
-// #f-twitter, #f-instagram, #f-youtube, #f-tiktok ni #f-whatsapp en el
-// DOM) — por eso no están en este mapa: añadirlos aquí sin un input real
-// reproduciría el mismo bug que el de #f-role (id inexistente, dato que
-// se pierde en silencio). Si en el futuro se añaden esos campos al
-// formulario, basta con añadir la entrada correspondiente aquí.
+// input real en el formulario. WhatsApp se detecta pero NO tiene campo
+// propio en IDENTIFLY hoy (no existe #f-whatsapp en el DOM, solo un
+// botón de compartir) — por eso no está en este mapa: añadirlo sin un
+// input real reproduciría el mismo bug que el de #f-role (id
+// inexistente, dato que se pierde en silencio). Twitter/Instagram/
+// YouTube/TikTok SÍ tienen campo real desde ahora — reconectados aquí.
 const IMPORT_FIELD_MAP = {
   nombre:           { id: 'f-name',       label: 'NOMBRE' },
   cargo:            { id: 'f-job',        label: 'CARGO / PROFESION' },
@@ -5331,6 +5394,10 @@ const IMPORT_FIELD_MAP = {
   linkedin:         { id: 'f-linkedin',   label: 'LINKEDIN' },
   github:           { id: 'f-github',     label: 'GITHUB' },
   web:              { id: 'f-web',        label: 'WEB' },
+  twitter:          { id: 'f-twitter',    label: 'TWITTER / X' },
+  instagram:        { id: 'f-instagram',  label: 'INSTAGRAM' },
+  youtube:          { id: 'f-youtube',    label: 'YOUTUBE' },
+  tiktok:           { id: 'f-tiktok',     label: 'TIKTOK' },
 };
 
 // Distancia de Levenshtein (ediciones mínimas para convertir a en b) —
