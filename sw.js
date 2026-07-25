@@ -37,6 +37,14 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // La Cache API solo admite GET — cachear una respuesta de POST/PUT/etc.
+  // (ej. /api/register-complete) lanza una excepción en cache.put(). Esas
+  // peticiones van directo a red, sin pasar por cache en ningún sentido.
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;

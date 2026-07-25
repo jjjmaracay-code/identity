@@ -3385,6 +3385,30 @@ function _trialBloqueadoLocal() {
   return _days >= 30 && !PLANES_PAGO.includes(localStorage.getItem('identity_plan'));
 }
 
+// Red de seguridad para el registro fire-and-forget de register.html: si
+// los 3 intentos de escribir reg:{email} en KV fallaron ahí (ej. red
+// inestable justo al instalar la PWA), register.html deja la bandera
+// identity_kv_sync_pending — el registro local ya quedó guardado y el
+// usuario sigue usando la app con normalidad, sin ninguna señal de que el
+// servidor nunca se enteró. Aquí se reintenta una vez por carga de
+// index.html, en segundo plano, hasta que tenga éxito.
+(async function _reintentarRegistroPendiente() {
+  if (localStorage.getItem('identity_kv_sync_pending') !== 'true') return;
+  if (!_reg.email) return;
+  try {
+    const res = await fetch('/api/register-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _reg.email, name: _reg.name })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.token) localStorage.setItem('identity_access_token', data.token);
+      localStorage.removeItem('identity_kv_sync_pending');
+    }
+  } catch (_) { /* sigue sin red — se reintentará en la próxima carga */ }
+})();
+
 // PARTE 2 — verificación real en el servidor (fuente de verdad). Se
 // lanza en segundo plano sin bloquear el resto del arranque de la
 // página (el resto del script sigue corriendo de forma síncrona como

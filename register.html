@@ -1465,7 +1465,14 @@ document.getElementById('btn-step2').addEventListener('click', () => {
       } catch (_) {}
       if (attempt < 3) await new Promise(r => setTimeout(r, 800));
     }
+    // Los 3 intentos fallaron (red inestable en el momento del registro —
+    // típico en una PWA recién instalada en móvil). El registro local ya
+    // quedó guardado y el usuario sigue adelante sin notarlo, así que sin
+    // esta bandera el registro en el servidor se perdía en silencio para
+    // siempre. index.html reintenta esto solo, una vez por carga, mientras
+    // la bandera siga presente (ver _reintentarRegistroPendiente en index.html).
     console.error('[IDENTIFLY] register-complete: no se pudo escribir reg:' + step1Data.email + ' en KV tras 3 intentos');
+    localStorage.setItem('identity_kv_sync_pending', 'true');
   })();
 
   // Código de respaldo permanente para la recuperación de cuenta
