@@ -2931,7 +2931,7 @@
       Si tienes un documento personal (DNI, pasaporte, tarjeta de visita) puedes subirlo y el sistema intentará rellenar automáticamente tus datos. Recuerda revisar y completar los campos que queden vacíos — tú tienes siempre la última palabra sobre tu información.
     </div>
     <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;">Extraer datos de documento</div>
-    <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf" style="display:none">
+    <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx" style="display:none">
   </div>
 
   <div class="edit-section qr-style-selector">
@@ -4128,6 +4128,16 @@ function selectGalleryItem(item, el) {
 }
 
 // =================== EXTRACCIÓN DE DOCUMENTO (OCR) ===================
+// Todas las librerías del fallback local (Tesseract.js, pdf.js,
+// mammoth.js, nspell + diccionario es_ES) están auto-hospedadas en
+// /vendor/ — el fallback no depende de ningún CDN externo, precisamente
+// para no heredar el mismo tipo de fallo (carga dinámica de script de
+// terceros bloqueada/inestable) que causó el bug original de este
+// módulo. Se cargan bajo demanda, solo cuando el fallback realmente se
+// activa — nunca en cada visita a la app. Sigue siendo un pipeline de
+// reglas y patrones, no de comprensión real — Gemini (vía principal) es
+// quien aporta eso; este fallback solo garantiza que la función nunca
+// deje al usuario sin nada cuando no hay servicio de IA disponible.
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
@@ -4138,26 +4148,226 @@ function loadScript(src) {
   });
 }
 
-// Renderizar la primera página de un PDF a canvas para poder pasarla al OCR
-async function pdfFirstPageToCanvas(file) {
-  if (typeof pdfjsLib === 'undefined') {
-    await loadScript('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+// workerBlobURL:false es necesario porque la CSP del proyecto
+// (default-src 'self', sin blob: en worker-src — ver _headers) bloquea
+// silenciosamente el Worker vía blob: que Tesseract.js usa por defecto
+// (envuelve workerPath en un Blob de importScripts para simplificar CORS
+// en instalaciones que sí sirven desde CDN). Con false, crea el Worker
+// directamente desde el archivo real de mismo origen, que la CSP sí
+// permite — verificado empíricamente: sin esto, Tesseract.recognize()
+// se queda colgado sin error visible.
+const TESSERACT_OPTS = {
+  workerPath: '/vendor/tesseract/worker.min.js',
+  corePath: '/vendor/tesseract/tesseract-core-lstm.wasm.js',
+  langPath: '/vendor/tessdata',
+  workerBlobURL: false
+};
+
+// pdf.js se distribuye solo como módulo ES — se carga con import()
+// dinámico (válido desde un <script> clásico) en vez del loadScript()
+// clásico que usan las demás librerías de este bloque.
+let _pdfjsLibPromise = null;
+function loadPdfJs() {
+  if (!_pdfjsLibPromise) {
+    _pdfjsLibPromise = import('/vendor/pdfjs/pdf.min.mjs').then(mod => {
+      mod.GlobalWorkerOptions.workerSrc = '/vendor/pdfjs/pdf.worker.min.mjs';
+      return mod;
+    });
   }
+  return _pdfjsLibPromise;
+}
+
+// Renderiza TODAS las páginas de un PDF a canvas — para el caso de PDF
+// escaneado (sin capa de texto), donde no queda otra que OCR página a
+// página, igual que Gemini ya hace de forma nativa en la vía principal.
+async function pdfPagesToCanvases(file) {
+  const pdfjsLib = await loadPdfJs();
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  const page = await pdf.getPage(1);
-  const viewport = page.getViewport({ scale: 2 });
-  const canvas = document.createElement('canvas');
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-  return canvas;
+  const canvases = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    canvases.push(canvas);
+  }
+  return canvases;
+}
+
+// Capa de texto nativa del PDF (todas las páginas) — mucho más rápida y
+// precisa que el OCR porque lee el texto real incrustado, no reconoce
+// píxeles. Devuelve '' si el PDF no tiene texto real (habitualmente
+// porque es un escaneo); el llamador cae entonces a pdfPagesToCanvases + OCR.
+async function extractPdfNativeText(file) {
+  const pdfjsLib = await loadPdfJs();
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    // pdf.js devuelve "items" (fragmentos de texto), no líneas — hay que
+    // reconstruir los saltos de línea a partir del cambio de posición
+    // vertical (item.transform[5] = coordenada Y), si no todo el
+    // contenido de la página queda en una sola línea gigantesca y rompe
+    // la detección por línea de extractData() (cargo/ciudad/nombre,
+    // todas con umbrales de longitud pensados para líneas reales).
+    let lastY = null;
+    for (const item of content.items) {
+      const y = item.transform[5];
+      if (lastY !== null) text += Math.abs(y - lastY) > 2 ? '\n' : ' ';
+      text += item.str;
+      lastY = y;
+    }
+    text += '\n\n'; // separador entre páginas
+  }
+  return text.trim();
+}
+
+async function extractDocxText(file) {
+  if (typeof mammoth === 'undefined') {
+    await loadScript('/vendor/mammoth/mammoth.browser.min.js');
+  }
+  const buf = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buf });
+  return result.value || '';
+}
+
+async function ocrCanvases(canvases) {
+  let combined = '';
+  for (const canvas of canvases) {
+    const { data } = await Tesseract.recognize(canvas, 'spa+eng', TESSERACT_OPTS);
+    combined += (data.text || '') + '\n';
+  }
+  return combined.trim();
+}
+
+// Corrector ortográfico (nspell + diccionario es_ES de Hunspell/
+// LibreOffice, auto-hospedado) — se carga bajo demanda, solo la primera
+// vez que el fallback local lo necesita, y se reutiliza en llamadas
+// siguientes dentro de la misma sesión de página.
+let _spellerPromise = null;
+function loadSpellChecker() {
+  if (!_spellerPromise) {
+    _spellerPromise = (async () => {
+      if (typeof nspellFactory === 'undefined') {
+        await loadScript('/vendor/nspell/nspell.min.js');
+      }
+      const [aff, dic] = await Promise.all([
+        fetch('/vendor/nspell/es.aff').then(r => r.text()),
+        fetch('/vendor/nspell/es.dic').then(r => r.text())
+      ]);
+      return nspellFactory({ aff, dic });
+    })();
+  }
+  return _spellerPromise;
+}
+
+// Corrige solo palabras íntegramente en minúscula: los nombres propios
+// (personas, empresas, ciudades) casi siempre empiezan en mayúscula y no
+// están en ningún diccionario general — "corregirlos" contra el
+// diccionario los destrozaría (ej. un apellido real cambiado por la
+// sugerencia más parecida del diccionario). Solo sustituye si la
+// sugerencia principal de nspell está a 2 ediciones o menos del original
+// (levenshtein(), definida más abajo en este mismo archivo — disponible
+// aquí por hoisting de function), para no saltar a una palabra sin
+// relación real con el error tipográfico. Complementa, no sustituye, el
+// fuzzy matching Levenshtein ya existente en extractData() (ese corrige
+// contra un catálogo cerrado de cargos/ciudades; esto corrige contra el
+// idioma español general).
+// Los límites usan lookaround en vez de \b: \b no distingue "carlos" en
+// "hola carlos" (palabra real) de "carlos" en "carlos.fernandez@..." o
+// "in/carlosfr" (fragmento de email/URL) — en ambos casos hay una letra
+// justo antes/después, así que \b no corta ahí. Exigir explícitamente que
+// no haya letra/dígito/guion/@/./  pegado al token evita tocar emails,
+// URLs y slugs, que de otro modo el corrector destrozaría (verificado:
+// sin esto, "carlos.fernandez@..." se corrompía a "darlos.fernández@...").
+function spellCorrectText(text, speller) {
+  return text.replace(/(?<![\w@./-])[A-Za-zÁÉÍÓÚÑÜáéíóúñü]{4,}(?![\w@./-])/g, (word) => {
+    if (word !== word.toLowerCase()) return word;
+    if (speller.correct(word)) return word;
+    const suggestion = speller.suggest(word)[0];
+    if (!suggestion || levenshtein(word, suggestion.toLowerCase()) > 2) return word;
+    return suggestion.toLowerCase();
+  });
 }
 
 document.getElementById('btn-ocr-doc').addEventListener('click', () => {
   document.getElementById('ocr-file-input').click();
 });
+
+// Convierte un File a base64 puro (sin el prefijo data:...;base64,) por
+// trozos, para no reventar la pila con String.fromCharCode.apply en
+// archivos grandes.
+async function fileToBase64(file) {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+
+// Extrae datos de contacto vía /api/extract-document (Gemini, en
+// servidor — la clave de API nunca toca el cliente, ver ese archivo).
+// Devuelve null si el servicio no dio nada aprovechable — incluye el
+// caso de un .docx, que Gemini no admite como inlineData (el servidor
+// responde bad_request) y que el fallback local sí sabe leer vía
+// mammoth.js — el llamador decide entonces si usa el fallback.
+async function extractViaGemini(file) {
+  const dataBase64 = await fileToBase64(file);
+  const res = await fetch('/api/extract-document', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mimeType: file.type,
+      dataBase64,
+      email: _reg.email || null,
+      token: localStorage.getItem('identity_access_token') || null
+    })
+  });
+  const data = await res.json();
+  if (!data.ok) return null;
+  return Object.keys(data.extracted || {}).length ? data.extracted : null;
+}
+
+// Fallback 100% local (sin red ni CDN externo): decide la estrategia
+// según el tipo de archivo y devuelve el texto crudo, ya pasado por el
+// corrector ortográfico.
+async function extractTextLocally(file) {
+  let text = '';
+
+  if (file.type === DOCX_MIME || file.name?.toLowerCase().endsWith('.docx')) {
+    text = await extractDocxText(file);
+  } else if (file.type === 'application/pdf') {
+    text = await extractPdfNativeText(file);
+    if (!text.replace(/\s/g, '').length) {
+      // Sin capa de texto — PDF escaneado: OCR página por página.
+      const canvases = await pdfPagesToCanvases(file);
+      text = await ocrCanvases(canvases);
+    }
+  } else {
+    const { data } = await Tesseract.recognize(file, 'spa+eng', TESSERACT_OPTS);
+    text = data.text || '';
+  }
+
+  try {
+    const speller = await loadSpellChecker();
+    text = spellCorrectText(text, speller);
+  } catch (err) {
+    console.error('Corrector ortográfico no disponible:', err);
+    // Seguimos con el texto sin corregir — no bloquea la extracción.
+  }
+
+  return text;
+}
 
 document.getElementById('ocr-file-input').addEventListener('change', async (e) => {
   const file = e.target.files[0];
@@ -4169,26 +4379,38 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
   showToast('Procesando documento — puede tardar unos segundos');
 
   try {
-    if (typeof Tesseract === 'undefined') {
-      await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    let extracted = null;
+    try {
+      extracted = await extractViaGemini(file);
+    } catch (err) {
+      console.error('OCR (Gemini):', err);
     }
-    const source = file.type === 'application/pdf' ? await pdfFirstPageToCanvas(file) : file;
-    const { data } = await Tesseract.recognize(source, 'spa+eng');
-    const text = data.text || '';
-    const extracted = extractData(text);
-    const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extracted[k]);
+
+    if (extracted) {
+      // Igual que "pegar texto": se muestra el modal de revisión y el
+      // usuario confirma qué aplicar — nunca se escribe directo en el
+      // formulario sin que lo vea antes.
+      openImportModal();
+      renderImportResults(extracted);
+      return;
+    }
+
+    // Fallback local: sin red, límite diario agotado o error del
+    // servicio de IA — se usa el pipeline local 100% auto-hospedado (ver
+    // arriba) para que el usuario nunca se quede sin nada.
+    showToast('Servicio de IA no disponible — usando extracción local');
+    const text = await extractTextLocally(file);
+    const extractedLocal = extractData(text);
+    const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extractedLocal[k]);
 
     if (!mappedKeys.length) {
       showToast('No se detectaron datos — rellénalos manualmente');
       return;
     }
 
-    // Igual que "pegar texto": se muestra el modal de revisión y el
-    // usuario confirma qué aplicar — ya no se escribe directo en el
-    // formulario sin que lo vea antes.
     openImportModal();
     document.getElementById('import-textarea').value = text;
-    renderImportResults(extracted);
+    renderImportResults(extractedLocal);
   } catch (err) {
     console.error('OCR:', err);
     showToast('Error al procesar el documento');
@@ -5428,6 +5650,7 @@ const IMPORT_FIELD_MAP = {
   nombre:           { id: 'f-name',       label: 'NOMBRE' },
   cargo:            { id: 'f-job',        label: 'CARGO / PROFESION' },
   telefono:         { id: 'f-phone',      label: 'TELEFONO' },
+  telefono_fijo:    { id: 'f-landline',   label: 'TELEFONO FIJO' },
   movil:            { id: 'f-mobile',     label: 'MOVIL' },
   email_principal:  { id: 'f-email',      label: 'EMAIL PRINCIPAL' },
   email_secundario: { id: 'f-email2',     label: 'EMAIL SECUNDARIO' },
@@ -5501,28 +5724,67 @@ function extractData(text) {
   if (emails[1]) result.email_secundario = { value: emails[1], confidence: 'high' };
   if (emails[2]) result.email_trabajo    = { value: emails[2], confidence: 'medium' };
 
-  const telMatch = text.match(/(\+34|0034)?[\s.-]?[6789]\d{2}[\s.-]?\d{3}[\s.-]?\d{3}/g);
-  if (telMatch) {
-    const tel = telMatch[0].replace(/[\s.-]/g, '').replace(/^0034/, '+34');
-    result.telefono = { value: tel, confidence: 'high' };
-    if (telMatch[1]) {
-      const tel2 = telMatch[1].replace(/[\s.-]/g, '').replace(/^0034/, '+34');
-      result.movil = { value: tel2, confidence: 'high' };
+  // Teléfonos: primero el patrón español explícito (empieza por 6/7/8/9,
+  // con o sin prefijo +34/0034); si no aparece ninguno, un patrón
+  // internacional genérico (prefijo de país + grupos de dígitos) como red
+  // de seguridad para documentos no españoles. Cuando el texto etiqueta
+  // explícitamente el tipo ("Fijo:", "Móvil:", "Office", "Cell"...) se
+  // respeta esa etiqueta; si no hay etiqueta, se mantiene el criterio
+  // anterior (primer número → telefono, segundo → movil).
+  const TEL_ES_RE = /(\+34|0034)?[\s.-]?[6789]\d{2}[\s.-]?\d{3}[\s.-]?\d{3}/g;
+  const TEL_INTL_RE = /\+\d{1,3}[\s.-]?\(?\d{1,4}\)?(?:[\s.-]?\d{2,4}){2,4}/g;
+
+  let telMatches = [...text.matchAll(TEL_ES_RE)].map(m => m[0]).filter(Boolean);
+  if (!telMatches.length) telMatches = [...text.matchAll(TEL_INTL_RE)].map(m => m[0]);
+
+  if (telMatches.length) {
+    const seen = new Set();
+    let asignoGenerico = false;
+    for (const raw of telMatches) {
+      const clean = raw.replace(/[\s.-]/g, '').replace(/^0034/, '+34');
+      if (!clean || seen.has(clean)) continue;
+      seen.add(clean);
+
+      const idx = text.indexOf(raw);
+      const contexto = text.slice(Math.max(0, idx - 20), idx).toLowerCase();
+
+      if (/fijo|oficina|office|landline/.test(contexto) && !result.telefono_fijo) {
+        result.telefono_fijo = { value: clean, confidence: 'high' };
+      } else if (/m[oó]vil|cel(?:ular)?|mobile|cell/.test(contexto) && !result.movil) {
+        result.movil = { value: clean, confidence: 'high' };
+      } else if (!asignoGenerico) {
+        result.telefono = { value: clean, confidence: 'high' };
+        asignoGenerico = true;
+      } else if (!result.movil) {
+        // Sin etiqueta explícita: el segundo número, como antes, se
+        // asume móvil (patrón típico de tarjeta: fijo primero, móvil
+        // después).
+        result.movil = { value: clean, confidence: 'medium' };
+      }
     }
   }
 
-  const liMatch = text.match(/(?:linkedin\.com\/in\/|linked\s*in[:\s]+|linkedln[:\s]+|linkedin[:\s]+)([\w-]+)/i);
+  // Para cada red: se prueba PRIMERO el patrón anclado al dominio real
+  // (linkedin.com/in/usuario) y solo si no aparece se cae a la etiqueta
+  // suelta ("LinkedIn:", "IG:"...). Si se probara la etiqueta primero,
+  // un texto como "LinkedIn: linkedin.com/in/carlosfr" machearía la
+  // etiqueta ANTES de llegar a la URL real (aparece antes en el string) y
+  // capturaría "linkedin" (el propio dominio) como si fuera el usuario —
+  // bug verificado empíricamente con un .docx de prueba real.
+  let liMatch = text.match(/linkedin\.com\/in\/([\w-]+)/i);
+  if (!liMatch) liMatch = text.match(/(?:linked\s*in[:\s]+|linkedln[:\s]+|linkedin[:\s]+)([\w-]+)/i);
   if (liMatch) result.linkedin = { value: 'https://linkedin.com/in/' + liMatch[1].replace(/^@/, ''), confidence: 'high' };
 
-  const ghMatch = text.match(/(?:github\.com\/|git\s*hub[:\s]+|githb[:\s]+|github[:\s]+)([\w-]+)/i);
+  let ghMatch = text.match(/github\.com\/([\w-]+)/i);
+  if (!ghMatch) ghMatch = text.match(/(?:git\s*hub[:\s]+|githb[:\s]+|github[:\s]+)([\w-]+)/i);
   if (ghMatch) result.github = { value: 'https://github.com/' + ghMatch[1].replace(/^@/, ''), confidence: 'high' };
 
-  // Twitter/X: los patrones explícitos (dominio o etiqueta "tw:"/"twitter:")
-  // son inequívocos. El patrón genérico "@handle" al inicio de línea, sin
-  // más contexto, NO se trata como Twitter si hay evidencia de Instagram/
+  // Twitter/X: el patrón genérico "@handle" al inicio de línea, sin más
+  // contexto, NO se trata como Twitter si hay evidencia de Instagram/
   // TikTok en esa misma línea o en la anterior — evita que un @handle de
   // otra red se etiquete mal solo por empezar con "@".
-  let twMatch = text.match(/(?:twitter\.com\/|x\.com\/|tw(?:itter)?[:\s]+)([\w]+)/i);
+  let twMatch = text.match(/(?:twitter\.com|x\.com)\/([\w]+)/i);
+  if (!twMatch) twMatch = text.match(/tw(?:itter)?[:\s]+([\w]+)/i);
   if (!twMatch) {
     const atMatch = text.match(/^@([\w]+)/m);
     if (atMatch) {
@@ -5537,16 +5799,19 @@ function extractData(text) {
   }
   if (twMatch) result.twitter = { value: '@' + twMatch[1], confidence: 'high' };
 
-  const igMatch = text.match(/(?:instagram\.com\/|ig[:\s]+|insta(?:gram)?[:\s]+)([\w.]+)/i);
+  let igMatch = text.match(/instagram\.com\/([\w.]+)/i);
+  if (!igMatch) igMatch = text.match(/(?:ig[:\s]+|insta(?:gram)?[:\s]+)([\w.]+)/i);
   if (igMatch) result.instagram = { value: 'https://instagram.com/' + igMatch[1], confidence: 'high' };
 
   const webMatches = [...text.matchAll(/https?:\/\/(?!(?:linkedin|github|twitter|instagram|facebook|x\.com))([\w.-]+\.[a-z]{2,}[\w./=?&-]*)/gi)];
   if (webMatches.length) result.web = { value: webMatches[0][0], confidence: 'high' };
 
-  const ytMatch = text.match(/(?:youtube\.com\/(?:c\/|channel\/|@)|you\s*tube[:\s]+)([\w-]+)/i);
+  let ytMatch = text.match(/youtube\.com\/(?:c\/|channel\/|@)([\w-]+)/i);
+  if (!ytMatch) ytMatch = text.match(/you\s*tube[:\s]+([\w-]+)/i);
   if (ytMatch) result.youtube = { value: 'https://youtube.com/@' + ytMatch[1], confidence: 'high' };
 
-  const ttMatch = text.match(/(?:tiktok\.com\/@|tik\s*tok[:\s]+@?)([\w.]+)/i);
+  let ttMatch = text.match(/tiktok\.com\/@([\w.]+)/i);
+  if (!ttMatch) ttMatch = text.match(/tik\s*tok[:\s]+@?([\w.]+)/i);
   if (ttMatch) result.tiktok = { value: 'https://tiktok.com/@' + ttMatch[1], confidence: 'high' };
 
   const waMatch = text.match(/(?:whatsapp[:\s]+|wa[:\s]+)(\+?[\d\s.-]{9,15})/i);
@@ -5578,8 +5843,13 @@ function extractData(text) {
     }
   }
 
-  const CIUDADES = /Madrid|Barcelona|Valencia|Sevilla|Zaragoza|M[aá]laga|Murcia|Palma|Las Palmas|Bilbao|Alicante|C[oó]rdoba|Valladolid|Vigo|Gij[oó]n|Vitoria|La Coru[ñn]a|Granada|Elche|M[eé]xico|Buenos Aires|Colombia|Argentina|, Espa[ñn]a|, M[eé]xico|, Argentina/i;
-  const CIUDADES_WORDS = ['Madrid','Barcelona','Valencia','Sevilla','Zaragoza','Málaga','Murcia','Palma','Bilbao','Alicante','Córdoba','Valladolid','Vigo','Gijón','Vitoria','Granada','Elche','México','Colombia','Argentina'];
+  const CIUDADES = /Madrid|Barcelona|Valencia|Sevilla|Zaragoza|M[aá]laga|Murcia|Palma|Las Palmas|Bilbao|Alicante|C[oó]rdoba|Valladolid|Vigo|Gij[oó]n|Vitoria|La Coru[ñn]a|Granada|Elche|San Sebasti[aá]n|Santander|Salamanca|Pamplona|Almer[ií]a|Tarragona|Girona|M[eé]xico|Ciudad de M[eé]xico|Guadalajara|Monterrey|Bogot[aá]|Medell[ií]n|Buenos Aires|C[oó]rdoba|Rosario|Santiago de Chile|Lima|Quito|Montevideo|Caracas|San Juan|Colombia|Argentina|Chile|Per[uú]|Ecuador|Uruguay|Venezuela|, Espa[ñn]a|, M[eé]xico|, Argentina|, Chile|, Colombia|, Per[uú]/i;
+  const CIUDADES_WORDS = ['Madrid','Barcelona','Valencia','Sevilla','Zaragoza','Málaga','Murcia','Palma','Bilbao','Alicante','Córdoba','Valladolid','Vigo','Gijón','Vitoria','Granada','Elche','Salamanca','Pamplona','Santander','México','Guadalajara','Monterrey','Bogotá','Medellín','Santiago','Lima','Quito','Montevideo','Caracas','Colombia','Argentina','Chile','Perú','Ecuador','Uruguay'];
+  // Línea de dirección de calle (ej. "Calle Mayor 12", "Av. Reforma 200",
+  // "C/ Serrano 45") — complementa la lista cerrada de ciudades: es una
+  // señal más débil (no confirma la ciudad, solo que hay una dirección),
+  // así que va con confidence 'low' y solo si no se encontró ya ciudad.
+  const DIRECCION_RE = /^(?:Calle|C\/|Avda?\.?|Avenida|Av\.|Pl(?:aza)?\.?|Paseo)\s+.+\d/i;
   for (const line of lines) {
     if (line.length >= 80) continue;
     const exacto = CIUDADES.test(line);
@@ -5587,6 +5857,10 @@ function extractData(text) {
       result.ciudad = { value: line, confidence: exacto ? 'medium' : 'low' };
       break;
     }
+  }
+  if (!result.ciudad) {
+    const dirLine = lines.find(l => l.length < 80 && DIRECCION_RE.test(l));
+    if (dirLine) result.ciudad = { value: dirLine, confidence: 'low' };
   }
 
   const UNIV_RE = /Universidad|University|Grado en|M[aá]ster en|Bachelor|Master's/i;
