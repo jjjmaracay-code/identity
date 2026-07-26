@@ -2958,7 +2958,39 @@
       </div>
       <div class="field-wrap">
         <div class="field-label">Teléfono</div>
-        <input class="field-input" id="f-phone" type="tel" placeholder="+34 600 000 000" autocomplete="tel">
+        <div id="f-phone-row" style="display:flex;gap:8px;">
+          <select class="field-input" id="f-phone-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
+            <option value="+34" selected>🇪🇸 +34</option>
+            <option value="+52">🇲🇽 +52</option>
+            <option value="+57">🇨🇴 +57</option>
+            <option value="+54">🇦🇷 +54</option>
+            <option value="+56">🇨🇱 +56</option>
+            <option value="+51">🇵🇪 +51</option>
+            <option value="+58">🇻🇪 +58</option>
+            <option value="+593">🇪🇨 +593</option>
+            <option value="+502">🇬🇹 +502</option>
+            <option value="+53">🇨🇺 +53</option>
+            <option value="+591">🇧🇴 +591</option>
+            <option value="+595">🇵🇾 +595</option>
+            <option value="+503">🇸🇻 +503</option>
+            <option value="+505">🇳🇮 +505</option>
+            <option value="+506">🇨🇷 +506</option>
+            <option value="+507">🇵🇦 +507</option>
+            <option value="+598">🇺🇾 +598</option>
+            <option value="+504">🇭🇳 +504</option>
+            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+55">🇧🇷 +55</option>
+            <option value="+86">🇨🇳 +86</option>
+            <option value="+91">🇮🇳 +91</option>
+            <option value="+81">🇯🇵 +81</option>
+          </select>
+          <input class="field-input" id="f-phone-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+        </div>
       </div>
       <div class="field-wrap">
         <div class="field-label">Email</div>
@@ -4531,7 +4563,10 @@ function buildVCard() {
     vc += `FN:${d.name}\n`;
   }
   if (d.job && t.job !== false)   vc += `TITLE:${d.job}\n`;
-  if (d.phone  && t.phone  !== false) vc += `TEL:${d.phone}\n`;
+  if (d.phoneNumber && t.phone !== false) {
+    const fullPhone = (d.phoneCountryCode ? d.phoneCountryCode + ' ' : '') + d.phoneNumber;
+    vc += `TEL:${fullPhone}\n`;
+  }
   if (d.mobile    && t.mobile !== false)  vc += `TEL;type=CELL:${d.mobile}\n`;
   if (d.landline  && t.landline)          vc += `TEL;type=HOME:${d.landline}\n`;
   if (d.email  && t.email  !== false) vc += `EMAIL:${d.email}\n`;
@@ -5041,7 +5076,8 @@ function openEdit() {
   const t = d.toggles || {};
   document.getElementById('f-name').value    = d.name    || '';
   document.getElementById('f-job').value     = d.job     || '';
-  document.getElementById('f-phone').value   = d.phone   || '';
+  document.getElementById('f-phone-country').value = d.phoneCountryCode || '+34';
+  document.getElementById('f-phone-number').value  = d.phoneNumber      || '';
   document.getElementById('f-email').value   = d.email   || '';
 
   // Nombre y email verificados en el registro: prerellenar y bloquear
@@ -5090,6 +5126,9 @@ function openEdit() {
   function applyRegistrationLock() {
     const fName  = document.getElementById('f-name');
     const fEmail = document.getElementById('f-email');
+    const fPhoneCountry = document.getElementById('f-phone-country');
+    const fPhoneNumber  = document.getElementById('f-phone-number');
+    const fPhoneRow     = document.getElementById('f-phone-row');
     let reg = null;
     try { reg = JSON.parse(localStorage.getItem('identity_registration')); } catch(e) {}
 
@@ -5097,6 +5136,8 @@ function openEdit() {
       // Sin registro: campos editables con normalidad
       fName.disabled = false;
       fEmail.disabled = false;
+      fPhoneCountry.disabled = false;
+      fPhoneNumber.disabled  = false;
       return;
     }
 
@@ -5105,13 +5146,30 @@ function openEdit() {
     fName.disabled  = true;
     fEmail.disabled = true;
 
-    [fName, fEmail].forEach(input => {
-      if (!input.parentElement.querySelector('.reg-locked-note')) {
+    const lockedTargets = [fName, fEmail];
+
+    // El teléfono se pide en el registro desde esta versión — las cuentas
+    // registradas antes de este cambio no tienen phoneCountryCode/
+    // phoneNumber guardados y el campo se queda editable con normalidad
+    // (no se puede bloquear un dato que nunca se pidió al registrarse).
+    if (reg.phoneCountryCode && reg.phoneNumber) {
+      fPhoneCountry.value = reg.phoneCountryCode;
+      fPhoneNumber.value  = reg.phoneNumber;
+      fPhoneCountry.disabled = true;
+      fPhoneNumber.disabled  = true;
+      lockedTargets.push(fPhoneRow);
+    } else {
+      fPhoneCountry.disabled = false;
+      fPhoneNumber.disabled  = false;
+    }
+
+    lockedTargets.forEach(el => {
+      if (!el.parentElement.querySelector('.reg-locked-note')) {
         const note = document.createElement('div');
         note.className = 'reg-locked-note';
         note.textContent = 'Dato de registro · no editable';
         note.style.cssText = 'font-size:9px;letter-spacing:1px;margin-top:3px;color:rgba(170,255,0,0.4);';
-        input.insertAdjacentElement('afterend', note);
+        el.insertAdjacentElement('afterend', note);
       }
     });
   }
@@ -5180,7 +5238,8 @@ function saveProfile() {
   profileData = {
     name:     document.getElementById('f-name').value.trim(),
     job:      document.getElementById('f-job').value.trim(),
-    phone:    document.getElementById('f-phone').value.trim(),
+    phoneCountryCode: document.getElementById('f-phone-country').value,
+    phoneNumber:      document.getElementById('f-phone-number').value.trim(),
     email:    document.getElementById('f-email').value.trim(),
     mobile:    document.getElementById('f-mobile').value.trim(),
     landline:  document.getElementById('f-landline').value.trim(),
@@ -5649,7 +5708,12 @@ setTimeout(renderQRMini, 500);
 const IMPORT_FIELD_MAP = {
   nombre:           { id: 'f-name',       label: 'NOMBRE' },
   cargo:            { id: 'f-job',        label: 'CARGO / PROFESION' },
-  telefono:         { id: 'f-phone',      label: 'TELEFONO' },
+  // "telefono" (el campo genérico #f-phone) ya NO está en este mapa a
+  // propósito: desde el registro con país+número (ver applyRegistrationLock)
+  // ese campo queda bloqueado/de solo lectura para cuentas registradas, y
+  // mapearlo a un único subcampo aquí duplicaría el prefijo de país al
+  // aplicar un resultado de OCR. telefono_fijo/movil siguen editables y
+  // sí se ofrecen con normalidad.
   telefono_fijo:    { id: 'f-landline',   label: 'TELEFONO FIJO' },
   movil:            { id: 'f-mobile',     label: 'MOVIL' },
   email_principal:  { id: 'f-email',      label: 'EMAIL PRINCIPAL' },

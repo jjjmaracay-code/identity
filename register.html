@@ -754,6 +754,44 @@
         </div>
         <div class="field-hint">Recibirás un código de verificación en este correo</div>
       </div>
+
+      <div class="field-wrap">
+        <div class="field-label">Teléfono</div>
+        <div id="r-phone-row" style="display:flex;gap:8px;">
+          <select class="field-input" id="r-phone-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
+            <option value="+34" selected>🇪🇸 +34</option>
+            <option value="+52">🇲🇽 +52</option>
+            <option value="+57">🇨🇴 +57</option>
+            <option value="+54">🇦🇷 +54</option>
+            <option value="+56">🇨🇱 +56</option>
+            <option value="+51">🇵🇪 +51</option>
+            <option value="+58">🇻🇪 +58</option>
+            <option value="+593">🇪🇨 +593</option>
+            <option value="+502">🇬🇹 +502</option>
+            <option value="+53">🇨🇺 +53</option>
+            <option value="+591">🇧🇴 +591</option>
+            <option value="+595">🇵🇾 +595</option>
+            <option value="+503">🇸🇻 +503</option>
+            <option value="+505">🇳🇮 +505</option>
+            <option value="+506">🇨🇷 +506</option>
+            <option value="+507">🇵🇦 +507</option>
+            <option value="+598">🇺🇾 +598</option>
+            <option value="+504">🇭🇳 +504</option>
+            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+55">🇧🇷 +55</option>
+            <option value="+86">🇨🇳 +86</option>
+            <option value="+91">🇮🇳 +91</option>
+            <option value="+81">🇯🇵 +81</option>
+          </select>
+          <input class="field-input" id="r-phone-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+        </div>
+        <div class="field-hint">Se usará como dato de contacto verificado de tu perfil</div>
+      </div>
     </div>
 
     <div class="form-card">
@@ -821,6 +859,12 @@
       <div class="locked-field">
         <div class="locked-icon">🔒</div>
         <div class="locked-value" id="locked-email">—</div>
+      </div>
+
+      <div class="locked-label">Teléfono</div>
+      <div class="locked-field">
+        <div class="locked-icon">🔒</div>
+        <div class="locked-value" id="locked-phone">—</div>
       </div>
     </div>
 
@@ -1240,7 +1284,10 @@ function checkStep1Ready() {
   const email = document.getElementById('r-email').value.trim();
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const pwdOk = validatePwd(pwd1Buffer).valid;
-  const ready = firstname.length >= 2 && lastname.length >= 2 && emailOk && pwdOk && chk1;
+  const phoneCountry = document.getElementById('r-phone-country').value;
+  const phoneNumber = document.getElementById('r-phone-number').value.trim();
+  const phoneOk = !!phoneCountry && phoneNumber.replace(/\s/g, '').length >= 6 && /^[0-9\s]+$/.test(phoneNumber);
+  const ready = firstname.length >= 2 && lastname.length >= 2 && emailOk && pwdOk && phoneOk && chk1;
   document.getElementById('btn-step1').disabled = !ready;
 }
 
@@ -1254,6 +1301,8 @@ function checkStep2Ready() {
 document.getElementById('r-firstname').addEventListener('input', checkStep1Ready);
 document.getElementById('r-lastname').addEventListener('input', checkStep1Ready);
 document.getElementById('r-email').addEventListener('input', checkStep1Ready);
+document.getElementById('r-phone-country').addEventListener('change', checkStep1Ready);
+document.getElementById('r-phone-number').addEventListener('input', checkStep1Ready);
 
 // =================== TEMPORIZADOR ===================
 function startTimer() {
@@ -1296,6 +1345,8 @@ function generateCode() {
 document.getElementById('btn-step1').addEventListener('click', async () => {
   const name  = document.getElementById('r-firstname').value.trim() + ' ' + document.getElementById('r-lastname').value.trim();
   const email = document.getElementById('r-email').value.trim();
+  const phoneCountryCode = document.getElementById('r-phone-country').value;
+  const phoneNumber = document.getElementById('r-phone-number').value.trim();
   const btn   = document.getElementById('btn-step1');
 
   btn.disabled = true;
@@ -1331,7 +1382,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   btn.textContent = 'Enviando código...';
 
   emailCode = generateCode();
-  step1Data = { name, email, pwd: pwd1Buffer };
+  step1Data = { name, email, pwd: pwd1Buffer, phoneCountryCode, phoneNumber };
 
   try {
     const sendRes = await fetch('/api/send-email', {
@@ -1353,6 +1404,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     document.getElementById('screen-2').classList.add('active');
     document.getElementById('locked-name').textContent  = name;
     document.getElementById('locked-email').textContent = email;
+    document.getElementById('locked-phone').textContent = phoneCountryCode + ' ' + phoneNumber;
     document.getElementById('dot-1').classList.remove('active');
     document.getElementById('dot-1').classList.add('done');
     document.getElementById('dot-2').classList.add('active');
@@ -1375,6 +1427,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     document.getElementById('screen-2').classList.add('active');
     document.getElementById('locked-name').textContent  = name;
     document.getElementById('locked-email').textContent = email;
+    document.getElementById('locked-phone').textContent = phoneCountryCode + ' ' + phoneNumber;
     document.getElementById('dot-1').classList.remove('active');
     document.getElementById('dot-1').classList.add('done');
     document.getElementById('dot-2').classList.add('active');
@@ -1440,6 +1493,8 @@ document.getElementById('btn-step2').addEventListener('click', () => {
     email:     step1Data.email,
     verified:  true,
     timestamp: new Date().toISOString(),
+    phoneCountryCode: step1Data.phoneCountryCode,
+    phoneNumber:      step1Data.phoneNumber,
   };
 
   localStorage.setItem(REG_KEY, JSON.stringify(registration));
