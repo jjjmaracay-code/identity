@@ -1460,6 +1460,12 @@ document.getElementById('btn-step2').addEventListener('click', () => {
           // Token opaco que después usa check-plan.js para verificar el
           // plan de este email sin exponerlo a nadie más.
           if (data.token) localStorage.setItem('identity_access_token', data.token);
+          // Herencia de plan por email: si este email ya tenía un plan de
+          // pago (misma cuenta, dispositivo nuevo), se aplica de
+          // inmediato al perfil local recién creado — sin flujo de
+          // recuperación ni token de reclamo, es un registro normal que
+          // ya sabe que este email pagó.
+          if (data.plan) localStorage.setItem('identity_plan', data.plan);
           return;
         }
       } catch (_) {}
