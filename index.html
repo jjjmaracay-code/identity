@@ -3392,7 +3392,7 @@
 <!-- QRCode.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- QR Code Styling -->
-<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
 <!-- OTPAuth (TOTP 2FA) -->
 <script src="https://cdn.jsdelivr.net/npm/otpauth@9.3.2/dist/otpauth.umd.min.js"></script>
 
@@ -4619,6 +4619,13 @@ function makeISvg(bg, fg) {
 function buildQROptions(design, size, data) {
   const isPreview = size <= 100;
   return {
+    // SVG en vez del canvas por defecto de la librería: el modo canvas
+    // dibuja internamente un SVG, lo serializa a un data-URI base64 y lo
+    // carga en un <img> para volcarlo al canvas con drawImage() — ese
+    // paso es un bug de fondo, sin resolver, de Safari/WebKit (el QR sale
+    // en blanco). SVG evita ese rodeo por completo: se construye y se
+    // añade al DOM directamente, sin canvas ni imagen intermedia.
+    type: 'svg',
     width: size, height: size,
     data: data || 'IDENTITY',
     margin: isPreview ? 1 : 5,
@@ -4920,6 +4927,34 @@ async function generateShareLink() {
   return `${window.location.origin}/share.html?token=${data.token}`;
 }
 
+// Comprueba si un blob PNG salió realmente en blanco. getRawData('png')
+// reconstruye un canvas internamente sin importar el `type` de la
+// instancia (ver buildQROptions), así que sigue expuesto al mismo bug de
+// fondo de Safari/WebKit aunque el QR en pantalla ya use SVG. Decodifica
+// el blob en un canvas propio (independiente del pipeline de la
+// librería) y muestrea los píxeles: si casi ninguno tiene contenido
+// real, se trata como "no hay imagen que compartir".
+async function isImageBlobBlank(blob) {
+  try {
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0);
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let nonWhite = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] > 0 && (data[i] < 240 || data[i + 1] < 240 || data[i + 2] < 240)) nonWhite++;
+    }
+    return nonWhite < (data.length / 4) * 0.01; // menos del 1% de píxeles con contenido → en blanco
+  } catch (e) {
+    // Si ni siquiera se puede decodificar el blob, es tan inútil como si
+    // estuviera en blanco — mismo fallback.
+    return true;
+  }
+}
+
 document.getElementById('btn-share').addEventListener('click', async () => {
   if (!isFlipped) {
     isFlipped = true;
@@ -4936,15 +4971,22 @@ document.getElementById('btn-share').addEventListener('click', async () => {
       shareQR.append(tempDiv);
       await new Promise(r => setTimeout(r, 300));
       const blob = await shareQR.getRawData('png');
+      const blank = await isImageBlobBlank(blob);
 
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] })) {
+      if (!blank && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] })) {
         await navigator.share({ title: 'Mi contacto IDENTIFLY', text: profileData.name || 'Contacto', files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] });
-      } else {
+      } else if (!blank) {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'identifly_contacto.png';
         a.click();
         showToast('QR de un solo uso descargado ✓');
+      } else if (navigator.share) {
+        // La imagen salió en blanco (bug de Safari/WebKit) — se comparte
+        // el enlace como texto en vez de una imagen vacía sin avisar.
+        await navigator.share({ title: 'Mi contacto IDENTIFLY', text: `Mi contacto IDENTIFLY: ${shareUrl}`, url: shareUrl });
+      } else {
+        showToast('No se pudo generar la imagen del QR — usa uno de los canales de abajo');
       }
     } catch(e) { showToast('Compartir no disponible'); }
   }, 400);
@@ -4974,22 +5016,30 @@ document.getElementById('btn-share-email')?.addEventListener('click', async () =
     shareQR.append(tempDiv);
     await new Promise(r => setTimeout(r, 300));
     const blob = await shareQR.getRawData('png');
-    const file = new File([blob], 'identifly_contacto.png', { type: 'image/png' });
+    const blank = await isImageBlobBlank(blob);
+    const subject = encodeURIComponent('Mi contacto IDENTIFLY');
 
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: 'Mi contacto IDENTIFLY',
-        text: `Aquí tienes mi contacto (enlace de un solo uso): ${shareUrl}`,
-        files: [file]
-      });
+    if (!blank) {
+      const file = new File([blob], 'identifly_contacto.png', { type: 'image/png' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Mi contacto IDENTIFLY',
+          text: `Aquí tienes mi contacto (enlace de un solo uso): ${shareUrl}`,
+          files: [file]
+        });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'identifly_contacto.png';
+        a.click();
+        const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}\n\nAdjunta también la imagen del QR que se acaba de descargar.`);
+        setTimeout(() => { window.location.href = `mailto:?subject=${subject}&body=${body}`; }, 500);
+      }
     } else {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'identifly_contacto.png';
-      a.click();
-      const subject = encodeURIComponent('Mi contacto IDENTIFLY');
-      const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}\n\nAdjunta también la imagen del QR que se acaba de descargar.`);
-      setTimeout(() => { window.location.href = `mailto:?subject=${subject}&body=${body}`; }, 500);
+      // La imagen salió en blanco (bug de Safari/WebKit) — se comparte el
+      // enlace por email como texto, sin adjuntar una imagen vacía.
+      const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}`);
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
   } catch(e) { showToast('No se pudo generar el enlace'); }
 });
