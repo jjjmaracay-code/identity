@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="icons/icon-512.png">
 <title>IDENTIFLY</title>
 <link rel="canonical" href="https://www.identifly.app/">
+<script src="storage-wipe.js"></script>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -5128,15 +5129,14 @@ document.getElementById('btn-cancel-delete').addEventListener('click', () => {
   deleteScreen.style.pointerEvents = 'none';
 });
 
-document.getElementById('btn-confirm-delete').addEventListener('click', () => {
-  // Eliminar TODOS los datos de localStorage
-  const keys = [
-    'identity_data', 'identity_pin', 'identity_consent',
-    'identity_totp_secret', 'identity_totp_salt', 'identity_2fa_config',
-    'identity_registration', 'identity_plan', 'identity_backup_code',
-    'identity_attempts', 'identity_block_until'
-  ];
-  keys.forEach(k => localStorage.removeItem(k));
+document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+  // El borrado real (IndexedDB, localStorage/sessionStorage completos,
+  // Cache Storage, Service Worker, sesión de servidor, push) vive en
+  // storage-wipe.js, compartido con "Borrar todo" de recovery.html —
+  // aquí solo se dispara y se maneja lo específico de esta pantalla
+  // (reset de estado en memoria + volver a consentimiento, en vez de
+  // navegar a otra página).
+  await borrarTodoElAlmacenamiento();
 
   // Resetear estado en memoria
   profileData = {};

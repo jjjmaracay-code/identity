@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="icons/icon-512.png">
 <title>IDENTIFLY · Recuperación</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="storage-wipe.js"></script>
 
 <style>
   :root {
@@ -1153,7 +1154,7 @@ document.getElementById('btn-phase3').addEventListener('click', () => {
   // Guardar nueva contraseña
   localStorage.setItem('identity_pin', newPwdBuffer);
   // Resetear intentos fallidos
-  localStorage.removeItem('identity_failed_attempts');
+  localStorage.removeItem('identity_attempts');
   localStorage.removeItem('identity_block_until');
 
   goToScreen('screen-success');
@@ -1163,11 +1164,21 @@ document.getElementById('btn-phase3').addEventListener('click', () => {
 });
 
 // =================== BORRAR TODO ===================
-document.getElementById('btn-confirm-delete').addEventListener('click', () => {
-  const keys = ['identity_data','identity_pin','identity_consent','identity_registration',
-                 'identity_totp_secret','identity_bio_credential','identity_2fa_config',
-                 'identity_backup_code','identity_failed_attempts','identity_block_until'];
-  keys.forEach(k => localStorage.removeItem(k));
+// La lógica de borrado en sí vive en storage-wipe.js (compartida con
+// la "Baja voluntaria" de index.html) — aquí solo se dispara y se
+// decide qué hacer después, que es específico de esta pantalla.
+document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-confirm-delete');
+  if (btn) { btn.disabled = true; btn.textContent = 'Borrando…'; }
+
+  await borrarTodoElAlmacenamiento();
+
+  // Navegar SOLO tras confirmar que el borrado terminó — ya se esperó
+  // con await, así que no hay condición de carrera con un borrado
+  // todavía en curso. Se navega a register.html (no un reload de esta
+  // misma pantalla) porque es el estado real de "instalación nueva" de
+  // esta app — recargar recovery.html dejaría al usuario en la
+  // pantalla de recuperación, no en el arranque limpio.
   window.location.href = 'register.html';
 });
 
