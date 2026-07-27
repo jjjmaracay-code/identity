@@ -3811,18 +3811,26 @@ function handlePinInput(char) {
   const DRAG_THRESHOLD = 15; // px — ignora micro-drift de un tap estático
   render();
   container.addEventListener('touchstart', function(e) {
-    e.preventDefault();
     var t = e.changedTouches[0];
     _touchStartX = t.clientX; _touchStartY = t.clientY;
     var el = document.elementFromPoint(t.clientX, t.clientY);
     var btn = el && el.closest('button.qwerty-key');
-    if (btn && btn._kbdAction) { _dragKey = btn; btn._kbdAction(); btn._touchHandledAt = Date.now(); btn.classList.add('kbd-pressed'); }
+    if (btn && btn._kbdAction) { e.preventDefault(); _dragKey = btn; btn._kbdAction(); btn._touchHandledAt = Date.now(); btn.classList.add('kbd-pressed'); }
   }, { passive: false });
   container.addEventListener('touchmove', function(e) {
-    e.preventDefault();
     var t = e.changedTouches[0];
     var dx = t.clientX - _touchStartX, dy = t.clientY - _touchStartY;
     if (Math.sqrt(dx*dx + dy*dy) < DRAG_THRESHOLD) return;
+    // Gesto predominantemente vertical = intento real de hacer scroll de la
+    // pantalla (el teclado ocupa buena parte del alto en pantallas pequeñas
+    // y antes bloqueaba cualquier scroll que empezara sobre él). No se
+    // interfiere: se suelta la tecla presionada y se deja que el navegador
+    // haga scroll con su gesto nativo.
+    if (Math.abs(dy) > Math.abs(dx)) {
+      if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; }
+      return;
+    }
+    e.preventDefault();
     var el = document.elementFromPoint(t.clientX, t.clientY);
     var btn = el && el.closest('button.qwerty-key');
     if (!btn) { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } return; }
