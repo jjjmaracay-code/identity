@@ -1171,7 +1171,16 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
   const btn = document.getElementById('btn-confirm-delete');
   if (btn) { btn.disabled = true; btn.textContent = 'Borrando…'; }
 
-  await borrarTodoElAlmacenamiento();
+  // borrarTodoElAlmacenamiento() ya protege cada paso con timeout (ver
+  // storage-wipe.js), así que no debería rechazar — pero este try/catch
+  // es la última red: si algo inesperado lanza de todos modos, queda
+  // registrado en consola en vez de dejar el botón atascado en
+  // "Borrando…" para siempre sin ningún rastro del fallo.
+  try {
+    await borrarTodoElAlmacenamiento();
+  } catch (e) {
+    console.error('[BORRAR TODO] Fallo inesperado al invocar borrarTodoElAlmacenamiento():', e);
+  }
 
   // Navegar SOLO tras confirmar que el borrado terminó — ya se esperó
   // con await, así que no hay condición de carrera con un borrado

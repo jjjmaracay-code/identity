@@ -5475,7 +5475,17 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
   // aquí solo se dispara y se maneja lo específico de esta pantalla
   // (reset de estado en memoria + volver a consentimiento, en vez de
   // navegar a otra página).
-  await borrarTodoElAlmacenamiento();
+  //
+  // borrarTodoElAlmacenamiento() ya protege cada paso con timeout (ver
+  // storage-wipe.js), así que no debería rechazar — pero este try/catch
+  // es la última red: si algo inesperado lanza de todos modos, queda
+  // registrado en consola en vez de dejar la pantalla atascada sin
+  // ningún rastro del fallo.
+  try {
+    await borrarTodoElAlmacenamiento();
+  } catch (e) {
+    console.error('[BORRAR TODO] Fallo inesperado al invocar borrarTodoElAlmacenamiento():', e);
+  }
 
   // Resetear estado en memoria
   profileData = {};

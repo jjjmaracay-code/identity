@@ -13,6 +13,30 @@
 // Worker se enumeran dinámicamente (nunca por nombre fijo) y se
 // verifican con una lectura posterior — un catch sin error no prueba
 // que el borrado ocurrió de verdad.
+
+// Safari/WebKit tiene bugs documentados donde una llamada a IndexedDB
+// se queda colgada para siempre, sin resolver NI rechazar su Promise
+// (bug de WebKit #226547 — indexedDB.open() colgado en Safari 14.6 /
+// iOS 14.6, corregido en 14.7, pero sin garantía de que una variante
+// equivalente no exista en dispositivos con iOS desactualizado). Sin
+// este envoltorio, un solo cuelgue deja el "await" esperando para
+// siempre: el botón se queda en "Borrando…" sin ningún error en
+// consola, y el resto de los pasos (localStorage, caches, service
+// worker) nunca llegan a ejecutarse. Cada llamada a una API nativa que
+// pueda colgarse pasa por aquí.
+function conTimeout(promesa, ms, etiqueta) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => {
+      reject(new Error(`tiempo de espera agotado (${ms}ms) en "${etiqueta}" — la API nativa no respondió (ver bug de WebKit #226547 sobre IndexedDB colgado en Safari/iOS)`));
+    }, ms);
+    promesa.then(
+      v => { clearTimeout(t); resolve(v); },
+      e => { clearTimeout(t); reject(e); }
+    );
+  });
+}
+const WIPE_TIMEOUT_MS = 5000;
+
 async function borrarTodoElAlmacenamiento() {
   const resultados = [];
   function log(paso, ok, detalle) {
@@ -28,14 +52,16 @@ async function borrarTodoElAlmacenamiento() {
   // antemano.
   try {
     if (indexedDB.databases) {
-      const antes = await indexedDB.databases();
-      await Promise.all(antes.map(db => new Promise(resolve => {
+      const antes = await conTimeout(indexedDB.databases(), WIPE_TIMEOUT_MS, 'indexedDB.databases() inicial');
+      await Promise.all(antes.map(db => conTimeout(new Promise(resolve => {
         const req = indexedDB.deleteDatabase(db.name);
         req.onsuccess = () => resolve();
         req.onerror = () => resolve();
         req.onblocked = () => resolve();
+      }), WIPE_TIMEOUT_MS, `indexedDB.deleteDatabase("${db.name}")`).catch(e => {
+        log('IndexedDB', false, `no se pudo borrar "${db.name}": ${e.message}`);
       })));
-      const despues = await indexedDB.databases();
+      const despues = await conTimeout(indexedDB.databases(), WIPE_TIMEOUT_MS, 'indexedDB.databases() final');
       log('IndexedDB', despues.length === 0,
         `${antes.length} base(s) encontradas [${antes.map(d => d.name).join(', ') || 'ninguna'}], ${despues.length} restante(s) tras borrar`);
     } else {
@@ -46,7 +72,7 @@ async function borrarTodoElAlmacenamiento() {
   }
 
   // 2) localStorage y sessionStorage — borrado completo, no selectivo
-  // por claves.
+  // por claves. Operación síncrona: no necesita conTimeout.
   try {
     localStorage.clear();
     sessionStorage.clear();
@@ -63,9 +89,11 @@ async function borrarTodoElAlmacenamiento() {
   // intacta.
   try {
     if ('caches' in window) {
-      const nombres = await caches.keys();
-      await Promise.all(nombres.map(n => caches.delete(n)));
-      const restantes = await caches.keys();
+      const nombres = await conTimeout(caches.keys(), WIPE_TIMEOUT_MS, 'caches.keys() inicial');
+      await Promise.all(nombres.map(n => conTimeout(caches.delete(n), WIPE_TIMEOUT_MS, `caches.delete("${n}")`).catch(e => {
+        log('Cache Storage', false, `no se pudo borrar "${n}": ${e.message}`);
+      })));
+      const restantes = await conTimeout(caches.keys(), WIPE_TIMEOUT_MS, 'caches.keys() final');
       log('Cache Storage', restantes.length === 0,
         `${nombres.length} caché(s) encontradas [${nombres.join(', ') || 'ninguna'}], ${restantes.length} restante(s)`);
     } else {
@@ -79,9 +107,11 @@ async function borrarTodoElAlmacenamiento() {
   // (las dos mencionadas arriba), no solo una supuesta.
   try {
     if ('serviceWorker' in navigator) {
-      const antes = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(antes.map(r => r.unregister()));
-      const despues = await navigator.serviceWorker.getRegistrations();
+      const antes = await conTimeout(navigator.serviceWorker.getRegistrations(), WIPE_TIMEOUT_MS, 'serviceWorker.getRegistrations() inicial');
+      await Promise.all(antes.map(r => conTimeout(r.unregister(), WIPE_TIMEOUT_MS, 'serviceWorkerRegistration.unregister()').catch(e => {
+        log('Service Worker', false, `no se pudo desregistrar: ${e.message}`);
+      })));
+      const despues = await conTimeout(navigator.serviceWorker.getRegistrations(), WIPE_TIMEOUT_MS, 'serviceWorker.getRegistrations() final');
       log('Service Worker', despues.length === 0,
         `${antes.length} registro(s) encontrados, ${despues.length} restante(s)`);
     } else {
@@ -117,10 +147,10 @@ async function borrarTodoElAlmacenamiento() {
   // futuro, en vez de omitirlo.
   try {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-      const reg = await navigator.serviceWorker.getRegistration();
-      const sub = reg ? await reg.pushManager.getSubscription() : null;
+      const reg = await conTimeout(navigator.serviceWorker.getRegistration(), WIPE_TIMEOUT_MS, 'serviceWorker.getRegistration()');
+      const sub = reg ? await conTimeout(reg.pushManager.getSubscription(), WIPE_TIMEOUT_MS, 'pushManager.getSubscription()') : null;
       if (sub) {
-        await sub.unsubscribe();
+        await conTimeout(sub.unsubscribe(), WIPE_TIMEOUT_MS, 'pushSubscription.unsubscribe()');
         log('Push', true, 'suscripción encontrada y cancelada');
       } else {
         log('Push', true, 'sin suscripción push activa — no aplica');
