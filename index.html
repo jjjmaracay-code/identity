@@ -3003,11 +3003,75 @@
       </div>
       <div class="field-wrap">
         <div class="field-label">Teléfono móvil</div>
-        <input class="field-input" id="f-mobile" type="tel" placeholder="+34 600 000 000" autocomplete="tel">
+        <div id="f-mobile-row" style="display:flex;gap:8px;">
+          <select class="field-input" id="f-mobile-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
+            <option value="+34" selected>🇪🇸 +34</option>
+            <option value="+52">🇲🇽 +52</option>
+            <option value="+57">🇨🇴 +57</option>
+            <option value="+54">🇦🇷 +54</option>
+            <option value="+56">🇨🇱 +56</option>
+            <option value="+51">🇵🇪 +51</option>
+            <option value="+58">🇻🇪 +58</option>
+            <option value="+593">🇪🇨 +593</option>
+            <option value="+502">🇬🇹 +502</option>
+            <option value="+53">🇨🇺 +53</option>
+            <option value="+591">🇧🇴 +591</option>
+            <option value="+595">🇵🇾 +595</option>
+            <option value="+503">🇸🇻 +503</option>
+            <option value="+505">🇳🇮 +505</option>
+            <option value="+506">🇨🇷 +506</option>
+            <option value="+507">🇵🇦 +507</option>
+            <option value="+598">🇺🇾 +598</option>
+            <option value="+504">🇭🇳 +504</option>
+            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+55">🇧🇷 +55</option>
+            <option value="+86">🇨🇳 +86</option>
+            <option value="+91">🇮🇳 +91</option>
+            <option value="+81">🇯🇵 +81</option>
+          </select>
+          <input class="field-input" id="f-mobile-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+        </div>
       </div>
       <div class="field-wrap">
         <div class="field-label">Teléfono fijo</div>
-        <input class="field-input" id="f-landline" type="tel" placeholder="+34 910 000 000" autocomplete="tel">
+        <div id="f-landline-row" style="display:flex;gap:8px;">
+          <select class="field-input" id="f-landline-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
+            <option value="+34" selected>🇪🇸 +34</option>
+            <option value="+52">🇲🇽 +52</option>
+            <option value="+57">🇨🇴 +57</option>
+            <option value="+54">🇦🇷 +54</option>
+            <option value="+56">🇨🇱 +56</option>
+            <option value="+51">🇵🇪 +51</option>
+            <option value="+58">🇻🇪 +58</option>
+            <option value="+593">🇪🇨 +593</option>
+            <option value="+502">🇬🇹 +502</option>
+            <option value="+53">🇨🇺 +53</option>
+            <option value="+591">🇧🇴 +591</option>
+            <option value="+595">🇵🇾 +595</option>
+            <option value="+503">🇸🇻 +503</option>
+            <option value="+505">🇳🇮 +505</option>
+            <option value="+506">🇨🇷 +506</option>
+            <option value="+507">🇵🇦 +507</option>
+            <option value="+598">🇺🇾 +598</option>
+            <option value="+504">🇭🇳 +504</option>
+            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+55">🇧🇷 +55</option>
+            <option value="+86">🇨🇳 +86</option>
+            <option value="+91">🇮🇳 +91</option>
+            <option value="+81">🇯🇵 +81</option>
+          </select>
+          <input class="field-input" id="f-landline-number" type="tel" placeholder="910 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+        </div>
       </div>
       <div class="field-wrap">
         <div class="field-label">Correo secundario</div>
@@ -4575,8 +4639,14 @@ function buildVCard() {
     const fullPhone = (d.phoneCountryCode ? d.phoneCountryCode + ' ' : '') + d.phoneNumber;
     vc += `TEL:${fullPhone}\n`;
   }
-  if (d.mobile    && t.mobile !== false)  vc += `TEL;type=CELL:${d.mobile}\n`;
-  if (d.landline  && t.landline)          vc += `TEL;type=HOME:${d.landline}\n`;
+  if (d.mobileNumber && t.mobile !== false) {
+    const fullMobile = (d.mobileCountryCode ? d.mobileCountryCode + ' ' : '') + d.mobileNumber;
+    vc += `TEL;type=CELL:${fullMobile}\n`;
+  }
+  if (d.landlineNumber && t.landline) {
+    const fullLandline = (d.landlineCountryCode ? d.landlineCountryCode + ' ' : '') + d.landlineNumber;
+    vc += `TEL;type=HOME:${fullLandline}\n`;
+  }
   if (d.email  && t.email  !== false) vc += `EMAIL:${d.email}\n`;
   if (d.email2    && t.email2)            vc += `EMAIL;type=HOME:${d.email2}\n`;
   if (d.emailWork && t.emailWork)         vc += `EMAIL;type=WORK:${d.emailWork}\n`;
@@ -5137,11 +5207,13 @@ function openEdit() {
   document.getElementById('f-phone-country').value = d.phoneCountryCode || '+34';
   document.getElementById('f-phone-number').value  = d.phoneNumber      || '';
   document.getElementById('f-email').value   = d.email   || '';
+  document.getElementById('f-mobile-country').value   = d.mobileCountryCode   || '+34';
+  document.getElementById('f-mobile-number').value    = d.mobileNumber        || '';
+  document.getElementById('f-landline-country').value = d.landlineCountryCode || '+34';
+  document.getElementById('f-landline-number').value  = d.landlineNumber      || '';
 
   // Nombre y email verificados en el registro: prerellenar y bloquear
   applyRegistrationLock();
-  document.getElementById('f-mobile').value     = d.mobile    || '';
-  document.getElementById('f-landline').value   = d.landline  || '';
   document.getElementById('f-email2').value     = d.email2    || '';
   document.getElementById('f-email-work').value = d.emailWork || '';
   document.getElementById('f-company').value    = d.company   || '';
@@ -5299,8 +5371,10 @@ function saveProfile() {
     phoneCountryCode: document.getElementById('f-phone-country').value,
     phoneNumber:      document.getElementById('f-phone-number').value.trim(),
     email:    document.getElementById('f-email').value.trim(),
-    mobile:    document.getElementById('f-mobile').value.trim(),
-    landline:  document.getElementById('f-landline').value.trim(),
+    mobileCountryCode:   document.getElementById('f-mobile-country').value,
+    mobileNumber:        document.getElementById('f-mobile-number').value.trim(),
+    landlineCountryCode: document.getElementById('f-landline-country').value,
+    landlineNumber:      document.getElementById('f-landline-number').value.trim(),
     email2:    document.getElementById('f-email2').value.trim(),
     emailWork: document.getElementById('f-email-work').value.trim(),
     company:   document.getElementById('f-company').value.trim(),
@@ -5778,12 +5852,14 @@ const IMPORT_FIELD_MAP = {
   cargo:            { id: 'f-job',        label: 'CARGO / PROFESION' },
   // "telefono" (el campo genérico #f-phone) ya NO está en este mapa a
   // propósito: desde el registro con país+número (ver applyRegistrationLock)
-  // ese campo queda bloqueado/de solo lectura para cuentas registradas, y
-  // mapearlo a un único subcampo aquí duplicaría el prefijo de país al
-  // aplicar un resultado de OCR. telefono_fijo/movil siguen editables y
-  // sí se ofrecen con normalidad.
-  telefono_fijo:    { id: 'f-landline',   label: 'TELEFONO FIJO' },
-  movil:            { id: 'f-mobile',     label: 'MOVIL' },
+  // ese campo queda bloqueado/de solo lectura para cuentas registradas.
+  // telefono_fijo/movil siguen editables y sí se ofrecen con normalidad —
+  // ahora usan countryId+numberId (en vez de id) porque, igual que #f-phone,
+  // pasaron a ser un selector de país + campo de número separados; el
+  // bucle que aplica los resultados (btn-apply-all) reconoce este par y
+  // reparte el valor extraído entre ambos con parseTelefono().
+  telefono_fijo:    { countryId: 'f-landline-country', numberId: 'f-landline-number', label: 'TELEFONO FIJO' },
+  movil:            { countryId: 'f-mobile-country',   numberId: 'f-mobile-number',   label: 'MOVIL' },
   email_principal:  { id: 'f-email',      label: 'EMAIL PRINCIPAL' },
   email_secundario: { id: 'f-email2',     label: 'EMAIL SECUNDARIO' },
   email_trabajo:    { id: 'f-email-work', label: 'EMAIL TRABAJO' },
@@ -5797,6 +5873,26 @@ const IMPORT_FIELD_MAP = {
   youtube:          { id: 'f-youtube',    label: 'YOUTUBE' },
   tiktok:           { id: 'f-tiktok',     label: 'TIKTOK' },
 };
+
+// Reparte un teléfono extraído (texto libre, tal como lo detecta
+// extractData()) entre el <select> de país y el <input> de número de un
+// campo de teléfono de dos partes. Busca el prefijo más largo primero
+// (p.ej. "+591" antes que "+5x") para no confundir códigos de país que
+// comparten el mismo dígito inicial. Si no reconoce ningún prefijo, no se
+// pierde el dato: el país seleccionado se deja como está y el texto
+// completo va al campo de número.
+function parseTelefono(valor, selectEl) {
+  const codigos = Array.from(selectEl.options)
+    .map(o => o.value)
+    .sort((a, b) => b.length - a.length);
+  const limpio = valor.trim();
+  for (const codigo of codigos) {
+    if (limpio.startsWith(codigo)) {
+      return { codigo, numero: limpio.slice(codigo.length).trim() };
+    }
+  }
+  return { codigo: null, numero: limpio };
+}
 
 // Distancia de Levenshtein (ediciones mínimas para convertir a en b) —
 // sin librería, tal como se pidió. Captura de forma genérica confusiones
@@ -6138,6 +6234,20 @@ function _importModalSetup() {
       const value = row.querySelector('.import-value').textContent;
       const mapping = IMPORT_FIELD_MAP[key];
       if (!mapping) return;
+
+      // Campos de teléfono de dos partes (país + número): repartir el
+      // valor extraído entre ambos en vez de asignarlo a un único input.
+      if (mapping.countryId && mapping.numberId) {
+        const selectEl = document.getElementById(mapping.countryId);
+        const numberEl = document.getElementById(mapping.numberId);
+        if (!selectEl || !numberEl) return;
+        const { codigo, numero } = parseTelefono(value, selectEl);
+        if (codigo) selectEl.value = codigo;
+        numberEl.value = numero;
+        if (!firstEl) firstEl = numberEl;
+        return;
+      }
+
       const input = document.getElementById(mapping.id);
       if (!input) return;
       input.value = value;
