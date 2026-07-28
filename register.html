@@ -1358,31 +1358,33 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   btn.disabled = true;
   btn.textContent = 'Comprobando...';
 
-  function showEmailAlreadyRegistered(btn) {
-    btn.disabled = false;
-    btn.textContent = 'Continuar — Enviar código al correo';
-    showToast('Este correo ya tiene una cuenta en IDENTIFLY');
-    const emailInput = document.getElementById('r-email');
-    if (emailInput) {
-      emailInput.style.borderColor = 'rgba(255,68,68,0.6)';
-      emailInput.style.boxShadow = '0 0 8px rgba(255,68,68,0.25)';
-    }
+  // Aviso INFORMATIVO, no bloqueante: si el email ya tiene cuenta, ya no
+  // cortamos el flujo aquí. register-complete.js exige verificación real
+  // de código (ver commit anterior) antes de reutilizar/crear token, así
+  // que dejar continuar el registro completo ya es seguro — la barrera
+  // 409 anterior en send-email.js era la única protección real que
+  // había, y ahora es redundante y solo estorbaba a usuarios legítimos
+  // que perdieron su dispositivo (ver recovery.html, que no tiene ningún
+  // camino real para ese caso).
+  function mostrarAvisoCuentaExistente() {
+    showToast('Ya tienes una cuenta con este correo — al completar el registro recuperarás tu acceso');
     if (!document.getElementById('email-exists-msg')) {
       const msg = document.createElement('div');
       msg.id = 'email-exists-msg';
-      msg.style.cssText = 'font-size:12px;color:rgba(255,100,100,0.85);text-align:center;margin-top:8px;line-height:1.6;font-family:Inter,sans-serif;';
-      msg.innerHTML = 'Este correo ya tiene una cuenta. Si perdiste acceso a tu dispositivo, <a href="recovery.html" style="color:#AAFF00;text-decoration:underline;">recupera tu cuenta aquí</a>.';
+      msg.style.cssText = 'font-size:12px;color:rgba(170,255,0,0.85);text-align:center;margin-top:8px;line-height:1.6;font-family:Inter,sans-serif;';
+      msg.textContent = 'Ya tienes una cuenta con este correo. Al completar la verificación recuperarás tu acceso.';
       btn.insertAdjacentElement('afterend', msg);
     }
   }
 
-  // Comprobar si el email ya tiene una cuenta registrada
+  // Comprobar si el email ya tiene una cuenta registrada — solo para
+  // mostrar el aviso de arriba, ya no bloquea el flujo.
   try {
     const checkRes = await fetch('/api/check-email?email=' + encodeURIComponent(email));
     const checkData = await checkRes.json();
-    if (checkData.registered) { showEmailAlreadyRegistered(btn); return; }
+    if (checkData.registered) mostrarAvisoCuentaExistente();
   } catch (_) {
-    // Si check-email falla (sin conexión), dejamos continuar — el servidor lo bloqueará en send-email
+    // Si check-email falla (sin conexión), seguimos igual — ya no es una comprobación bloqueante
   }
 
   btn.textContent = 'Enviando código...';
@@ -1398,7 +1400,6 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ template: 'verification', to_name: name, to_email: email })
     });
-    if (sendRes.status === 409) { showEmailAlreadyRegistered(btn); return; }
     if (!sendRes.ok) {
       const errData = await sendRes.json().catch(() => ({}));
       showToast(errData.error || 'Error al enviar el código — inténtalo de nuevo');

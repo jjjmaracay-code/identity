@@ -59,17 +59,15 @@ export async function onRequestPost(context) {
     rl.count++; rl.dayCount++;
     await env.PLANS_KV.put(rlKey, JSON.stringify(rl), { expirationTtl: LONG_WINDOW });
 
-    // Defensa en profundidad: bloquear re-registro de emails ya registrados.
-    // Solo aplica a 'verification' (flujo de registro nuevo).
-    // 'backup' y templates de recovery se usan cuando el email YA está registrado — no bloquear.
-    if (template === 'verification') {
-      const existing = await env.PLANS_KV.get('reg:' + to_email.toLowerCase());
-      if (existing) {
-        return new Response(JSON.stringify({ error: 'already_registered' }), {
-          status: 409, headers: { 'Content-Type': 'application/json' }
-        });
-      }
-    }
+    // Ya NO se bloquea el re-registro de emails ya existentes aquí. Antes
+    // esta era la única barrera real contra reclamar una cuenta ajena;
+    // ahora que register-complete.js exige y valida un código real de
+    // verificación (ver más abajo y register-complete.js), esta barrera
+    // adicional es redundante y solo le cerraba la puerta a usuarios
+    // legítimos que perdieron su dispositivo — recovery.html no tiene
+    // ningún camino real para ese caso, así que dejar completar un
+    // registro nuevo (con verificación real de código) es la única forma
+    // de recuperar acceso.
 
     // El código de verificación se genera y se guarda AQUÍ, en el
     // servidor — nunca lo decide el cliente. register-complete.js lo lee
