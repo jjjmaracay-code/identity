@@ -3482,26 +3482,33 @@ function _trialBloqueadoLocal() {
   return _days >= 30 && !PLANES_PAGO.includes(localStorage.getItem('identity_plan'));
 }
 
-// Red de seguridad para el registro fire-and-forget de register.html: si
-// los 3 intentos de escribir reg:{email} en KV fallaron ahí (ej. red
-// inestable justo al instalar la PWA), register.html deja la bandera
-// identity_kv_sync_pending — el registro local ya quedó guardado y el
-// usuario sigue usando la app con normalidad, sin ninguna señal de que el
-// servidor nunca se enteró. Aquí se reintenta una vez por carga de
-// index.html, en segundo plano, hasta que tenga éxito.
+// Red de seguridad para la verificación fire-and-forget de register.html:
+// si hubo un fallo de red o del servidor justo al llamar a
+// register-complete.js (ej. red inestable al instalar la PWA),
+// register.html deja la bandera identity_kv_sync_pending junto con el
+// código de verificación que el usuario ya escribió correctamente — el
+// registro local ya quedó guardado y el usuario sigue usando la app con
+// normalidad, sin ninguna señal de que el servidor nunca se enteró. Aquí
+// se reintenta una vez por carga de index.html, en segundo plano, hasta
+// que tenga éxito. El código sigue siendo válido en el servidor durante
+// los 10 minutos posteriores a su envío (ver send-email.js) — pasado ese
+// tiempo, register-complete.js lo rechazará y el reintento dejará de
+// poder completarse (el usuario tendría que registrarse de nuevo).
 (async function _reintentarRegistroPendiente() {
   if (localStorage.getItem('identity_kv_sync_pending') !== 'true') return;
   if (!_reg.email) return;
+  const pendingCode = localStorage.getItem('identity_pending_verify_code') || '';
   try {
     const res = await fetch('/api/register-complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: _reg.email, name: _reg.name })
+      body: JSON.stringify({ email: _reg.email, name: _reg.name, code: pendingCode })
     });
     if (res.ok) {
       const data = await res.json();
       if (data.token) localStorage.setItem('identity_access_token', data.token);
       localStorage.removeItem('identity_kv_sync_pending');
+      localStorage.removeItem('identity_pending_verify_code');
     }
   } catch (_) { /* sigue sin red — se reintentará en la próxima carga */ }
 })();

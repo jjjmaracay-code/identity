@@ -13,11 +13,22 @@ export async function onRequestPost(context) {
 
   try {
     const body = await request.json();
-    const { template, to_email, to_name, code, app_name, subject, alert, intro, message_title, message } = body;
+    const { template, to_email, to_name, app_name, subject, alert, intro, message_title, message } = body;
+    let code = body.code;
     const safeName = escapeHtml(to_name);
 
-    if (!to_email || !code) {
-      return new Response(JSON.stringify({ error: 'Faltan to_email o code' }), {
+    if (!to_email) {
+      return new Response(JSON.stringify({ error: 'Falta to_email' }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    // 'verification' genera y guarda su propio código más abajo — no lo
+    // acepta del cliente (ver nota junto a la generación). El resto de
+    // templates (p.ej. 'backup', un código permanente que no se valida
+    // contra ninguna acción posterior) siguen recibiéndolo del cliente,
+    // sin cambios.
+    if (template !== 'verification' && !code) {
+      return new Response(JSON.stringify({ error: 'Falta code' }), {
         status: 400, headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -58,6 +69,22 @@ export async function onRequestPost(context) {
           status: 409, headers: { 'Content-Type': 'application/json' }
         });
       }
+    }
+
+    // El código de verificación se genera y se guarda AQUÍ, en el
+    // servidor — nunca lo decide el cliente. register-complete.js lo lee
+    // de esta misma clave ('verify:' + email) para validar de verdad que
+    // quien completa el registro es quien recibió este correo, en vez de
+    // confiar en una comparación que antes se hacía solo en el navegador
+    // (ver register-complete.js para el porqué). Caduca a los 10 minutos,
+    // igual que ya prometía el propio texto del correo de abajo.
+    if (template === 'verification') {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+      await env.PLANS_KV.put(
+        'verify:' + to_email.toLowerCase(),
+        JSON.stringify({ code, createdAt: Date.now() }),
+        { expirationTtl: 600 }
+      );
     }
 
     let html, finalSubject;

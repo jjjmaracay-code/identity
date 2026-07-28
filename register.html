@@ -978,7 +978,6 @@ if (localStorage.getItem('identity_data') || localStorage.getItem(REG_KEY)) {
 }
 
 let step1Data = {};
-let emailCode = '';
 let codeBuffer = '';
 let pwd1Buffer = '';
 let pwd2Buffer = '';
@@ -1388,14 +1387,16 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
 
   btn.textContent = 'Enviando código...';
 
-  emailCode = generateCode();
+  // El código ya no se genera aquí — send-email.js lo genera y lo guarda
+  // en el servidor (ver register-complete.js, que es quien lo valida de
+  // verdad).
   step1Data = { name, email, pwd: pwd1Buffer, phoneCountryCode, phoneNumber };
 
   try {
     const sendRes = await fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ template: 'verification', to_name: name, to_email: email, code: emailCode })
+      body: JSON.stringify({ template: 'verification', to_name: name, to_email: email })
     });
     if (sendRes.status === 409) { showEmailAlreadyRegistered(btn); return; }
     if (!sendRes.ok) {
@@ -1427,8 +1428,6 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     showToast('Error al enviar — configura EmailJS');
     btn.disabled = false;
     btn.textContent = 'Continuar — Enviar código al correo';
-    // Para desarrollo: simular envío
-    emailCode = generateCode();
 
     document.getElementById('screen-1').classList.remove('active');
     document.getElementById('screen-2').classList.add('active');
@@ -1448,12 +1447,11 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
 
 // Reenviar código
 document.getElementById('btn-resend').addEventListener('click', async () => {
-  emailCode = generateCode();
   try {
     const sendRes = await fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ template: 'verification', to_name: step1Data.name, to_email: step1Data.email, code: emailCode })
+      body: JSON.stringify({ template: 'verification', to_name: step1Data.name, to_email: step1Data.email })
     });
     if (!sendRes.ok) {
       const errData = await sendRes.json().catch(() => ({}));
@@ -1472,27 +1470,58 @@ document.getElementById('btn-resend').addEventListener('click', async () => {
 });
 
 // =================== PASO 2 — VERIFICAR ===================
-document.getElementById('btn-step2').addEventListener('click', () => {
-  // Verificar código
-  if (codeBuffer !== emailCode) {
-    for (let i = 0; i < 6; i++) {
-      const el = document.getElementById('c' + i);
-      if (el) { el.classList.add('error'); setTimeout(() => el.classList.remove('error'), 600); }
-    }
-    codeBuffer = '';
-    updateCodeDisplay();
-    showToast('Código incorrecto');
-    checkStep2Ready();
-    return;
-  }
-
-  // Verificar contraseñas
+document.getElementById('btn-step2').addEventListener('click', async () => {
+  // Verificar contraseñas — esto sigue siendo local, no depende del
+  // servidor (no hay nada sensible que filtrar comprobando esto en el cliente).
   if (pwd2Buffer !== pwd1Buffer) {
     showToast('Las contraseñas no coinciden');
     return;
   }
 
-  // Todo correcto — guardar registro
+  // El código YA NO se compara en el cliente — aquí solo se envía lo que
+  // el usuario escribió, y es register-complete.js quien lo valida de
+  // verdad contra el código real que send-email.js generó en el
+  // servidor (ver ambos archivos). Antes, cualquiera que abriera las
+  // herramientas de desarrollador podía leer/fijar `emailCode` y saltarse
+  // esta verificación por completo.
+  const btn = document.getElementById('btn-step2');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  let data = null;
+  let networkOrServerError = false;
+  try {
+    const res = await fetch('/api/register-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: step1Data.email, name: step1Data.name, code: codeBuffer })
+    });
+    if (res.ok) {
+      data = await res.json();
+    } else if (res.status >= 500) {
+      // Fallo del servidor, no rechazo del código — se trata como un
+      // problema de red (ver más abajo): se deja avanzar y se reintenta
+      // en segundo plano desde index.html.
+      networkOrServerError = true;
+    } else {
+      // 4xx: el servidor SÍ recibió la petición y el código es
+      // incorrecto o caducó — rechazo explícito, no hay avance posible.
+      for (let i = 0; i < 6; i++) {
+        const el = document.getElementById('c' + i);
+        if (el) { el.classList.add('error'); setTimeout(() => el.classList.remove('error'), 600); }
+      }
+      codeBuffer = '';
+      updateCodeDisplay();
+      showToast('Código incorrecto o caducado');
+      btn.textContent = 'Verificar y crear mi identidad';
+      checkStep2Ready();
+      return;
+    }
+  } catch (_) {
+    networkOrServerError = true;
+  }
+
+  // Todo correcto (o red caída, ver nota abajo) — guardar registro
   clearInterval(timerInterval);
 
   const registration = {
@@ -1507,41 +1536,23 @@ document.getElementById('btn-step2').addEventListener('click', () => {
   localStorage.setItem(REG_KEY, JSON.stringify(registration));
   localStorage.setItem('identity_pin', pwd1Buffer);
 
-  // Registrar email en KV — reintenta hasta 3 veces en segundo plano, no bloquea el flujo
-  (async () => {
-    const payload = JSON.stringify({ email: step1Data.email, name: step1Data.name });
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        const res = await fetch('/api/register-complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        });
-        if (res.ok) {
-          const data = await res.json();
-          // Token opaco que después usa check-plan.js para verificar el
-          // plan de este email sin exponerlo a nadie más.
-          if (data.token) localStorage.setItem('identity_access_token', data.token);
-          // Herencia de plan por email: si este email ya tenía un plan de
-          // pago (misma cuenta, dispositivo nuevo), se aplica de
-          // inmediato al perfil local recién creado — sin flujo de
-          // recuperación ni token de reclamo, es un registro normal que
-          // ya sabe que este email pagó.
-          if (data.plan) localStorage.setItem('identity_plan', data.plan);
-          return;
-        }
-      } catch (_) {}
-      if (attempt < 3) await new Promise(r => setTimeout(r, 800));
-    }
-    // Los 3 intentos fallaron (red inestable en el momento del registro —
-    // típico en una PWA recién instalada en móvil). El registro local ya
-    // quedó guardado y el usuario sigue adelante sin notarlo, así que sin
-    // esta bandera el registro en el servidor se perdía en silencio para
-    // siempre. index.html reintenta esto solo, una vez por carga, mientras
-    // la bandera siga presente (ver _reintentarRegistroPendiente en index.html).
-    console.error('[IDENTIFLY] register-complete: no se pudo escribir reg:' + step1Data.email + ' en KV tras 3 intentos');
+  if (data?.token) localStorage.setItem('identity_access_token', data.token);
+  // Herencia de plan por email: si este email ya tenía un plan de pago
+  // (misma cuenta, dispositivo nuevo), se aplica de inmediato al perfil
+  // local recién creado.
+  if (data?.plan) localStorage.setItem('identity_plan', data.plan);
+
+  if (networkOrServerError) {
+    // Sin red o error 5xx en el momento exacto de verificar — el registro
+    // local ya quedó guardado, así que dejamos avanzar igual que antes de
+    // este cambio. Se guarda el código junto a la bandera de reintento
+    // para que _reintentarRegistroPendiente() en index.html pueda volver
+    // a intentar la verificación completa más tarde (el código sigue
+    // siendo válido 10 minutos en el servidor).
+    console.error('[IDENTIFLY] register-complete: fallo de red o servidor al verificar ' + step1Data.email);
     localStorage.setItem('identity_kv_sync_pending', 'true');
-  })();
+    localStorage.setItem('identity_pending_verify_code', codeBuffer);
+  }
 
   // Código de respaldo permanente para la recuperación de cuenta
   const backupCode = generateCode();

@@ -1,16 +1,51 @@
+// Comparación en tiempo constante (mismo patrón que check-plan.js /
+// stripe-webhook.js) — evita que una diferencia de tiempo de respuesta
+// filtre por cuántos caracteres iniciales coincide un código adivinado.
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    const { email, name } = await request.json();
+    const { email, name, code } = await request.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Falta email' }), {
         status: 400, headers: { 'Content-Type': 'application/json' }
       });
     }
+    if (!code || typeof code !== 'string') {
+      return new Response(JSON.stringify({ error: 'codigo_invalido_o_caducado' }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
     const emailKey = email.toLowerCase();
+
+    // Verificación real del código de un solo uso que send-email.js genera
+    // en el servidor y guarda en 'verify:'+email con 10 minutos de vida.
+    // Antes de esto, cualquiera podía llamar a este endpoint solo con un
+    // email — sin código, sin verificación de ningún tipo — y recibir de
+    // vuelta el token real de esa cuenta si ya existía.
+    const verifyRaw = await env.PLANS_KV.get('verify:' + emailKey);
+    let verifyOk = false;
+    if (verifyRaw) {
+      try {
+        const verifyData = JSON.parse(verifyRaw);
+        verifyOk = !!verifyData?.code && timingSafeEqual(String(verifyData.code), String(code));
+      } catch (_) { /* dato corrupto — tratar como no verificado */ }
+    }
+    if (!verifyOk) {
+      return new Response(JSON.stringify({ error: 'codigo_invalido_o_caducado' }), {
+        status: 400, headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const existingRaw = await env.PLANS_KV.get('reg:' + emailKey);
     const existing = existingRaw ? JSON.parse(existingRaw) : null;
 
