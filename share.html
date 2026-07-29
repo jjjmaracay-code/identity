@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IDENTIFLY · Contacto compartido</title>
+
+<!-- Open Graph / Twitter Card: la vista previa es siempre genérica (no
+     personalizada por token) porque WhatsApp/Telegram/etc. leen este
+     <head> estático sin ejecutar el JS que carga el contacto real —
+     así se evita también exponer cualquier dato personal en la propia
+     vista previa del enlace. -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://identifly.app/share.html">
+<meta property="og:title" content="Contacto compartido — IDENTIFLY">
+<meta property="og:description" content="Toca para ver la información de contacto compartida contigo. Enlace de un solo uso.">
+<meta property="og:image" content="https://identifly.app/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Contacto compartido — IDENTIFLY">
+<meta name="twitter:description" content="Toca para ver la información de contacto compartida contigo. Enlace de un solo uso.">
+<meta name="twitter:image" content="https://identifly.app/icons/icon-512.png">
 <style>
   body { background:#080808; color:#fff; font-family:Arial,sans-serif; min-height:100vh; margin:0;
          display:flex; align-items:center; justify-content:center; padding:24px; }
