@@ -3458,7 +3458,14 @@
 <!-- QRCode.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- QR Code Styling -->
-<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
+<!-- Auto-hospedado en vendor/ — antes se cargaba desde cdn.jsdelivr.net,
+     lo que dejaba la generación del QR (principal, miniatura, previews
+     de plantillas/patrones/esquinas, y la vista "Personalizar diseño")
+     dependiente de la red sin ningún mecanismo de reintento ni aviso —
+     ver Capa 2 más abajo para el porqué completo de este cambio. Hash
+     SRI conservado sin modificar: el archivo local es una copia byte a
+     byte del original, verificada contra este mismo hash. -->
+<script src="/vendor/qr-code-styling/qr-code-styling.js" integrity="sha384-P7sw4KeI1SDhOs6wYFsBysIIHFqMTgG4y9vunEfL8ZuV0WhnHsh9MRu9Rso17MtY"></script>
 <!-- OTPAuth (TOTP 2FA) -->
 <script src="https://cdn.jsdelivr.net/npm/otpauth@9.3.2/dist/otpauth.umd.min.js"></script>
 
@@ -4764,52 +4771,259 @@ const QR_CORNERS_DOT = [
 ];
 
 let qrStylingInstance = null;
-let qrLiveInstance = null;
 let selectedTemplateId = profileData.qrTemplateId || 't1';
+
+// ============================================
+// CARGA RESILIENTE DE QRCodeStyling (Capa 2)
+// ============================================
+// Antes, si por cualquier motivo (bloqueador de contenido, red
+// inestable, un despliegue a medias) la librería no llegaba a cargar,
+// CADA punto de renderizado (QR principal, preview en vivo, miniatura,
+// y las miniaturas de plantillas/patrones/esquinas del diseñador)
+// terminaba en un `catch(e){}` vacío que no volvía a intentarlo ni
+// avisaba de nada — la tarjeta, la vista "Personalizar diseño" y todas
+// sus miniaturas se quedaban en blanco para siempre, en silencio. Ahora
+// se reintenta con backoff creciente dentro de un presupuesto de tiempo
+// total; agotado ese presupuesto, se muestra un error visible con
+// opción de reintentar en vez de dejar un hueco vacío sin explicación.
+const QRSTYLING_LIB_URL = '/vendor/qr-code-styling/qr-code-styling.js';
+const QRSTYLING_LIB_INTEGRITY = 'sha384-P7sw4KeI1SDhOs6wYFsBysIIHFqMTgG4y9vunEfL8ZuV0WhnHsh9MRu9Rso17MtY';
+const QRSTYLING_LOAD_TIMEOUT_MS = 5000;
+const QRSTYLING_BACKOFF_START_MS = 2000;
+const QRSTYLING_BACKOFF_MAX_MS = 10000;
+const QRSTYLING_TOTAL_TIMEOUT_MS = 9000;
+
+let _qrStylingLoadingPromise = null;
+
+function ensureQRCodeStylingLoaded() {
+  if (window.QRCodeStyling) return Promise.resolve();
+  if (_qrStylingLoadingPromise) return _qrStylingLoadingPromise;
+
+  const startedAt = Date.now();
+
+  _qrStylingLoadingPromise = new Promise((resolve, reject) => {
+    function intentar(proximoBackoffMs) {
+      if (window.QRCodeStyling) { resolve(); return; }
+
+      if (Date.now() - startedAt >= QRSTYLING_TOTAL_TIMEOUT_MS) {
+        _qrStylingLoadingPromise = null;
+        reject(new Error('qrcodestyling_load_timeout'));
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = QRSTYLING_LIB_URL;
+      script.integrity = QRSTYLING_LIB_INTEGRITY;
+
+      let resuelto = false;
+      const timeoutId = setTimeout(() => {
+        if (resuelto) return;
+        resuelto = true;
+        script.remove();
+        reintentar(proximoBackoffMs);
+      }, QRSTYLING_LOAD_TIMEOUT_MS);
+
+      script.onload = () => {
+        if (resuelto) return;
+        resuelto = true;
+        clearTimeout(timeoutId);
+        if (window.QRCodeStyling) {
+          resolve();
+        } else {
+          script.remove();
+          reintentar(proximoBackoffMs);
+        }
+      };
+
+      script.onerror = () => {
+        if (resuelto) return;
+        resuelto = true;
+        clearTimeout(timeoutId);
+        script.remove();
+        reintentar(proximoBackoffMs);
+      };
+
+      document.head.appendChild(script);
+    }
+
+    function reintentar(delayMs) {
+      const restante = QRSTYLING_TOTAL_TIMEOUT_MS - (Date.now() - startedAt);
+      if (restante <= 0) {
+        _qrStylingLoadingPromise = null;
+        reject(new Error('qrcodestyling_load_timeout'));
+        return;
+      }
+      setTimeout(() => intentar(Math.min(delayMs * 2, QRSTYLING_BACKOFF_MAX_MS)), Math.min(delayMs, restante));
+    }
+
+    intentar(QRSTYLING_BACKOFF_START_MS);
+  });
+
+  return _qrStylingLoadingPromise;
+}
+
+(function injectQRStylingSpinnerStyle() {
+  if (document.getElementById('qrstyling-spin-style')) return;
+  const style = document.createElement('style');
+  style.id = 'qrstyling-spin-style';
+  style.textContent = '@keyframes qrstyling-spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(style);
+})();
+
+function buildQRStylingSpinner(sizePx) {
+  const s = Math.max(14, Math.min(28, Math.round(sizePx * 0.35)));
+  const el = document.createElement('div');
+  el.style.cssText = `width:${s}px;height:${s}px;border-radius:50%;
+    border:2px solid rgba(170,255,0,0.25);border-top-color:#AAFF00;
+    animation:qrstyling-spin 0.8s linear infinite;margin:auto;`;
+  return el;
+}
+
+// Error visible + reintento manual, adaptado al tamaño del contenedor:
+// las miniaturas (<100px, sin sitio para texto ni botón) muestran solo
+// un icono de aviso pulsable; el QR principal y la vista en vivo
+// muestran mensaje + botón "Reintentar" explícito.
+function showQRStylingError(container, sizePx, onRetry) {
+  container.innerHTML = '';
+  if (sizePx < 100) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.title = 'No se pudo generar — toca para reintentar';
+    btn.style.cssText = `width:100%;height:100%;background:transparent;
+      border:1.5px dashed rgba(255,80,80,0.5);border-radius:8px;
+      color:#ff5050;font-size:${Math.round(sizePx * 0.4)}px;cursor:pointer;`;
+    btn.textContent = '⚠';
+    btn.addEventListener('click', onRetry);
+    container.appendChild(btn);
+    return;
+  }
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;color:#ff5050;font-family:Inter,sans-serif;text-align:center;padding:8px;box-sizing:border-box;';
+  wrap.innerHTML = '<span style="font-size:20px;">⚠</span><span style="font-size:10px;">No se pudo generar el QR</span>';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = 'Reintentar';
+  btn.style.cssText = `background:transparent;border:1.5px solid #ff5050;color:#ff5050;
+    font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    padding:5px 12px;border-radius:16px;cursor:pointer;font-family:inherit;`;
+  btn.addEventListener('click', onRetry);
+  wrap.appendChild(btn);
+  container.appendChild(wrap);
+}
+
+// Punto único de renderizado para toda vista de QR que NO necesita la
+// caché de Capa 3 (solo el QR principal la usa, ver renderMainQR más
+// abajo): preview en vivo, mini preview, y cada miniatura de plantilla/
+// patrón/esquina del diseñador.
+function renderQRStylingSafe(container, qrOptions, displaySizePx) {
+  if (!window.QRCodeStyling) {
+    container.innerHTML = '';
+    container.appendChild(buildQRStylingSpinner(displaySizePx));
+  }
+
+  ensureQRCodeStylingLoaded().then(() => {
+    if (!container.isConnected) return;
+    try {
+      container.innerHTML = '';
+      new QRCodeStyling(qrOptions).append(container);
+      setTimeout(() => {
+        const el = container.firstChild;
+        if (el) { el.style.width = displaySizePx + 'px'; el.style.height = displaySizePx + 'px'; el.style.display = 'block'; }
+      }, displaySizePx >= 200 ? 300 : 250);
+    } catch (err) {
+      showQRStylingError(container, displaySizePx, () => renderQRStylingSafe(container, qrOptions, displaySizePx));
+    }
+  }).catch(() => {
+    if (!container.isConnected) return;
+    showQRStylingError(container, displaySizePx, () => renderQRStylingSafe(container, qrOptions, displaySizePx));
+  });
+}
+
+// ============================================
+// CACHÉ DEL ÚLTIMO QR PRINCIPAL VÁLIDO (Capa 3)
+// ============================================
+// Solo se aplica al QR principal de la tarjeta (#qr-container): es el
+// único que debe seguir mostrando algo útil incluso si la librería tarda
+// en cargar justo al abrir/recargar la página (antes de que el usuario
+// haya podido interactuar con nada). Las miniaturas del diseñador no lo
+// necesitan: se reconstruyen igualmente cada vez que se abre ese modal,
+// dentro de la misma sesión de página donde la librería ya suele estar
+// cargada.
+const QRSTYLING_CACHE_KEY = 'identifly_qr_cache';
+
+function getQRStylingCache() {
+  try { return JSON.parse(localStorage.getItem(QRSTYLING_CACHE_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+
+function saveQRStylingCache(svg, fingerprint) {
+  try {
+    localStorage.setItem(QRSTYLING_CACHE_KEY, JSON.stringify({ svg, fingerprint, savedAt: Date.now() }));
+  } catch (e) { /* localStorage lleno o no disponible: se pierde solo el respaldo, no es crítico */ }
+}
 
 // Renderizar preview en tiempo real
 function renderQRLive() {
   const wrap = document.getElementById('qr-live-preview');
   if (!wrap) return;
-  wrap.innerHTML = '';
-  try {
-    qrLiveInstance = new QRCodeStyling(buildQROptions(qrDesign, 280, buildVCard()));
-    qrLiveInstance.append(wrap);
-    setTimeout(() => {
-      const el = wrap.firstChild;
-      if (el) { el.style.width='120px'; el.style.height='120px'; el.style.display='block'; }
-    }, 200);
-  } catch(e) {}
+  renderQRStylingSafe(wrap, buildQROptions(qrDesign, 280, buildVCard()), 120);
 }
 
 // Preview mini en la pantalla de edición
 function renderQRMini() {
   const wrap = document.getElementById('qr-mini-preview');
   if (!wrap) return;
-  wrap.innerHTML = '';
-  try {
-    const mini = new QRCodeStyling(buildQROptions(qrDesign, 64, 'IDENTITY'));
-    mini.append(wrap);
-    setTimeout(() => {
-      const el = wrap.firstChild;
-      if (el) { el.style.width='64px'; el.style.height='64px'; el.style.display='block'; }
-    }, 200);
-  } catch(e) {}
+  renderQRStylingSafe(wrap, buildQROptions(qrDesign, 64, 'IDENTITY'), 64);
 }
 
-// QR principal en la tarjeta
+// QR principal en la tarjeta. Si la librería ya está cargada, se genera
+// directo; si no, y hay una versión en caché cuya huella (opciones
+// serializadas) coincide con lo que se generaría ahora, se muestra esa
+// imagen al instante mientras se confirma en segundo plano -- si la
+// confirmación falla, se deja la imagen en caché tal cual, nunca se
+// sustituye por un hueco vacío o un error.
 function generateQR() {
   const container = document.getElementById('qr-container');
   if (!container) return;
-  container.innerHTML = '';
-  try {
-    qrStylingInstance = new QRCodeStyling(buildQROptions(qrDesign, 400, buildVCard()));
-    qrStylingInstance.append(container);
-    setTimeout(() => {
-      const el = container.firstChild;
-      if (el) { el.style.width='280px'; el.style.height='280px'; el.style.display='block'; }
-    }, 300);
-  } catch(e) {}
+
+  const options = buildQROptions(qrDesign, 400, buildVCard());
+  const fingerprint = JSON.stringify(options);
+
+  function renderDirecto() {
+    if (!container.isConnected) return;
+    try {
+      container.innerHTML = '';
+      qrStylingInstance = new QRCodeStyling(options);
+      qrStylingInstance.append(container);
+      setTimeout(() => {
+        const el = container.firstChild;
+        if (el) {
+          el.style.width = '280px'; el.style.height = '280px'; el.style.display = 'block';
+          saveQRStylingCache(el.outerHTML, fingerprint);
+        }
+      }, 300);
+    } catch (e) {
+      showQRStylingError(container, 280, generateQR);
+    }
+  }
+
+  if (window.QRCodeStyling) { renderDirecto(); return; }
+
+  const cache = getQRStylingCache();
+  const cacheFresca = cache.svg && cache.fingerprint === fingerprint;
+
+  if (cacheFresca) {
+    container.innerHTML = cache.svg;
+  } else {
+    container.innerHTML = '';
+    container.appendChild(buildQRStylingSpinner(280));
+  }
+
+  ensureQRCodeStylingLoaded().then(renderDirecto).catch(() => {
+    if (!container.isConnected) return;
+    if (!cacheFresca) showQRStylingError(container, 280, generateQR);
+    // si ya había una imagen en caché mostrada, se deja intacta
+  });
 }
 
 // Construir grids del diseñador
@@ -4829,11 +5043,7 @@ function buildDesignerGrids() {
       item.appendChild(lbl);
       tGrid.appendChild(item);
 
-      try {
-        const p = new QRCodeStyling(buildQROptions(t.design, 60, 'ID'));
-        p.append(pDiv);
-        setTimeout(() => { const el = pDiv.firstChild; if(el){el.style.width='60px';el.style.height='60px';el.style.display='block';} }, 250);
-      } catch(e) {}
+      renderQRStylingSafe(pDiv, buildQROptions(t.design, 60, 'ID'), 60);
 
       item.addEventListener('click', () => {
         selectedTemplateId = t.id;
@@ -4864,11 +5074,7 @@ function buildDesignerGrids() {
       pGrid.appendChild(item);
 
       const patternDesign = { ...qrDesign, dotsType: p.id };
-      try {
-        const prev = new QRCodeStyling(buildQROptions(patternDesign, 48, 'ID'));
-        prev.append(pDiv);
-        setTimeout(() => { const el = pDiv.firstChild; if(el){el.style.width='48px';el.style.height='48px';el.style.display='block';} }, 250);
-      } catch(e) {}
+      renderQRStylingSafe(pDiv, buildQROptions(patternDesign, 48, 'ID'), 48);
 
       item.addEventListener('click', () => {
         qrDesign.dotsType = p.id;
@@ -4896,11 +5102,7 @@ function buildDesignerGrids() {
       cGrid.appendChild(item);
 
       const cornerDesign = { ...qrDesign, cornerSquareType: c.id };
-      try {
-        const prev = new QRCodeStyling(buildQROptions(cornerDesign, 48, 'ID'));
-        prev.append(pDiv);
-        setTimeout(() => { const el = pDiv.firstChild; if(el){el.style.width='48px';el.style.height='48px';el.style.display='block';} }, 250);
-      } catch(e) {}
+      renderQRStylingSafe(pDiv, buildQROptions(cornerDesign, 48, 'ID'), 48);
 
       item.addEventListener('click', () => {
         qrDesign.cornerSquareType = c.id;
@@ -5053,6 +5255,7 @@ document.getElementById('btn-share').addEventListener('click', async () => {
   setTimeout(async () => {
     try {
       const shareUrl = await generateShareLink();
+      await ensureQRCodeStylingLoaded();
       const shareQR = new QRCodeStyling(buildQROptions(qrDesign, 280, shareUrl));
       const tempDiv = document.createElement('div');
       shareQR.append(tempDiv);
@@ -5098,6 +5301,7 @@ document.getElementById('btn-share-telegram')?.addEventListener('click', async (
 document.getElementById('btn-share-email')?.addEventListener('click', async () => {
   try {
     const shareUrl = await generateShareLink();
+    await ensureQRCodeStylingLoaded();
     const shareQR = new QRCodeStyling(buildQROptions(qrDesign, 280, shareUrl));
     const tempDiv = document.createElement('div');
     shareQR.append(tempDiv);

@@ -1,4 +1,14 @@
-const CACHE_NAME = 'identity-v8';
+// v9: sube la version para forzar que activate() purgue la cache v8 --
+// necesario porque los recursos no-HTML (incluido qr-code-styling.js) se
+// sirven con estrategia "cache primero" (ver el handler de fetch mas
+// abajo): sin este cambio de version, cualquier usuario que ya hubiera
+// cacheado una copia (desde el CDN externo anterior, o incluso una copia
+// parcial/corrupta servida durante el propio despliegue) seguiria
+// recibiendola para siempre, sin importar que se corrija en el
+// servidor. Se añade tambien el archivo auto-hospedado al precache para
+// que estè disponible desde el primer arranque, no solo tras la
+// primera visita online.
+const CACHE_NAME = 'identity-v9';
 const CACHE_URLS = [
   './index.html',
   './register.html',
@@ -9,6 +19,7 @@ const CACHE_URLS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './assets/logo-wings.png',
+  './vendor/qr-code-styling/qr-code-styling.js',
 ];
 
 self.addEventListener('install', event => {
