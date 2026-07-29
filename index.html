@@ -5315,7 +5315,12 @@ document.getElementById('btn-share-email')?.addEventListener('click', async () =
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: 'Mi contacto IDENTIFLY',
-          text: `Aquí tienes mi contacto (enlace de un solo uso): ${shareUrl}`,
+          // El QR (imagen adjunta) sigue siendo la vía principal; este texto
+          // es la alternativa para quien no escanee. Se usa el formato de
+          // negrita que WhatsApp interpreta (asteriscos) en vez de mostrar
+          // el enlace desnudo -- el enlace en sí no cambia, solo se envuelve
+          // en un texto de llamada a la acción corto.
+          text: `📇 *Toca aquí para ver el contacto* ${shareUrl}`,
           files: [file]
         });
       } else {
