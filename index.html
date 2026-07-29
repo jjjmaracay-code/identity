@@ -2391,6 +2391,48 @@
   </div>
 </div>
 
+<!-- =================== PANTALLA RECUPERAR ACCESO =================== -->
+<!-- Se muestra cuando este dispositivo tiene identity_registration (email
+     conocido) pero no tiene identity_access_token válido y claim-token.js
+     (migración de un solo uso) ya no puede emitirlo. En vez de bloquear al
+     usuario localmente, se le ofrece recuperar su token real mediante el
+     mismo mecanismo de verificación por email que usa el registro normal. -->
+<div id="recover-access-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div style="background:#0a0a0a;border:1.5px solid rgba(170,255,0,0.3);border-radius:20px;padding:28px 24px;max-width:380px;width:100%;font-family:'Inter',sans-serif;">
+    <div style="font-size:14px;font-weight:900;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;text-align:center;margin-bottom:10px;">Recupera tu acceso</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:22px;line-height:1.6;">
+      Este dispositivo no tiene un acceso válido para <strong id="recover-access-email" style="color:#fff;"></strong>. Verifica tu email para recuperarlo — puedes hacerlo las veces que necesites.
+    </div>
+
+    <div id="recover-access-step1">
+      <button type="button" id="btn-recover-send-code"
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+        Enviar código a mi correo
+      </button>
+    </div>
+
+    <div id="recover-access-step2" style="display:none;">
+      <input type="text" id="recover-access-code" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos"
+        style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(170,255,0,0.3);background:#111;color:#fff;text-align:center;font-size:20px;letter-spacing:6px;font-family:'Inter',sans-serif;margin-bottom:12px;">
+      <button type="button" id="btn-recover-verify"
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-bottom:10px;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+        Verificar código
+      </button>
+      <button type="button" id="btn-recover-resend"
+        style="width:100%;padding:8px;background:none;border:none;color:#AAFF00;font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.5px;text-decoration:underline;cursor:pointer;">
+        Reenviar código
+      </button>
+    </div>
+
+    <div id="recover-access-msg" style="display:none;font-size:11px;color:#ff6b6b;text-align:center;margin-top:14px;line-height:1.5;"></div>
+
+    <button type="button" id="btn-recover-skip"
+      style="width:100%;padding:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.5px;margin-top:18px;cursor:pointer;">
+      Ahora no
+    </button>
+  </div>
+</div>
+
 <!-- =================== FONDO ANIMADO =================== -->
 <div id="bg-media"></div>
 
@@ -3538,6 +3580,7 @@ function _trialBloqueadoLocal() {
   // existiera el token intentan reclamar uno usando el registeredAt
   // exacto que ya tienen en este localStorage (ver claim-token.js para
   // la limitación de seguridad conocida de este mecanismo).
+  let claimData = null;
   if (!token) {
     try {
       const claimRes = await fetch('/api/claim-token', {
@@ -3545,7 +3588,7 @@ function _trialBloqueadoLocal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: _reg.email, registeredAt: _reg.timestamp })
       });
-      const claimData = await claimRes.json();
+      claimData = await claimRes.json();
       if (claimData.ok && claimData.token) {
         token = claimData.token;
         localStorage.setItem('identity_access_token', token);
@@ -3554,8 +3597,16 @@ function _trialBloqueadoLocal() {
   }
 
   if (!token) {
-    // No hay token y no se pudo reclamar uno (ya reclamado por otra
-    // sesión, sin red, etc.) — único recurso disponible: cálculo local.
+    // El servidor respondió explícitamente que no puede emitir un token
+    // por esta vía (ya reclamado por otra sesión/reinstalación previa,
+    // dato corrupto, etc.) — en vez de bloquear localmente sin más,
+    // ofrecer la vía real y repetible: verificación por email.
+    if (claimData && claimData.ok === false) {
+      mostrarRecuperarAcceso(_reg.email);
+      return;
+    }
+    // Fallo de red real (no hubo respuesta del servidor) — único recurso
+    // disponible esta vez: cálculo local.
     if (_trialBloqueadoLocal()) window.location.href = 'paywall.html';
     return;
   }
@@ -3607,6 +3658,121 @@ function _trialBloqueadoLocal() {
     }
   }
 })();
+
+// =================== PANTALLA RECUPERAR ACCESO ===================
+// Vía repetible (a diferencia de claim-token.js, de un solo uso) para
+// recuperar identity_access_token cuando este dispositivo ya no puede
+// reclamarlo por la vía automática. Reutiliza el mismo backend que el
+// registro normal: send-email.js para el código, register-complete.js
+// para verificarlo y devolver el token + plan real ya existentes.
+function mostrarRecuperarAcceso(email) {
+  const ov = document.getElementById('recover-access-ov');
+  if (!ov) return;
+  document.getElementById('recover-access-email').textContent = email;
+  document.getElementById('recover-access-step1').style.display = 'block';
+  document.getElementById('recover-access-step2').style.display = 'none';
+  const msg = document.getElementById('recover-access-msg');
+  msg.style.display = 'none';
+  msg.style.color = '#ff6b6b';
+  ov.style.display = 'flex';
+}
+
+function ocultarRecuperarAcceso() {
+  const ov = document.getElementById('recover-access-ov');
+  if (ov) ov.style.display = 'none';
+}
+
+function _mostrarMensajeRecuperarAcceso(texto, esError) {
+  const msg = document.getElementById('recover-access-msg');
+  msg.textContent = texto;
+  msg.style.color = esError ? '#ff6b6b' : '#AAFF00';
+  msg.style.display = 'block';
+}
+
+document.getElementById('btn-recover-send-code')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-recover-send-code');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: _reg.email })
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      _mostrarMensajeRecuperarAcceso(errData.error || 'No se pudo enviar el código. Inténtalo de nuevo.', true);
+      btn.disabled = false;
+      btn.textContent = 'Enviar código a mi correo';
+      return;
+    }
+    document.getElementById('recover-access-step1').style.display = 'none';
+    document.getElementById('recover-access-step2').style.display = 'block';
+    document.getElementById('recover-access-msg').style.display = 'none';
+  } catch (_) {
+    _mostrarMensajeRecuperarAcceso('Sin conexión. Comprueba tu red e inténtalo de nuevo.', true);
+    btn.disabled = false;
+    btn.textContent = 'Enviar código a mi correo';
+  }
+});
+
+document.getElementById('btn-recover-resend')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-recover-resend');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: _reg.email })
+    });
+    if (res.ok) _mostrarMensajeRecuperarAcceso('Nuevo código enviado a ' + _reg.email + '.', false);
+    else _mostrarMensajeRecuperarAcceso('No se pudo reenviar el código. Inténtalo de nuevo.', true);
+  } catch (_) {
+    _mostrarMensajeRecuperarAcceso('Sin conexión. Inténtalo de nuevo.', true);
+  }
+  btn.disabled = false;
+});
+
+document.getElementById('btn-recover-verify')?.addEventListener('click', async () => {
+  const codeInput = document.getElementById('recover-access-code');
+  const code = codeInput.value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    _mostrarMensajeRecuperarAcceso('Introduce el código de 6 dígitos.', true);
+    return;
+  }
+  const btn = document.getElementById('btn-recover-verify');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  try {
+    const res = await fetch('/api/register-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _reg.email, name: _reg.name || '', code })
+    });
+    const data = await res.json().catch(() => null);
+    if (res.ok && data?.token) {
+      localStorage.setItem('identity_access_token', data.token);
+      if (data.plan) localStorage.setItem('identity_plan', data.plan);
+      // Recarga completa: reejecuta todo el flujo normal de arranque (ya
+      // con el token guardado), en vez de duplicar aquí la lógica de
+      // check-plan/paywall que _verificarTrialServidor() ya resuelve.
+      window.location.reload();
+      return;
+    }
+    _mostrarMensajeRecuperarAcceso('Código incorrecto o caducado. Pulsa "Reenviar código" para probar de nuevo.', true);
+    btn.disabled = false;
+    btn.textContent = 'Verificar código';
+  } catch (_) {
+    _mostrarMensajeRecuperarAcceso('Sin conexión. Inténtalo de nuevo.', true);
+    btn.disabled = false;
+    btn.textContent = 'Verificar código';
+  }
+});
+
+document.getElementById('btn-recover-skip')?.addEventListener('click', () => {
+  ocultarRecuperarAcceso();
+  if (_trialBloqueadoLocal()) window.location.href = 'paywall.html';
+});
 
 if (!localStorage.getItem('identity_registration')) {
   // No se lanza excepción: el resto del script sigue corriendo con normalidad
