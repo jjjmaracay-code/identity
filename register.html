@@ -13,7 +13,7 @@
 <link rel="canonical" href="https://www.identifly.app/register">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+<script src="/i18n/loader.js"></script>
 
 <style>
   :root {
@@ -712,8 +712,8 @@
 <!-- HEADER -->
 <div class="reg-header">
   <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
-  <div class="reg-brand" aria-label="Aidentiflay">IDENTIFLY</div>
-  <div class="reg-tagline">Registro seguro de identidad</div>
+  <div class="reg-brand" aria-label="Aidentiflay" data-i18n="register.header.brand">IDENTIFLY</div>
+  <div class="reg-tagline" data-i18n="register.header.tagline">Registro seguro de identidad</div>
 
   <!-- Indicador de pasos -->
   <div class="steps-indicator">
@@ -723,7 +723,7 @@
     <div class="step-line" id="line-2"></div>
     <div class="step-dot" id="dot-3">✓</div>
   </div>
-  <div class="step-label" id="step-label">Paso 1 de 2 — Tus datos y contraseña maestra</div>
+  <div class="step-label" id="step-label" data-i18n="register.step_label.step1">Paso 1 de 2 — Tus datos y contraseña maestra</div>
 </div>
 
 <div class="reg-form">
@@ -732,31 +732,31 @@
   <div class="screen active" id="screen-1">
 
     <div class="form-card" id="personal-fields-card">
-      <div class="form-card-title">Identificación personal</div>
+      <div class="form-card-title" data-i18n="register.step1.personal_title">Identificación personal</div>
 
       <div class="field-wrap">
-        <div class="field-label">Nombre(s)</div>
-        <input class="field-input" id="r-firstname" type="text" placeholder="Juan Carlos" autocomplete="given-name">
+        <div class="field-label" data-i18n="register.step1.firstname_label">Nombre(s)</div>
+        <input class="field-input" id="r-firstname" type="text" placeholder="Juan Carlos" autocomplete="given-name" data-i18n-placeholder="register.step1.firstname_placeholder">
       </div>
 
       <div class="field-wrap">
-        <div class="field-label">Apellidos</div>
-        <input class="field-input" id="r-lastname" type="text" placeholder="García López" autocomplete="family-name">
+        <div class="field-label" data-i18n="register.step1.lastname_label">Apellidos</div>
+        <input class="field-input" id="r-lastname" type="text" placeholder="García López" autocomplete="family-name" data-i18n-placeholder="register.step1.lastname_placeholder">
       </div>
 
       <div class="field-wrap">
-        <div class="field-label">Correo electrónico</div>
-        <input class="field-input" id="r-email" type="email" placeholder="tu@email.com" autocomplete="email">
+        <div class="field-label" data-i18n="register.step1.email_label">Correo electrónico</div>
+        <input class="field-input" id="r-email" type="email" placeholder="tu@email.com" autocomplete="email" data-i18n-placeholder="register.step1.email_placeholder">
         <div class="domain-btns">
-          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+          <button type="button" class="domain-btn" data-domain="@gmail.com" data-i18n="register.step1.domain_gmail">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com" data-i18n="register.step1.domain_hotmail">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com" data-i18n="register.step1.domain_icloud">@icloud.com</button>
         </div>
-        <div class="field-hint">Recibirás un código de verificación en este correo</div>
+        <div class="field-hint" data-i18n="register.step1.email_hint">Recibirás un código de verificación en este correo</div>
       </div>
 
       <div class="field-wrap">
-        <div class="field-label">Teléfono</div>
+        <div class="field-label" data-i18n="register.step1.phone_label">Teléfono</div>
         <div id="r-phone-row" style="display:flex;gap:8px;">
           <select class="field-input" id="r-phone-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
             <option value="+34" selected>🇪🇸 +34</option>
@@ -777,7 +777,7 @@
             <option value="+507">🇵🇦 +507</option>
             <option value="+598">🇺🇾 +598</option>
             <option value="+504">🇭🇳 +504</option>
-            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+1" data-i18n="register.step1.phone_country_us">🇺🇸 +1 (EE.UU./Canadá)</option>
             <option value="+44">🇬🇧 +44</option>
             <option value="+33">🇫🇷 +33</option>
             <option value="+49">🇩🇪 +49</option>
@@ -788,57 +788,57 @@
             <option value="+91">🇮🇳 +91</option>
             <option value="+81">🇯🇵 +81</option>
           </select>
-          <input class="field-input" id="r-phone-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+          <input class="field-input" id="r-phone-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;" data-i18n-placeholder="register.step1.phone_number_placeholder">
         </div>
-        <div class="field-hint">Se usará como dato de contacto verificado de tu perfil</div>
+        <div class="field-hint" data-i18n="register.step1.phone_hint">Se usará como dato de contacto verificado de tu perfil</div>
       </div>
     </div>
 
     <div class="form-card">
-      <div class="form-card-title">Crea tu contraseña maestra</div>
-      <div class="field-hint" style="margin-bottom:14px;color:rgba(170,255,0,0.45);">
+      <div class="form-card-title" data-i18n="register.step1.password_title">Crea tu contraseña maestra</div>
+      <div class="field-hint" style="margin-bottom:14px;color:rgba(170,255,0,0.45);" data-i18n="register.step1.password_hint">
         Mínimo 8 caracteres · al menos 1 número y 1 símbolo · cuanto más larga, más segura
       </div>
 
       <!-- Display contraseña -->
       <div class="pwd-dots-wrap">
         <div class="pwd-dots empty" id="pwd1-dots">· · · · · · · ·</div>
-        <button type="button" class="eye-btn" id="eye-pwd1" aria-label="Ver contraseña"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button type="button" class="eye-btn" id="eye-pwd1" aria-label="Ver contraseña" data-i18n-aria="register.common.eye_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
-      <div class="pin-validation" id="pwd1-hint">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
+      <div class="pin-validation" id="pwd1-hint" data-i18n="register.step1.pwd_validation">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
       <div class="pwd-strength" id="str-pwd1">
-        <span class="pwd-req" id="r1-len">Mínimo 8 caracteres</span>
-        <span class="pwd-req" id="r1-num">Al menos 1 número</span>
-        <span class="pwd-req" id="r1-sym">Al menos 1 símbolo</span>
-        <span class="pwd-req" id="r1-up">Al menos 1 mayúscula</span>
+        <span class="pwd-req" id="r1-len" data-i18n="register.common.req_len">Mínimo 8 caracteres</span>
+        <span class="pwd-req" id="r1-num" data-i18n="register.common.req_num">Al menos 1 número</span>
+        <span class="pwd-req" id="r1-sym" data-i18n="register.common.req_sym">Al menos 1 símbolo</span>
+        <span class="pwd-req" id="r1-up" data-i18n="register.common.req_upper">Al menos 1 mayúscula</span>
       </div>
-      <div class="pwd-hint-static">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
+      <div class="pwd-hint-static" data-i18n="register.common.pwd_static_hint">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
       <div id="qwerty-kbd-1"></div>
 
       <div class="security-badge">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/><polyline points="9 12 11 14 15 10"/></svg>
-        <div class="security-badge-text">Cuanto más larga y variada, más difícil de romper</div>
+        <div class="security-badge-text" data-i18n="register.step1.security_badge">Cuanto más larga y variada, más difícil de romper</div>
       </div>
     </div>
 
     <!-- Checkbox paso 1 -->
     <div class="checkbox-wrap" id="chk1-wrap">
       <div class="checkbox-box" id="chk1"></div>
-      <div class="checkbox-text">
+      <div class="checkbox-text" data-i18n-html="register.step1.consent_html">
         He leído, escuchado y acepto que los datos introducidos son <strong>correctos y verídicos</strong>, y que soy la persona titular de este registro. Entiendo que esta contraseña es <strong>personal e intransferible</strong>.
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-step1" disabled>
+    <button class="btn-primary" id="btn-step1" disabled data-i18n="register.step1.submit_button">
       Continuar — Enviar código al correo
     </button>
 
-    <div class="field-hint" style="text-align:center;margin-top:4px;">
+    <div class="field-hint" style="text-align:center;margin-top:4px;" data-i18n="register.step1.submit_hint">
       Al continuar se enviará un código de verificación a tu email
     </div>
 
-    <a href="index.html" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;">¿Ya tienes cuenta? Inicia sesión</a>
+    <a href="index.html" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;" data-i18n="register.step1.login_link">¿Ya tienes cuenta? Inicia sesión</a>
 
   </div><!-- fin screen-1 -->
 
@@ -847,21 +847,21 @@
   <div class="screen" id="screen-2">
 
     <div class="form-card">
-      <div class="form-card-title">Datos verificados — solo lectura</div>
+      <div class="form-card-title" data-i18n="register.step2.readonly_title">Datos verificados — solo lectura</div>
 
-      <div class="locked-label">Nombre completo</div>
+      <div class="locked-label" data-i18n="register.step2.name_label">Nombre completo</div>
       <div class="locked-field">
         <div class="locked-icon">🔒</div>
         <div class="locked-value" id="locked-name">—</div>
       </div>
 
-      <div class="locked-label">Correo electrónico</div>
+      <div class="locked-label" data-i18n="register.step1.email_label">Correo electrónico</div>
       <div class="locked-field">
         <div class="locked-icon">🔒</div>
         <div class="locked-value" id="locked-email">—</div>
       </div>
 
-      <div class="locked-label">Teléfono</div>
+      <div class="locked-label" data-i18n="register.step1.phone_label">Teléfono</div>
       <div class="locked-field">
         <div class="locked-icon">🔒</div>
         <div class="locked-value" id="locked-phone">—</div>
@@ -869,8 +869,8 @@
     </div>
 
     <div class="form-card">
-      <div class="form-card-title">Código de verificación del email</div>
-      <div class="field-hint" style="margin-bottom:14px;">
+      <div class="form-card-title" data-i18n="register.step2.code_title">Código de verificación del email</div>
+      <div class="field-hint" style="margin-bottom:14px;" data-i18n="register.step2.code_hint">
         Introduce el código de 6 dígitos que recibiste en tu correo
       </div>
 
@@ -884,10 +884,10 @@
       </div>
 
       <div class="code-timer" id="code-timer">
-        El código expira en <span id="timer-count">10:00</span>
+        <span data-i18n="register.step2.timer_prefix">El código expira en</span> <span id="timer-count">10:00</span>
       </div>
 
-      <button class="resend-btn" id="btn-resend" disabled>Reenviar código</button>
+      <button class="resend-btn" id="btn-resend" disabled data-i18n="register.step2.resend_button">Reenviar código</button>
 
       <!-- Teclado numérico para código -->
       <div class="pin-keypad" id="code-keypad">
@@ -900,24 +900,24 @@
         <button class="key-btn" data-code="7">7</button>
         <button class="key-btn" data-code="8">8</button>
         <button class="key-btn" data-code="9">9</button>
-        <button class="key-btn" id="clr-code">CLR</button>
+        <button class="key-btn" id="clr-code" data-i18n="register.step2.clr">CLR</button>
         <button class="key-btn" data-code="0">0</button>
         <button class="key-btn del" id="del-code">⌫</button>
       </div>
     </div>
 
     <div class="form-card">
-      <div class="form-card-title">Confirma tu contraseña maestra</div>
-      <div class="field-hint" style="margin-bottom:14px;color:rgba(170,255,0,0.45);">
+      <div class="form-card-title" data-i18n="register.step2.confirm_password_title">Confirma tu contraseña maestra</div>
+      <div class="field-hint" style="margin-bottom:14px;color:rgba(170,255,0,0.45);" data-i18n="register.step2.confirm_password_hint">
         Introduce la misma contraseña que creaste en el paso anterior
       </div>
 
       <div class="pwd-dots-wrap">
         <div class="pwd-dots empty" id="pwd2-dots">· · · · · · · ·</div>
-        <button type="button" class="eye-btn" id="eye-pwd2" aria-label="Ver contraseña"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button type="button" class="eye-btn" id="eye-pwd2" aria-label="Ver contraseña" data-i18n-aria="register.common.eye_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
-      <div class="pin-validation" id="pwd2-hint">Confirma tu contraseña maestra</div>
-      <div class="pwd-hint-static">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
+      <div class="pin-validation" id="pwd2-hint" data-i18n="register.step2.confirm_password_placeholder_hint">Confirma tu contraseña maestra</div>
+      <div class="pwd-hint-static" data-i18n="register.common.pwd_static_hint">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
       <div id="qwerty-kbd-2"></div>
     </div>
@@ -925,12 +925,12 @@
     <!-- Checkbox paso 2 -->
     <div class="checkbox-wrap" id="chk2-wrap">
       <div class="checkbox-box" id="chk2"></div>
-      <div class="checkbox-text">
+      <div class="checkbox-text" data-i18n-html="register.step2.consent_html">
         He leído, escuchado y confirmo nuevamente que todos los datos son <strong>correctos y verídicos</strong>, que soy el titular legítimo de esta identidad, y que acepto las <strong>condiciones de uso y política de privacidad</strong> de IDENTIFLY.
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-step2" disabled>
+    <button class="btn-primary" id="btn-step2" disabled data-i18n="register.step2.submit_button">
       Verificar y crear mi identidad
     </button>
 
@@ -945,12 +945,12 @@
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <div class="success-title">Identidad verificada</div>
-      <div class="success-sub">
+      <div class="success-title" data-i18n="register.success.title">Identidad verificada</div>
+      <div class="success-sub" data-i18n-html="register.success.text_html">
         Tu registro es completo y seguro.<br>
         Bienvenido a IDENTIFLY.
       </div>
-      <button class="btn-primary" id="btn-enter-app">
+      <button class="btn-primary" id="btn-enter-app" data-i18n="register.success.enter_button">
         Entrar a IDENTIFLY →
       </button>
     </div>
@@ -1048,7 +1048,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'CLR') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = 'Limpiar'; btn.style.flex = '1.5';
+          btn.textContent = t('register.qwerty.clear'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); if (clearFn) clearFn(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -1056,7 +1056,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'NUMS') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = '123'; btn.style.flex = '1.5';
+          btn.textContent = t('register.qwerty.nums'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'nums'; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -1064,7 +1064,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'BACK') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = 'ABC'; btn.style.flex = '1.5';
+          btn.textContent = t('register.qwerty.back'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'letters'; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -1072,7 +1072,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'SPACE') {
           btn.className = 'qwerty-key qwerty-space';
-          btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
+          btn.style.flex = '4'; btn.setAttribute('aria-label', t('register.qwerty.space_aria'));
           btn._kbdAction = () => { playKeyClick(); appendFn(' '); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -1135,16 +1135,18 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
   container.addEventListener('touchcancel', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey._touchHandled = false; _dragKey = null; } });
 }
 
-buildQwertyKbd('qwerty-kbd-1',
-  c => handlePwdInput(1, c),
-  () => { pwd1Buffer = pwd1Buffer.slice(0,-1); updatePwdDisplay(1); checkStep1Ready(); },
-  () => { pwd1Buffer = ''; updatePwdDisplay(1); checkStep1Ready(); }
-);
-buildQwertyKbd('qwerty-kbd-2',
-  c => handlePwdInput(2, c),
-  () => { pwd2Buffer = pwd2Buffer.slice(0,-1); updatePwdDisplay(2); checkStep2Ready(); },
-  () => { pwd2Buffer = ''; updatePwdDisplay(2); checkStep2Ready(); }
-);
+window.i18nReady.finally(() => {
+  buildQwertyKbd('qwerty-kbd-1',
+    c => handlePwdInput(1, c),
+    () => { pwd1Buffer = pwd1Buffer.slice(0,-1); updatePwdDisplay(1); checkStep1Ready(); },
+    () => { pwd1Buffer = ''; updatePwdDisplay(1); checkStep1Ready(); }
+  );
+  buildQwertyKbd('qwerty-kbd-2',
+    c => handlePwdInput(2, c),
+    () => { pwd2Buffer = pwd2Buffer.slice(0,-1); updatePwdDisplay(2); checkStep2Ready(); },
+    () => { pwd2Buffer = ''; updatePwdDisplay(2); checkStep2Ready(); }
+  );
+});
 
 // ===== BOTONES DOMINIO EMAIL =====
 document.querySelectorAll('.domain-btn').forEach(btn => {
@@ -1218,10 +1220,10 @@ function updatePwdDisplay(num) {
 
   const hint = document.getElementById(hintId);
   if (num === 2 && buf.length > 0) {
-    if (pwd2Buffer === pwd1Buffer) { hint.textContent = '✓ Las contraseñas coinciden'; hint.style.color = '#AAFF00'; }
-    else                           { hint.textContent = '✗ Las contraseñas no coinciden'; hint.style.color = '#ff4444'; }
+    if (pwd2Buffer === pwd1Buffer) { hint.textContent = t('register.step2.pwd_match'); hint.style.color = '#AAFF00'; }
+    else                           { hint.textContent = t('register.step2.pwd_no_match'); hint.style.color = '#ff4444'; }
   } else {
-    hint.textContent = num === 1 ? 'Mínimo 8 caracteres, 1 número y 1 símbolo' : 'Confirma tu contraseña maestra';
+    hint.textContent = num === 1 ? t('register.step1.pwd_validation') : t('register.step2.confirm_password_placeholder_hint');
     hint.style.color = 'rgba(255,255,255,0.3)';
   }
 
@@ -1322,7 +1324,7 @@ function startTimer() {
     if (el) el.textContent = m + ':' + s.toString().padStart(2, '0');
     if (timerSeconds <= 0) {
       clearInterval(timerInterval);
-      if (el) el.textContent = 'Expirado';
+      if (el) el.textContent = t('register.step2.timer_expired');
       document.getElementById('btn-resend').disabled = false;
     }
   }, 1000);
@@ -1331,10 +1333,10 @@ function startTimer() {
   resendCooldown = 60;
   const resendBtn = document.getElementById('btn-resend');
   resendBtn.disabled = true;
-  resendBtn.textContent = 'Reenviar en 60s';
+  resendBtn.textContent = t('register.step2.resend_countdown').replace('{n}', resendCooldown);
   const resendTimer = setInterval(() => {
     resendCooldown--;
-    resendBtn.textContent = resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar código';
+    resendBtn.textContent = resendCooldown > 0 ? t('register.step2.resend_countdown').replace('{n}', resendCooldown) : t('register.step2.resend_button');
     if (resendCooldown <= 0) {
       clearInterval(resendTimer);
       resendBtn.disabled = false;
@@ -1356,7 +1358,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   const btn   = document.getElementById('btn-step1');
 
   btn.disabled = true;
-  btn.textContent = 'Comprobando...';
+  btn.textContent = t('register.step1.checking_button');
 
   // Aviso INFORMATIVO, no bloqueante: si el email ya tiene cuenta, ya no
   // cortamos el flujo aquí. register-complete.js exige verificación real
@@ -1367,12 +1369,12 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   // que perdieron su dispositivo (ver recovery.html, que no tiene ningún
   // camino real para ese caso).
   function mostrarAvisoCuentaExistente() {
-    showToast('Ya tienes una cuenta con este correo — al completar el registro recuperarás tu acceso');
+    showToast(t('register.step1.account_exists_toast'));
     if (!document.getElementById('email-exists-msg')) {
       const msg = document.createElement('div');
       msg.id = 'email-exists-msg';
       msg.style.cssText = 'font-size:12px;color:rgba(170,255,0,0.85);text-align:center;margin-top:8px;line-height:1.6;font-family:Inter,sans-serif;';
-      msg.textContent = 'Ya tienes una cuenta con este correo. Al completar la verificación recuperarás tu acceso.';
+      msg.textContent = t('register.step1.account_exists_note');
       btn.insertAdjacentElement('afterend', msg);
     }
   }
@@ -1387,7 +1389,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     // Si check-email falla (sin conexión), seguimos igual — ya no es una comprobación bloqueante
   }
 
-  btn.textContent = 'Enviando código...';
+  btn.textContent = t('register.step1.sending_button');
 
   // El código ya no se genera aquí — send-email.js lo genera y lo guarda
   // en el servidor (ver register-complete.js, que es quien lo valida de
@@ -1402,9 +1404,9 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     });
     if (!sendRes.ok) {
       const errData = await sendRes.json().catch(() => ({}));
-      showToast(errData.error || 'Error al enviar el código — inténtalo de nuevo');
+      showToast(errData.error || t('register.step1.send_error'));
       btn.disabled = false;
-      btn.textContent = 'Continuar — Enviar código al correo';
+      btn.textContent = t('register.step1.submit_button');
       return;
     }
 
@@ -1418,17 +1420,17 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     document.getElementById('dot-1').classList.add('done');
     document.getElementById('dot-2').classList.add('active');
     document.getElementById('line-1').classList.add('done');
-    document.getElementById('step-label').textContent = 'Paso 2 de 2 — Verificación y confirmación';
+    document.getElementById('step-label').textContent = t('register.step_label.step2');
 
     startTimer();
-    showToast('Código enviado a ' + email);
+    showToast(t('register.step1.code_sent_prefix') + ' ' + email);
     window.regTour?.onScreen2();
 
   } catch(e) {
     console.error('EmailJS:', e.status, e.text);
-    showToast('Error al enviar — configura EmailJS');
+    showToast(t('register.step1.emailjs_error'));
     btn.disabled = false;
-    btn.textContent = 'Continuar — Enviar código al correo';
+    btn.textContent = t('register.step1.submit_button');
 
     document.getElementById('screen-1').classList.remove('active');
     document.getElementById('screen-2').classList.add('active');
@@ -1439,9 +1441,9 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
     document.getElementById('dot-1').classList.add('done');
     document.getElementById('dot-2').classList.add('active');
     document.getElementById('line-1').classList.add('done');
-    document.getElementById('step-label').textContent = 'Paso 2 de 2 — Verificación y confirmación';
+    document.getElementById('step-label').textContent = t('register.step_label.step2');
     startTimer();
-    showToast('No se pudo enviar el código. Revisa tu conexión e inténtalo de nuevo.');
+    showToast(t('register.common.network_error'));
     window.regTour?.onScreen2();
   }
 });
@@ -1456,13 +1458,13 @@ document.getElementById('btn-resend').addEventListener('click', async () => {
     });
     if (!sendRes.ok) {
       const errData = await sendRes.json().catch(() => ({}));
-      showToast(errData.error || 'Error al reenviar el código — inténtalo de nuevo');
+      showToast(errData.error || t('register.step2.resend_error'));
     } else {
-      showToast('Nuevo código enviado');
+      showToast(t('register.step2.resend_success'));
     }
   } catch(e) {
     console.error('EmailJS:', e.status, e.text);
-    showToast('No se pudo enviar el código. Revisa tu conexión e inténtalo de nuevo.');
+    showToast(t('register.common.network_error'));
   }
   startTimer();
   codeBuffer = '';
@@ -1475,7 +1477,7 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   // Verificar contraseñas — esto sigue siendo local, no depende del
   // servidor (no hay nada sensible que filtrar comprobando esto en el cliente).
   if (pwd2Buffer !== pwd1Buffer) {
-    showToast('Las contraseñas no coinciden');
+    showToast(t('register.common.pwd_mismatch'));
     return;
   }
 
@@ -1487,7 +1489,7 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   // esta verificación por completo.
   const btn = document.getElementById('btn-step2');
   btn.disabled = true;
-  btn.textContent = 'Verificando...';
+  btn.textContent = t('register.step2.verifying');
 
   let data = null;
   let networkOrServerError = false;
@@ -1513,8 +1515,8 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
       }
       codeBuffer = '';
       updateCodeDisplay();
-      showToast('Código incorrecto o caducado');
-      btn.textContent = 'Verificar y crear mi identidad';
+      showToast(t('register.step2.wrong_code'));
+      btn.textContent = t('register.step2.submit_button');
       checkStep2Ready();
       return;
     }
@@ -1582,9 +1584,9 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   document.getElementById('dot-2').classList.add('done');
   document.getElementById('dot-3').classList.add('active');
   document.getElementById('line-2').classList.add('done');
-  document.getElementById('step-label').textContent = '¡Registro completado!';
+  document.getElementById('step-label').textContent = t('register.step_label.done');
 
-  showToast('✓ Identidad verificada');
+  showToast(t('register.success.toast'));
 });
 
 // =================== ENTRAR A LA APP ===================
@@ -1606,13 +1608,13 @@ function showToast(msg) {
   const TOUR_KEY = 'identity_register_tour_done';
   const STEPS = [
     { sel: '#personal-fields-card', screen: '1',
-      msg: 'Introduce tus datos reales. Son la base de tu identidad digital y no se pueden cambiar después.' },
+      get msg() { return t('register.tour.step1_msg'); } },
     { sel: '#pwd1-keypad', screen: '1',
-      msg: 'Crea tu contraseña maestra: 4 números, 1 letra y 1 símbolo en cualquier orden.' },
+      get msg() { return t('register.tour.step2_msg'); } },
     { sel: '#code-keypad', screen: '2',
-      msg: 'Introduce el código de 6 dígitos que enviamos a tu correo. Expira en 10 minutos.' },
+      get msg() { return t('register.tour.step3_msg'); } },
     { sel: '#pwd2-keypad', screen: '2',
-      msg: 'Repite exactamente la misma contraseña que creaste antes. Sin errores.' },
+      get msg() { return t('register.tour.step4_msg'); } },
   ];
   let step = 0;
 
@@ -1671,7 +1673,7 @@ function showToast(msg) {
     document.getElementById('tour-step-num').textContent = `${step + 1} / ${STEPS.length}`;
     document.getElementById('tour-msg').textContent       = STEPS[step].msg;
     const hasMore = STEPS.slice(step + 1).some(s => !!getEl(s.sel));
-    document.getElementById('tour-btn-next').textContent  = hasMore ? 'Siguiente →' : '¡Empezar!';
+    document.getElementById('tour-btn-next').textContent  = hasMore ? t('register.tour.next_button') : t('register.tour.start_button');
 
     bubble.classList.add('out');
     setTimeout(() => {
@@ -1737,8 +1739,8 @@ function showToast(msg) {
     <div class="tour-step-num" id="tour-step-num">1 / 4</div>
     <div class="tour-msg" id="tour-msg"></div>
     <div class="tour-actions">
-      <button class="tour-btn-skip" id="tour-btn-skip">Saltar tour</button>
-      <button class="tour-btn-next" id="tour-btn-next">Siguiente →</button>
+      <button class="tour-btn-skip" id="tour-btn-skip" data-i18n="register.tour.skip_button">Saltar tour</button>
+      <button class="tour-btn-next" id="tour-btn-next" data-i18n="register.tour.next_button">Siguiente →</button>
     </div>
   </div>
 </div>

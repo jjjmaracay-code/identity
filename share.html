@@ -36,8 +36,9 @@
 </style>
 </head>
 <body>
-  <div class="card" id="card">Cargando...</div>
+  <div class="card" id="card" data-i18n="share.card.loading">Cargando...</div>
 
+  <script src="/i18n/loader.js"></script>
   <script>
     function esc(s) {
       const d = document.createElement('div');
@@ -65,7 +66,7 @@
       const card = document.getElementById('card');
 
       if (!token) {
-        card.innerHTML = '<div class="error-icon">⚠</div><div class="used-msg">Enlace no válido.</div>';
+        card.innerHTML = `<div class="error-icon">⚠</div><div class="used-msg">${t('share.card.invalid_link')}</div>`;
         return;
       }
 
@@ -74,11 +75,11 @@
         const data = await res.json();
 
         if (!data.valid) {
-          const name = data.name ? esc(data.name) : 'esta persona';
+          const name = data.name ? esc(data.name) : t('share.card.fallback_name');
           card.innerHTML = `
-            <div class="logo">IDENTIFLY</div>
+            <div class="logo">${t('share.card.logo')}</div>
             <div class="error-icon">🔒</div>
-            <div class="used-msg">Este enlace ya fue utilizado.<br>Si necesitas estos datos, contacta directamente con <strong>${name}</strong>.</div>`;
+            <div class="used-msg">${t('share.card.used_title')}<br>${t('share.card.used_contact_prefix')} <strong>${name}</strong>.</div>`;
           return;
         }
 
@@ -88,21 +89,21 @@
         const url = URL.createObjectURL(blob);
 
         card.innerHTML = `
-          <div class="logo">IDENTIFLY</div>
+          <div class="logo">${t('share.card.logo')}</div>
           <div class="name">${esc(v.name)}</div>
           ${v.job ? `<div class="job">${esc(v.job)}</div>` : ''}
-          ${v.company ? `<div class="row"><strong>Empresa</strong>${esc(v.company)}</div>` : ''}
-          ${v.mobile ? `<div class="row"><strong>Teléfono</strong>${esc(v.mobile)}</div>` : ''}
-          ${v.phone ? `<div class="row"><strong>Teléfono fijo</strong>${esc(v.phone)}</div>` : ''}
-          ${v.email ? `<div class="row"><strong>Correo</strong>${esc(v.email)}</div>` : ''}
-          <a class="btn" href="${url}" download="contacto.vcf">Guardar contacto</a>
-          <div class="watermark">Compartido por ${esc(data.name)} · ${created}<br>Enlace de un solo uso · IDENTIFLY</div>`;
+          ${v.company ? `<div class="row"><strong>${t('share.card.label_company')}</strong>${esc(v.company)}</div>` : ''}
+          ${v.mobile ? `<div class="row"><strong>${t('share.card.label_mobile')}</strong>${esc(v.mobile)}</div>` : ''}
+          ${v.phone ? `<div class="row"><strong>${t('share.card.label_phone')}</strong>${esc(v.phone)}</div>` : ''}
+          ${v.email ? `<div class="row"><strong>${t('share.card.label_email')}</strong>${esc(v.email)}</div>` : ''}
+          <a class="btn" href="${url}" download="contacto.vcf">${t('share.card.save_button')}</a>
+          <div class="watermark">${t('share.card.watermark_prefix')} ${esc(data.name)} · ${created}<br>${t('share.card.watermark_suffix')}</div>`;
       } catch (e) {
-        card.innerHTML = '<div class="error-icon">⚠</div><div class="used-msg">Error al cargar el contacto.</div>';
+        card.innerHTML = `<div class="error-icon">⚠</div><div class="used-msg">${t('share.card.load_error')}</div>`;
       }
     }
 
-    init();
+    window.i18nReady.finally(init);
   </script>
 </body>
 </html>

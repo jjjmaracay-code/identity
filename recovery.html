@@ -11,6 +11,7 @@
 <title>IDENTIFLY · Recuperación</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="storage-wipe.js"></script>
+<script src="/i18n/loader.js"></script>
 
 <style>
   :root {
@@ -530,8 +531,8 @@
 
 <div class="rec-header">
   <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
-  <div class="rec-brand" aria-label="Aidentiflay">IDENTIFLY</div>
-  <div class="rec-tagline">Recuperación de cuenta</div>
+  <div class="rec-brand" aria-label="Aidentiflay" data-i18n="recovery.header.brand">IDENTIFLY</div>
+  <div class="rec-tagline" data-i18n="recovery.header.tagline">Recuperación de cuenta</div>
 
   <div class="steps-wrap">
     <div class="steps-row">
@@ -543,7 +544,7 @@
       <div class="step-line" id="line-3"></div>
       <div class="step-dot" id="dot-4">✓</div>
     </div>
-    <div class="step-label" id="step-label">Elige cómo recuperar tu cuenta</div>
+    <div class="step-label" id="step-label" data-i18n="recovery.step_label.choose">Elige cómo recuperar tu cuenta</div>
   </div>
 </div>
 
@@ -554,30 +555,30 @@
 
     <div class="block-alert">
       <span class="block-alert-icon">🔒</span>
-      <div class="block-alert-title">Cuenta bloqueada</div>
-      <div class="block-alert-text">
+      <div class="block-alert-title" data-i18n="recovery.blocked.title">Cuenta bloqueada</div>
+      <div class="block-alert-text" data-i18n-html="recovery.blocked.text_html">
         Has introducido la contraseña incorrectamente <strong style="color:#ff8888">3 veces</strong>.<br>
         Tu cuenta está temporalmente bloqueada por seguridad.
       </div>
       <div class="block-timer" id="block-timer">30:00</div>
-      <div class="block-alert-text">Puedes esperar o recuperar tu cuenta ahora</div>
+      <div class="block-alert-text" data-i18n="recovery.blocked.wait_text">Puedes esperar o recuperar tu cuenta ahora</div>
     </div>
 
     <div class="rec-card">
-      <div class="rec-card-title">¿Cómo quieres continuar?</div>
+      <div class="rec-card-title" data-i18n="recovery.blocked.choose_title">¿Cómo quieres continuar?</div>
       <div class="recovery-options">
         <div class="recovery-option" id="opt-recover">
           <div class="recovery-option-icon">🔑</div>
           <div>
-            <div class="recovery-option-title">Recuperar mi cuenta</div>
-            <div class="recovery-option-desc">Usa tu código de respaldo + verificación por email para crear una nueva contraseña. Tus datos se conservan.</div>
+            <div class="recovery-option-title" data-i18n="recovery.blocked.opt_recover_title">Recuperar mi cuenta</div>
+            <div class="recovery-option-desc" data-i18n="recovery.blocked.opt_recover_desc">Usa tu código de respaldo + verificación por email para crear una nueva contraseña. Tus datos se conservan.</div>
           </div>
         </div>
         <div class="recovery-option danger" id="opt-delete">
           <div class="recovery-option-icon">🗑️</div>
           <div>
-            <div class="recovery-option-title">Borrar todo y empezar de nuevo</div>
-            <div class="recovery-option-desc">Elimina todos tus datos permanentemente. Esta acción es irreversible.</div>
+            <div class="recovery-option-title" data-i18n="recovery.blocked.opt_delete_title">Borrar todo y empezar de nuevo</div>
+            <div class="recovery-option-desc" data-i18n="recovery.blocked.opt_delete_desc">Elimina todos tus datos permanentemente. Esta acción es irreversible.</div>
           </div>
         </div>
       </div>
@@ -589,10 +590,10 @@
   <div class="screen" id="screen-phase1">
 
     <div class="rec-card">
-      <div class="rec-card-title">Fase 1 — Código de respaldo</div>
+      <div class="rec-card-title" data-i18n="recovery.phase1.title">Fase 1 — Código de respaldo</div>
 
       <div class="info-box">
-        <div class="info-box-text">
+        <div class="info-box-text" data-i18n-html="recovery.phase1.info_html">
           Cuando activaste tu cuenta te enviamos un email con tu <strong>código de respaldo de 6 dígitos</strong>. Introdúcelo aquí para verificar tu identidad.
         </div>
       </div>
@@ -606,7 +607,7 @@
         <div class="code-char" id="b5">·</div>
       </div>
 
-      <div class="field-hint" id="backup-hint" style="text-align:center;margin-bottom:12px;">
+      <div class="field-hint" id="backup-hint" style="text-align:center;margin-bottom:12px;" data-i18n="recovery.phase1.hint">
         Busca en tu email el mensaje "Tu código de respaldo IDENTITY"
       </div>
 
@@ -620,14 +621,14 @@
         <button class="key-btn" data-target="backup" data-val="7">7</button>
         <button class="key-btn" data-target="backup" data-val="8">8</button>
         <button class="key-btn" data-target="backup" data-val="9">9</button>
-        <button class="key-btn" id="clr-backup">CLR</button>
+        <button class="key-btn" id="clr-backup" data-i18n="recovery.phase1.clr">CLR</button>
         <button class="key-btn" data-target="backup" data-val="0">0</button>
         <button class="key-btn del" id="del-backup">⌫</button>
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-phase1" disabled>Verificar código de respaldo</button>
-    <button class="btn-secondary" id="btn-back-1">← Volver</button>
+    <button class="btn-primary" id="btn-phase1" disabled data-i18n="recovery.phase1.verify_button">Verificar código de respaldo</button>
+    <button class="btn-secondary" id="btn-back-1" data-i18n="recovery.phase1.back_button">← Volver</button>
 
   </div><!-- fin screen-phase1 -->
 
@@ -635,10 +636,10 @@
   <div class="screen" id="screen-phase2">
 
     <div class="rec-card green">
-      <div class="rec-card-title" style="color:rgba(170,255,0,0.7);border-color:rgba(170,255,0,0.1);">Fase 2 — Verificación por email</div>
+      <div class="rec-card-title" style="color:rgba(170,255,0,0.7);border-color:rgba(170,255,0,0.1);" data-i18n="recovery.phase2.title">Fase 2 — Verificación por email</div>
 
       <div class="info-box">
-        <div class="info-box-text">
+        <div class="info-box-text" data-i18n-html="recovery.phase2.info_html">
           Hemos enviado un <strong>código temporal de 6 dígitos</strong> a tu correo registrado. Introdúcelo para confirmar que eres tú.
         </div>
       </div>
@@ -652,8 +653,8 @@
         <div class="code-char green" id="t5">·</div>
       </div>
 
-      <div class="code-timer">El código expira en <span id="temp-timer">10:00</span></div>
-      <button class="resend-btn" id="btn-resend-temp" disabled>Reenviar código</button>
+      <div class="code-timer"><span data-i18n="recovery.phase2.timer_prefix">El código expira en</span> <span id="temp-timer">10:00</span></div>
+      <button class="resend-btn" id="btn-resend-temp" disabled data-i18n="recovery.phase2.resend_button">Reenviar código</button>
 
       <div class="pin-keypad">
         <button class="key-btn green-key" data-target="temp" data-val="1">1</button>
@@ -665,13 +666,13 @@
         <button class="key-btn green-key" data-target="temp" data-val="7">7</button>
         <button class="key-btn green-key" data-target="temp" data-val="8">8</button>
         <button class="key-btn green-key" data-target="temp" data-val="9">9</button>
-        <button class="key-btn green-key" id="clr-temp">CLR</button>
+        <button class="key-btn green-key" id="clr-temp" data-i18n="recovery.phase2.clr">CLR</button>
         <button class="key-btn green-key" data-target="temp" data-val="0">0</button>
         <button class="key-btn del green-key" id="del-temp">⌫</button>
       </div>
     </div>
 
-    <button class="btn-primary green-btn" id="btn-phase2" disabled>Verificar código temporal</button>
+    <button class="btn-primary green-btn" id="btn-phase2" disabled data-i18n="recovery.phase2.verify_button">Verificar código temporal</button>
 
   </div><!-- fin screen-phase2 -->
 
@@ -679,31 +680,31 @@
   <div class="screen" id="screen-phase3">
 
     <div class="rec-card green">
-      <div class="rec-card-title" style="color:rgba(170,255,0,0.7);border-color:rgba(170,255,0,0.1);">Fase 3 — Nueva contraseña maestra</div>
+      <div class="rec-card-title" style="color:rgba(170,255,0,0.7);border-color:rgba(170,255,0,0.1);" data-i18n="recovery.phase3.title">Fase 3 — Nueva contraseña maestra</div>
 
       <div class="info-box">
-        <div class="info-box-text">
+        <div class="info-box-text" data-i18n-html="recovery.phase3.info_html">
           Crea tu nueva contraseña: mínimo <strong>8 caracteres</strong>, al menos <strong>1 número</strong> y <strong>1 símbolo</strong>.
         </div>
       </div>
 
       <div class="pwd-dots-wrap">
         <div class="pwd-dots empty" id="np-dots">· · · · · · · ·</div>
-        <button type="button" class="eye-btn" id="eye-np" aria-label="Ver contraseña"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button type="button" class="eye-btn" id="eye-np" aria-label="Ver contraseña" data-i18n-aria="recovery.phase3.eye_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
-      <div class="pwd-validation" id="newpwd-hint">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
+      <div class="pwd-validation" id="newpwd-hint" data-i18n="recovery.phase3.hint">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
       <div class="pwd-strength" id="str-newpwd">
-        <span class="pwd-req" id="np-len">Mínimo 8 caracteres</span>
-        <span class="pwd-req" id="np-num">Al menos 1 número</span>
-        <span class="pwd-req" id="np-sym">Al menos 1 símbolo</span>
-        <span class="pwd-req" id="np-up">Al menos 1 mayúscula</span>
+        <span class="pwd-req" id="np-len" data-i18n="recovery.phase3.req_len">Mínimo 8 caracteres</span>
+        <span class="pwd-req" id="np-num" data-i18n="recovery.phase3.req_num">Al menos 1 número</span>
+        <span class="pwd-req" id="np-sym" data-i18n="recovery.phase3.req_sym">Al menos 1 símbolo</span>
+        <span class="pwd-req" id="np-up" data-i18n="recovery.phase3.req_upper">Al menos 1 mayúscula</span>
       </div>
-      <div class="pwd-hint-static">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
+      <div class="pwd-hint-static" data-i18n="recovery.phase3.static_hint">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
       <div id="qwerty-kbd-np"></div>
     </div>
 
-    <button class="btn-primary green-btn" id="btn-phase3" disabled>Guardar nueva contraseña</button>
+    <button class="btn-primary green-btn" id="btn-phase3" disabled data-i18n="recovery.phase3.save_button">Guardar nueva contraseña</button>
 
   </div><!-- fin screen-phase3 -->
 
@@ -711,8 +712,8 @@
   <div class="screen" id="screen-delete">
     <div class="block-alert" style="margin-bottom:16px;">
       <span class="block-alert-icon">⚠️</span>
-      <div class="block-alert-title">¿Borrar todo?</div>
-      <div class="block-alert-text">
+      <div class="block-alert-title" data-i18n="recovery.delete.title">¿Borrar todo?</div>
+      <div class="block-alert-text" data-i18n-html="recovery.delete.warning_html">
         Esta acción eliminará <strong style="color:#ff8888">todos tus datos permanentemente</strong>:<br><br>
         — Tu perfil e información personal<br>
         — Tu contraseña maestra<br>
@@ -723,10 +724,10 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-confirm-delete" style="background:#cc0000;">
+    <button class="btn-primary" id="btn-confirm-delete" style="background:#cc0000;" data-i18n="recovery.delete.confirm_button">
       Sí, borrar todo — Empezar de nuevo
     </button>
-    <button class="btn-secondary" id="btn-cancel-delete">← Cancelar — Recuperar mi cuenta</button>
+    <button class="btn-secondary" id="btn-cancel-delete" data-i18n="recovery.delete.cancel_button">← Cancelar — Recuperar mi cuenta</button>
   </div>
 
   <!-- =================== ÉXITO =================== -->
@@ -737,12 +738,12 @@
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <div class="success-title">Cuenta recuperada</div>
-      <div class="success-sub">
+      <div class="success-title" data-i18n="recovery.success.title">Cuenta recuperada</div>
+      <div class="success-sub" data-i18n-html="recovery.success.text_html">
         Tu nueva contraseña está activa.<br>
         Tus datos han sido conservados.
       </div>
-      <button class="btn-primary green-btn" id="btn-enter">Entrar a IDENTITY →</button>
+      <button class="btn-primary green-btn" id="btn-enter" data-i18n="recovery.success.enter_button">Entrar a IDENTITY →</button>
     </div>
   </div>
 
@@ -827,7 +828,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'CLR') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = 'Limpiar'; btn.style.flex = '1.5';
+          btn.textContent = t('recovery.qwerty.clear'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); if (clearFn) clearFn(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -835,7 +836,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'NUMS') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = '123'; btn.style.flex = '1.5';
+          btn.textContent = t('recovery.qwerty.nums'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'nums'; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -843,7 +844,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'BACK') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = 'ABC'; btn.style.flex = '1.5';
+          btn.textContent = t('recovery.qwerty.back'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'letters'; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -851,7 +852,7 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
           });
         } else if (key === 'SPACE') {
           btn.className = 'qwerty-key qwerty-space';
-          btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
+          btn.style.flex = '4'; btn.setAttribute('aria-label', t('recovery.qwerty.space_aria'));
           btn._kbdAction = () => { playKeyClick(); appendFn(' '); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandled) { btn._touchHandled = false; return; }
@@ -907,11 +908,11 @@ function buildQwertyKbd(containerId, appendFn, deleteFn, clearFn) {
   container.addEventListener('touchcancel', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey._touchHandled = false; _dragKey = null; } });
 }
 
-buildQwertyKbd('qwerty-kbd-np',
+window.i18nReady.finally(() => buildQwertyKbd('qwerty-kbd-np',
   c => { newPwdBuffer += c; updateDisplay('newpwd'); },
   ()  => { newPwdBuffer = newPwdBuffer.slice(0,-1); updateDisplay('newpwd'); },
   ()  => { newPwdBuffer = ''; updateDisplay('newpwd'); }
-);
+));
 
 // ===== OJO NUEVA CONTRASEÑA =====
 document.getElementById('eye-np').addEventListener('click', () => {
@@ -1016,7 +1017,7 @@ function startTempTimer() {
     if (el) el.textContent = m+':'+s.toString().padStart(2,'0');
     if (secs <= 0) {
       clearInterval(timerInterval);
-      if (el) el.textContent = 'Expirado';
+      if (el) el.textContent = t('recovery.phase2.timer_expired');
       document.getElementById('btn-resend-temp').disabled = false;
     }
   }, 1000);
@@ -1024,10 +1025,10 @@ function startTempTimer() {
   resendCooldown = 60;
   const btn = document.getElementById('btn-resend-temp');
   btn.disabled = true;
-  btn.textContent = 'Reenviar en 60s';
+  btn.textContent = t('recovery.phase2.resend_countdown').replace('{n}', resendCooldown);
   const resendTimer = setInterval(() => {
     resendCooldown--;
-    btn.textContent = resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar código';
+    btn.textContent = resendCooldown > 0 ? t('recovery.phase2.resend_countdown').replace('{n}', resendCooldown) : t('recovery.phase2.resend_button');
     if (resendCooldown <= 0) { clearInterval(resendTimer); btn.disabled = false; }
   }, 1000);
 }
@@ -1054,14 +1055,14 @@ async function sendTempCode() {
     });
     if (!sendRes.ok) {
       const errData = await sendRes.json().catch(() => ({}));
-      showToast(errData.error || 'Error al enviar el código — inténtalo de nuevo');
+      showToast(errData.error || t('recovery.phase2.send_error'));
     } else {
-      showToast('Código enviado a ' + email);
+      showToast(t('recovery.phase2.code_sent_prefix') + ' ' + email);
     }
   } catch(e) {
     console.error('EmailJS:', e.status, e.text);
     console.log('🔑 Código temporal de prueba:', tempCode);
-    showToast('Modo dev — código en consola');
+    showToast(t('recovery.phase2.dev_mode'));
   }
   startTempTimer();
 }
@@ -1090,7 +1091,7 @@ function updateSteps(active) {
 document.getElementById('opt-recover').addEventListener('click', () => {
   goToScreen('screen-phase1');
   updateSteps(1);
-  document.getElementById('step-label').textContent = 'Fase 1 — Código de respaldo';
+  document.getElementById('step-label').textContent = t('recovery.phase1.title');
 });
 
 document.getElementById('opt-delete').addEventListener('click', () => {
@@ -1100,7 +1101,7 @@ document.getElementById('opt-delete').addEventListener('click', () => {
 document.getElementById('btn-back-1').addEventListener('click', () => {
   goToScreen('screen-blocked');
   updateSteps(0);
-  document.getElementById('step-label').textContent = 'Elige cómo recuperar tu cuenta';
+  document.getElementById('step-label').textContent = t('recovery.step_label.choose');
 });
 
 // =================== FASE 1: VERIFICAR CÓDIGO RESPALDO ===================
@@ -1113,13 +1114,13 @@ document.getElementById('btn-phase1').addEventListener('click', () => {
     }
     backupBuffer='';
     updateDisplay('backup');
-    showToast('Código incorrecto', true);
+    showToast(t('recovery.common.wrong_code'), true);
     return;
   }
   // Correcto — pasar a fase 2
   goToScreen('screen-phase2');
   updateSteps(2);
-  document.getElementById('step-label').textContent = 'Fase 2 — Verificación por email';
+  document.getElementById('step-label').textContent = t('recovery.phase2.title');
   sendTempCode();
 });
 
@@ -1133,13 +1134,13 @@ document.getElementById('btn-phase2').addEventListener('click', () => {
     }
     tempBuffer='';
     updateDisplay('temp');
-    showToast('Código incorrecto', true);
+    showToast(t('recovery.common.wrong_code'), true);
     return;
   }
   clearInterval(timerInterval);
   goToScreen('screen-phase3');
   updateSteps(3);
-  document.getElementById('step-label').textContent = 'Fase 3 — Nueva contraseña maestra';
+  document.getElementById('step-label').textContent = t('recovery.phase3.title');
 });
 
 document.getElementById('btn-resend-temp').addEventListener('click', async () => {
@@ -1159,8 +1160,8 @@ document.getElementById('btn-phase3').addEventListener('click', () => {
 
   goToScreen('screen-success');
   updateSteps(4);
-  document.getElementById('step-label').textContent = '¡Cuenta recuperada!';
-  showToast('✓ Nueva contraseña guardada');
+  document.getElementById('step-label').textContent = t('recovery.step_label.success');
+  showToast(t('recovery.phase3.saved_toast'));
 });
 
 // =================== BORRAR TODO ===================
@@ -1169,7 +1170,7 @@ document.getElementById('btn-phase3').addEventListener('click', () => {
 // decide qué hacer después, que es específico de esta pantalla.
 document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
   const btn = document.getElementById('btn-confirm-delete');
-  if (btn) { btn.disabled = true; btn.textContent = 'Borrando…'; }
+  if (btn) { btn.disabled = true; btn.textContent = t('recovery.delete.deleting_button'); }
 
   // borrarTodoElAlmacenamiento() ya protege cada paso con timeout (ver
   // storage-wipe.js), así que no debería rechazar — pero este try/catch
@@ -1194,7 +1195,7 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
 document.getElementById('btn-cancel-delete').addEventListener('click', () => {
   goToScreen('screen-phase1');
   updateSteps(1);
-  document.getElementById('step-label').textContent = 'Fase 1 — Código de respaldo';
+  document.getElementById('step-label').textContent = t('recovery.phase1.title');
 });
 
 // =================== ENTRAR ===================
