@@ -12,6 +12,7 @@
 <title>IDENTIFLY</title>
 <link rel="canonical" href="https://www.identifly.app/">
 <script src="storage-wipe.js"></script>
+<script src="/i18n/loader.js"></script>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -2333,16 +2334,16 @@
 
     <div class="pslide" id="iplan-0">
       <div style="text-align:center;margin-bottom:20px;">
-        <div style="font-size:9px;font-weight:900;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;margin-bottom:12px;">Tu periodo de prueba</div>
+        <div style="font-size:9px;font-weight:900;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;margin-bottom:12px;" data-i18n="index.plans.trial_title">Tu periodo de prueba</div>
         <div id="iplan-days" style="font-size:52px;font-weight:900;color:#AAFF00;text-shadow:0 0 20px rgba(170,255,0,0.5);line-height:1;margin-bottom:4px;">--</div>
-        <div style="font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:20px;">días restantes de prueba gratuita</div>
+        <div style="font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:20px;" data-i18n="index.plans.trial_days_label">días restantes de prueba gratuita</div>
         <div style="background:rgba(170,255,0,0.05);border:1px solid rgba(170,255,0,0.12);border-radius:12px;padding:16px;text-align:left;">
-          <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(170,255,0,0.6);text-transform:uppercase;margin-bottom:10px;">Con un plan de pago tienes</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(170,255,0,0.6);text-transform:uppercase;margin-bottom:10px;" data-i18n="index.plans.paid_features_title">Con un plan de pago tienes</div>
           <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.4;">
-            <div>✓ Video de fondo en tarjeta</div>
-            <div>✓ Personalización completa del QR</div>
-            <div>✓ Doble factor de autenticación</div>
-            <div>✓ Soporte prioritario</div>
+            <div data-i18n="index.plans.feature_video">✓ Video de fondo en tarjeta</div>
+            <div data-i18n="index.plans.feature_qr">✓ Personalización completa del QR</div>
+            <div data-i18n="index.plans.feature_2fa">✓ Doble factor de autenticación</div>
+            <div data-i18n="index.plans.feature_support">✓ Soporte prioritario</div>
           </div>
         </div>
       </div>
@@ -2350,14 +2351,14 @@
 
     <div class="pslide" id="iplan-1" style="display:none;">
       <div style="border:1px solid rgba(170,255,0,0.25);border-radius:16px;padding:20px;background:rgba(170,255,0,0.03);position:relative;">
-        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a0a0a;padding:0 10px;font-size:9px;font-weight:700;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;">MÁS POPULAR</div>
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a0a0a;padding:0 10px;font-size:9px;font-weight:700;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;" data-i18n="index.plans.most_popular">MÁS POPULAR</div>
         <div style="text-align:center;margin-bottom:14px;">
-          <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:900;color:#AAFF00;text-shadow:0 0 16px rgba(170,255,0,0.35);margin-bottom:8px;">Pro</div>
+          <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:900;color:#AAFF00;text-shadow:0 0 16px rgba(170,255,0,0.35);margin-bottom:8px;" data-i18n="index.plans.pro_name">Pro</div>
           <div style="font-size:36px;font-weight:900;color:#fff;line-height:1;"><span style="font-size:18px;vertical-align:top;margin-top:6px;display:inline-block;">€</span>2<span style="font-size:20px;">.99</span></div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;">por mes — cancela cuando quieras</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;" data-i18n="index.plans.pro_period">por mes — cancela cuando quieras</div>
         </div>
         <button class="plans-pay-btn" onclick="window.location.href='paywall.html'"
-          style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-bottom:14px;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+          style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-bottom:14px;box-shadow:0 0 24px rgba(170,255,0,0.3);" data-i18n="index.plans.pro_button">
           QUIERO PRO
         </button>
       </div>
@@ -2365,14 +2366,14 @@
 
     <div class="pslide" id="iplan-2" style="display:none;">
       <div style="border:1.5px solid rgba(170,255,0,0.35);border-radius:16px;padding:20px;background:rgba(170,255,0,0.03);position:relative;">
-        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a0a0a;padding:0 10px;font-size:9px;font-weight:700;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;white-space:nowrap;">◆ MEJOR VALOR</div>
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#0a0a0a;padding:0 10px;font-size:9px;font-weight:700;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;white-space:nowrap;" data-i18n="index.plans.best_value">◆ MEJOR VALOR</div>
         <div style="text-align:center;margin-bottom:14px;">
-          <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:900;color:#AAFF00;text-shadow:0 0 16px rgba(170,255,0,0.4);margin-bottom:8px;">Lifetime</div>
+          <div style="font-family:'Inter',sans-serif;font-size:22px;font-weight:900;color:#AAFF00;text-shadow:0 0 16px rgba(170,255,0,0.4);margin-bottom:8px;" data-i18n="index.plans.lifetime_name">Lifetime</div>
           <div style="font-size:36px;font-weight:900;color:#fff;line-height:1;"><span style="font-size:18px;vertical-align:top;margin-top:6px;display:inline-block;">€</span>14<span style="font-size:20px;">.99</span></div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;">pago único — tuyo para siempre</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;" data-i18n="index.plans.lifetime_period">pago único — tuyo para siempre</div>
         </div>
         <button class="plans-pay-btn" onclick="window.location.href='paywall.html'"
-          style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-bottom:14px;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+          style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-bottom:14px;box-shadow:0 0 24px rgba(170,255,0,0.3);" data-i18n="index.plans.lifetime_button">
           PAGO ÚNICO
         </button>
       </div>
@@ -2384,9 +2385,9 @@
       <span class="pdot" data-ipi="2"></span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button id="iplan-skip" onclick="closeIPlans()" style="flex:1;background:none;border:none;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:1px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;padding:0;">Continuar con mi plan actual</button>
+      <button id="iplan-skip" onclick="closeIPlans()" style="flex:1;background:none;border:none;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:1px;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;padding:0;" data-i18n="index.plans.skip_button">Continuar con mi plan actual</button>
       <button id="iplan-prev" onclick="iplanNav(-1)" style="display:none;background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);font-size:14px;padding:9px 14px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;">‹</button>
-      <button id="iplan-next" onclick="iplanNav(1)" style="background:#AAFF00;border:none;color:#000;font-size:11px;font-weight:900;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;white-space:nowrap;">Siguiente →</button>
+      <button id="iplan-next" onclick="iplanNav(1)" style="background:#AAFF00;border:none;color:#000;font-size:11px;font-weight:900;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:1px;white-space:nowrap;" data-i18n="index.plans.next_button">Siguiente →</button>
     </div>
   </div>
 </div>
@@ -2399,27 +2400,27 @@
      mismo mecanismo de verificación por email que usa el registro normal. -->
 <div id="recover-access-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
   <div style="background:#0a0a0a;border:1.5px solid rgba(170,255,0,0.3);border-radius:20px;padding:28px 24px;max-width:380px;width:100%;font-family:'Inter',sans-serif;">
-    <div style="font-size:14px;font-weight:900;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;text-align:center;margin-bottom:10px;">Recupera tu acceso</div>
+    <div style="font-size:14px;font-weight:900;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;text-align:center;margin-bottom:10px;" data-i18n="index.recover_access.title">Recupera tu acceso</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:22px;line-height:1.6;">
-      Este dispositivo no tiene un acceso válido para <strong id="recover-access-email" style="color:#fff;"></strong>. Verifica tu email para recuperarlo — puedes hacerlo las veces que necesites.
+      <span data-i18n="index.recover_access.intro_prefix">Este dispositivo no tiene un acceso válido para</span> <strong id="recover-access-email" style="color:#fff;"></strong>. <span data-i18n="index.recover_access.intro_suffix">Verifica tu email para recuperarlo — puedes hacerlo las veces que necesites.</span>
     </div>
 
     <div id="recover-access-step1">
       <button type="button" id="btn-recover-send-code"
-        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(170,255,0,0.3);" data-i18n="index.recover_access.send_button">
         Enviar código a mi correo
       </button>
     </div>
 
     <div id="recover-access-step2" style="display:none;">
       <input type="text" id="recover-access-code" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos"
-        style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(170,255,0,0.3);background:#111;color:#fff;text-align:center;font-size:20px;letter-spacing:6px;font-family:'Inter',sans-serif;margin-bottom:12px;">
+        style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(170,255,0,0.3);background:#111;color:#fff;text-align:center;font-size:20px;letter-spacing:6px;font-family:'Inter',sans-serif;margin-bottom:12px;" data-i18n-placeholder="index.recover_access.code_placeholder">
       <button type="button" id="btn-recover-verify"
-        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-bottom:10px;box-shadow:0 0 24px rgba(170,255,0,0.3);">
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-bottom:10px;box-shadow:0 0 24px rgba(170,255,0,0.3);" data-i18n="index.recover_access.verify_button">
         Verificar código
       </button>
       <button type="button" id="btn-recover-resend"
-        style="width:100%;padding:8px;background:none;border:none;color:#AAFF00;font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.5px;text-decoration:underline;cursor:pointer;">
+        style="width:100%;padding:8px;background:none;border:none;color:#AAFF00;font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.5px;text-decoration:underline;cursor:pointer;" data-i18n="index.recover_access.resend_button">
         Reenviar código
       </button>
     </div>
@@ -2427,7 +2428,7 @@
     <div id="recover-access-msg" style="display:none;font-size:11px;color:#ff6b6b;text-align:center;margin-top:14px;line-height:1.5;"></div>
 
     <button type="button" id="btn-recover-skip"
-      style="width:100%;padding:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.5px;margin-top:18px;cursor:pointer;">
+      style="width:100%;padding:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.5px;margin-top:18px;cursor:pointer;" data-i18n="index.recover_access.skip_button">
       Ahora no
     </button>
   </div>
@@ -2440,12 +2441,12 @@
 <div id="screen-consent">
   <div class="consent-header">
     <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
-    <div class="consent-tagline">IDENTIFLY · Privacidad y Protección de Datos</div>
+    <div class="consent-tagline" data-i18n="index.consent.header_tagline">IDENTIFLY · Privacidad y Protección de Datos</div>
   </div>
 
   <div class="consent-scroll-wrap">
     <div class="consent-scroll" id="consent-scroll-inner">
-    <div class="consent-title">Tus derechos y nuestro compromiso</div>
+    <div class="consent-title" data-i18n="index.consent.title">Tus derechos y nuestro compromiso</div>
 
     <div class="consent-block">
       <div class="consent-block-title">
@@ -2453,9 +2454,9 @@
           <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
           <polyline points="9 12 11 14 15 10"/>
         </svg>
-        Quiénes somos y qué hacemos
+        <span data-i18n="index.consent.who_we_are_title">Quiénes somos y qué hacemos</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.who_we_are_text">
         <strong>IDENTIFLY</strong> es una aplicación de tarjeta de contacto digital. Tus datos personales se almacenan <strong>exclusivamente en tu dispositivo</strong> mediante localStorage. No los enviamos, vendemos ni cedemos a terceros bajo ninguna circunstancia.
       </div>
     </div>
@@ -2468,9 +2469,9 @@
           <line x1="3" y1="10" x2="21" y2="10"/>
           <line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="13" y2="18"/>
         </svg>
-        Base legal — RGPD Art. 6 y 7
+        <span data-i18n="index.consent.legal_basis_title">Base legal — RGPD Art. 6 y 7</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.legal_basis_text">
         El tratamiento de tus datos se basa en tu <strong>consentimiento explícito</strong> (Art. 6.1.a RGPD). Tienes derecho a retirar este consentimiento en cualquier momento sin que ello afecte a la licitud del tratamiento previo. Conforme al <strong>Art. 7 RGPD</strong>, este consentimiento es libre, específico, informado e inequívoco.
       </div>
     </div>
@@ -2483,9 +2484,9 @@
           <circle cx="18" cy="8" r="2" fill="#AAFF00" stroke="none" opacity="0.4"/>
           <line x1="18" y1="6" x2="18" y2="10"/><line x1="16" y1="8" x2="20" y2="8"/>
         </svg>
-        Tus derechos — RGPD Arts. 15–22
+        <span data-i18n="index.consent.rights_title">Tus derechos — RGPD Arts. 15–22</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.rights_text">
         <strong>Art. 15 — Acceso:</strong> Puedes consultar todos tus datos en cualquier momento desde la pantalla de configuración.<br><br>
         <strong>Art. 16 — Rectificación:</strong> Puedes modificar tus datos cuando quieras.<br><br>
         <strong>Art. 17 — Supresión ("derecho al olvido"):</strong> Puedes eliminar todos tus datos borrando los datos del navegador o desinstalando la app.<br><br>
@@ -2503,9 +2504,9 @@
           <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
           <circle cx="12" cy="16" r="1.5" fill="#AAFF00" stroke="none"/>
         </svg>
-        Seguridad matemática — RGPD Art. 32
+        <span data-i18n="index.consent.security_title">Seguridad matemática — RGPD Art. 32</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.security_text">
         Tu contraseña de acceso está diseñada con criterios de seguridad matemática certificable:<br><br>
         <strong>Contraseña IDENTIFLY (mínimo 8 caracteres: letras, números y símbolos)</strong><br>
         Cuanto más larga y variada sea tu contraseña, mayor es la protección. Cada carácter adicional multiplica exponencialmente el número de combinaciones posibles, haciendo la contraseña prácticamente <strong>imposible de romper</strong> por fuerza bruta.<br><br>
@@ -2524,9 +2525,9 @@
           <path d="M9 16.5h6"/>
           <path d="M13 14.5l2 2-2 2"/>
         </svg>
-        Protocolo de bloqueo y recuperación — Art. 32 RGPD
+        <span data-i18n="index.consent.lockout_title">Protocolo de bloqueo y recuperación — Art. 32 RGPD</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n="index.consent.lockout_text">
         Por tu seguridad, tras 3 intentos fallidos de acceso tu cuenta queda bloqueada durante 30 minutos. IDENTIFLY dispone de un proceso de recuperación en 3 fases: Fase 1 — código de respaldo de 6 dígitos enviado automáticamente al registrarte, que debes guardar permanentemente en tu correo. Fase 2 — código temporal enviado a tu email en el momento de la recuperación. Fase 3 — creación de nueva contraseña maestra. Si no conservas tu código de respaldo la única opción disponible es el borrado total de datos y un nuevo registro desde cero. IDENTIFLY no puede recuperar tu cuenta sin este código — es tu responsabilidad guardarlo en un lugar seguro.
       </div>
     </div>
@@ -2538,9 +2539,9 @@
           <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
           <path d="M9 12l2 2 4-4"/>
         </svg>
-        Doble factor de autenticación (2FA) — Nivel militar
+        <span data-i18n="index.consent.twofa_title">Doble factor de autenticación (2FA) — Nivel militar</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.twofa_text">
         IDENTIFLY ofrece <strong>autenticación de doble factor opcional</strong> que añade una segunda capa de seguridad matemáticamente verificable:<br><br>
 
         <strong>Factor 1 — Contraseña (algo que sabes)</strong><br>
@@ -2567,9 +2568,9 @@
           <path d="M10 11v6M14 11v6"/>
           <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
         </svg>
-        Derecho al olvido y baja voluntaria — Art. 17 RGPD
+        <span data-i18n="index.consent.deletion_title">Derecho al olvido y baja voluntaria — Art. 17 RGPD</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.deletion_text">
         Conforme al <strong>Art. 17 RGPD</strong>, tienes derecho a la supresión de todos tus datos personales en cualquier momento, sin necesidad de justificación.<br><br>
         IDENTIFLY pone a tu disposición un <strong>botón rojo de baja voluntaria</strong> accesible desde la pantalla de configuración que elimina de forma inmediata e irreversible:<br><br>
         — Tu perfil completo (nombre, teléfono, email, dirección, redes)<br>
@@ -2587,9 +2588,9 @@
           <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
           <line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="#AAFF00" stroke="none"/>
         </svg>
-        Tus deberes como usuario
+        <span data-i18n="index.consent.duties_title">Tus deberes como usuario</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.duties_text">
         <strong>Confidencialidad del PIN:</strong> Tu PIN de acceso es personal e intransferible. <strong>No debes compartirlo con nadie</strong>, ni familiares, ni amigos, ni ningún tercero bajo ninguna circunstancia.<br><br>
         <strong>Custodia del dispositivo:</strong> Eres responsable de no dejar tu dispositivo desbloqueado con IDENTIFLY abierto en presencia de terceros. <strong>No debes prestar tu móvil</strong> con la aplicación activa.<br><br>
         <strong>Uso personal:</strong> IDENTIFLY está diseñado para uso personal y exclusivo del titular. No está permitido su uso por personas distintas al titular de la cuenta.<br><br>
@@ -2604,9 +2605,9 @@
           <circle cx="12" cy="12" r="10"/>
           <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
         </svg>
-        Límites de uso y prohibiciones
+        <span data-i18n="index.consent.prohibitions_title">Límites de uso y prohibiciones</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.prohibitions_text">
         <strong>Está terminantemente prohibido:</strong><br><br>
         — Intentar vulnerar, hackear o manipular el sistema de PIN de la aplicación.<br><br>
         — Usar la aplicación para suplantar la identidad de otra persona.<br><br>
@@ -2624,9 +2625,9 @@
           <line x1="8" y1="21" x2="16" y2="21"/>
           <line x1="12" y1="17" x2="12" y2="21"/>
         </svg>
-        Responsabilidad y exención de garantías
+        <span data-i18n="index.consent.liability_title">Responsabilidad y exención de garantías</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.liability_text">
         IDENTIFLY se proporciona <strong>"tal cual"</strong>, sin garantías de disponibilidad continua. No nos responsabilizamos de:<br><br>
         — Pérdida de datos por borrado del navegador o del dispositivo.<br><br>
         — Acceso no autorizado derivado de que el usuario haya compartido su PIN.<br><br>
@@ -2643,9 +2644,9 @@
           <line x1="9" y1="13" x2="15" y2="13"/>
           <line x1="9" y1="17" x2="12" y2="17"/>
         </svg>
-        Legislación aplicable
+        <span data-i18n="index.consent.jurisdiction_title">Legislación aplicable</span>
       </div>
-      <div class="consent-block-text">
+      <div class="consent-block-text" data-i18n-html="index.consent.jurisdiction_text">
         Esta aplicación se rige por la legislación española y europea vigente, incluyendo:<br><br>
         — <strong>RGPD (UE) 2016/679</strong> — Reglamento General de Protección de Datos.<br><br>
         — <strong>LOPD-GDD (LO 3/2018)</strong> — Ley Orgánica de Protección de Datos y Garantía de los Derechos Digitales.<br><br>
@@ -2659,7 +2660,7 @@
     <!-- Indicador de scroll -->
     <div class="scroll-indicator" id="scroll-indicator">
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-        <div class="scroll-text">desliza para leer más</div>
+        <div class="scroll-text" data-i18n="index.consent.scroll_hint">desliza para leer más</div>
         <div class="scroll-arrow">
           <span></span><span></span><span></span>
         </div>
@@ -2668,64 +2669,64 @@
 
   </div><!-- fin consent-scroll-wrap -->
 
-  <button class="btn-listen-terms" id="btn-listen-terms">▶ Escuchar términos</button>
+  <button class="btn-listen-terms" id="btn-listen-terms" data-i18n="index.consent.listen_button">▶ Escuchar términos</button>
 
   <div class="consent-footer">
     <div class="consent-checkbox-wrap">
       <div class="consent-checkbox" id="consent-check"></div>
-      <div class="consent-checkbox-text">
+      <div class="consent-checkbox-text" data-i18n-html="index.consent.checkbox_html">
         He leído, escuchado y acepto <strong>íntegramente</strong> la política de privacidad, los deberes de usuario y los límites de uso. Acepto el tratamiento de mis datos conforme al <strong>RGPD (UE) 2016/679</strong> y la <strong>LOPD-GDD</strong>, y me comprometo a cumplir todas las normas de uso establecidas.
       </div>
     </div>
-    <button class="btn-consent" id="btn-consent-accept" disabled>He leído todo — Acepto y entro</button>
+    <button class="btn-consent" id="btn-consent-accept" disabled data-i18n="index.consent.accept_button">He leído todo — Acepto y entro</button>
   </div>
 </div>
 
 <!-- =================== PANTALLA PIN =================== -->
 <div id="screen-pin">
   <div id="screen-no-identity" style="display:none;width:100%;max-width:300px;background:rgba(170,255,0,0.06);border:1px solid rgba(170,255,0,0.3);border-radius:14px;padding:16px 18px;margin:0 auto 18px;text-align:center;font-family:'Inter',sans-serif;">
-    <div style="font-size:11.5px;font-weight:500;letter-spacing:0.3px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:12px;">
+    <div style="font-size:11.5px;font-weight:500;letter-spacing:0.3px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:12px;" data-i18n="index.pin.no_identity_text">
       Este dispositivo no tiene ninguna identidad guardada. Si ya creaste una identidad en otro dispositivo, IDENTIFLY no puede recuperarla aquí porque los datos se guardan solo localmente, no en un servidor.
     </div>
-    <button id="btn-no-identity-register" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Quiero crear una identidad nueva aquí</button>
+    <button id="btn-no-identity-register" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;" data-i18n="index.pin.no_identity_button">Quiero crear una identidad nueva aquí</button>
   </div>
   <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly"/>
-  <div class="pin-brand pin-enter-anim" style="animation-delay:0.4s" aria-label="Aidentiflay">IDENTIFLY<sup style="font-size:0.4em;margin-left:2px;">™</sup></div>
-  <div class="pin-enter-anim" style="font-size:11px;font-weight:300;color:#aaff00;text-shadow:0 0 10px #aaff00,0 0 25px rgba(170,255,0,0.6);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-top:-20px;margin-bottom:10px;animation-delay:0.5s">Registro seguro de identidad</div>
-  <div class="pin-label pin-enter-anim" style="animation-delay:0.6s" id="pin-label-text">Crea tu contraseña de acceso</div>
-  <div class="pin-sublabel pin-enter-anim" id="pin-sublabel-text" style="animation-delay:0.6s">Mínimo 8 caracteres · 1 número · 1 símbolo</div>
+  <div class="pin-brand pin-enter-anim" style="animation-delay:0.4s" aria-label="Aidentiflay" data-i18n-html="index.pin.brand_html">IDENTIFLY<sup style="font-size:0.4em;margin-left:2px;">™</sup></div>
+  <div class="pin-enter-anim" style="font-size:11px;font-weight:300;color:#aaff00;text-shadow:0 0 10px #aaff00,0 0 25px rgba(170,255,0,0.6);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-top:-20px;margin-bottom:10px;animation-delay:0.5s" data-i18n="index.pin.tagline">Registro seguro de identidad</div>
+  <div class="pin-label pin-enter-anim" style="animation-delay:0.6s" id="pin-label-text" data-i18n="index.pin.create_password_label">Crea tu contraseña de acceso</div>
+  <div class="pin-sublabel pin-enter-anim" id="pin-sublabel-text" style="animation-delay:0.6s" data-i18n="index.pin.password_requirements">Mínimo 8 caracteres · 1 número · 1 símbolo</div>
 
   <div class="pin-dots-wrap pin-enter-anim" style="animation-delay:0.85s">
     <div class="pin-dots empty" id="pin-dots-display">· · · · · · · ·</div>
-    <button type="button" class="eye-btn" id="eye-pin" aria-label="Ver contraseña"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <button type="button" class="eye-btn" id="eye-pin" aria-label="Ver contraseña" data-i18n-aria="index.common.eye_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </div>
   <div class="pwd-strength pin-enter-anim" id="pin-strength" style="animation-delay:0.85s;justify-content:center;">
-    <span class="pwd-req" id="p-len">Mínimo 8 caracteres</span>
-    <span class="pwd-req" id="p-num">Al menos 1 número</span>
-    <span class="pwd-req" id="p-sym">Al menos 1 símbolo</span>
-    <span class="pwd-req" id="p-up">Al menos 1 mayúscula</span>
+    <span class="pwd-req" id="p-len" data-i18n="index.common.req_len">Mínimo 8 caracteres</span>
+    <span class="pwd-req" id="p-num" data-i18n="index.common.req_num">Al menos 1 número</span>
+    <span class="pwd-req" id="p-sym" data-i18n="index.common.req_sym">Al menos 1 símbolo</span>
+    <span class="pwd-req" id="p-up" data-i18n="index.common.req_upper">Al menos 1 mayúscula</span>
   </div>
-  <div class="pwd-hint-static pin-enter-anim" id="pin-hint-static" style="animation-delay:0.85s;text-align:center;">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
+  <div class="pwd-hint-static pin-enter-anim" id="pin-hint-static" style="animation-delay:0.85s;text-align:center;" data-i18n="index.common.pwd_static_hint">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
   <div class="qwerty-wrap pin-enter-anim" style="animation-delay:0.85s">
     <div id="qwerty-kbd-pin"></div>
   </div>
 
-  <div class="pin-first-time pin-enter-anim" id="pin-hint" style="animation-delay:0.85s">Primera vez — crea tu contraseña</div>
+  <div class="pin-first-time pin-enter-anim" id="pin-hint" style="animation-delay:0.85s" data-i18n="index.pin.first_time_hint">Primera vez — crea tu contraseña</div>
   <div class="consent-checkbox-wrap pin-enter-anim" style="margin-top:16px;margin-bottom:12px;max-width:280px;animation-delay:0.85s">
     <div class="consent-checkbox" id="trust-device-check"></div>
-    <div class="consent-checkbox-text">Recordarme en este dispositivo (15 días)</div>
+    <div class="consent-checkbox-text" data-i18n="index.pin.trust_device">Recordarme en este dispositivo (15 días)</div>
   </div>
-  <button class="pin-enter pin-enter-anim" id="pin-enter-btn" disabled style="animation-delay:0.85s">Entrar</button>
-  <a href="install.html" class="pin-enter-anim" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.85s">¿Primera vez? Instala la app en tu móvil</a>
-  <a href="register.html" id="link-no-account" class="pin-enter-anim" style="display:none;margin-top:8px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.95s">¿No tienes cuenta? Regístrate</a>
+  <button class="pin-enter pin-enter-anim" id="pin-enter-btn" disabled style="animation-delay:0.85s" data-i18n="index.pin.enter_button">Entrar</button>
+  <a href="install.html" class="pin-enter-anim" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.85s" data-i18n="index.pin.install_link">¿Primera vez? Instala la app en tu móvil</a>
+  <a href="register.html" id="link-no-account" class="pin-enter-anim" style="display:none;margin-top:8px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.95s" data-i18n="index.pin.register_link">¿No tienes cuenta? Regístrate</a>
 </div>
 
 <!-- =================== PANTALLA PRINCIPAL =================== -->
 <div id="screen-main">
   <div class="main-header">
     <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
-    <button class="btn-settings" id="btn-open-edit" aria-label="Permisos y configuración"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button class="btn-settings" id="btn-open-edit" aria-label="Permisos y configuración" data-i18n-aria="index.main.settings_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   </div>
 
   <div class="card-container" id="card-container">
@@ -2736,43 +2737,43 @@
         <img class="card-front-photo" id="card-photo" style="display:none" alt="foto">
         <video class="card-front-video" id="card-video" style="display:none" autoplay loop muted playsinline></video>
         <div class="card-front-info">
-          <div class="card-front-name" id="card-name">Tu Nombre</div>
-          <div class="card-front-title" id="card-job">Tu título profesional</div>
-          <div class="card-front-hint">toca para compartir</div>
+          <div class="card-front-name" id="card-name" data-i18n="index.main.default_name">Tu Nombre</div>
+          <div class="card-front-title" id="card-job" data-i18n="index.main.default_job">Tu título profesional</div>
+          <div class="card-front-hint" data-i18n="index.main.share_hint">toca para compartir</div>
         </div>
       </div>
       <!-- REVERSO -->
       <div class="card-face card-back">
-        <div class="card-back-label">Escanea para contactar</div>
+        <div class="card-back-label" data-i18n="index.main.scan_label">Escanea para contactar</div>
         <div id="qr-container" style="border-radius:10px;overflow:hidden;width:400px;height:400px;display:flex;align-items:center;justify-content:center;"></div>
         <div class="card-back-name" id="qr-name">—</div>
-        <div class="card-back-sub">IDENTIFLY · Tarjeta Digital</div>
+        <div class="card-back-sub" data-i18n="index.main.card_back_sub">IDENTIFLY · Tarjeta Digital</div>
       </div>
     </div>
   </div>
 
   <div class="main-bottom">
-    <div class="card-hint" id="flip-hint">↺ Toca la tarjeta para mostrar el QR</div>
+    <div class="card-hint" id="flip-hint" data-i18n="index.main.flip_hint">↺ Toca la tarjeta para mostrar el QR</div>
     <div class="main-actions">
-      <button class="btn-action" id="btn-lock">Bloquear</button>
-      <button class="btn-action primary" id="btn-share">Compartir QR</button>
+      <button class="btn-action" id="btn-lock" data-i18n="index.main.lock_button">Bloquear</button>
+      <button class="btn-action primary" id="btn-share" data-i18n="index.main.share_button">Compartir QR</button>
     </div>
 
     <div id="share-channels" style="display:none;margin-top:10px;grid-template-columns:repeat(4,1fr);gap:8px;">
-      <button class="btn-channel" id="btn-share-whatsapp" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">WhatsApp</button>
-      <button class="btn-channel" id="btn-share-telegram" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">Telegram</button>
-      <button class="btn-channel" id="btn-share-email" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">Correo</button>
-      <button class="btn-channel" id="btn-share-sms" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;">SMS</button>
+      <button class="btn-channel" id="btn-share-whatsapp" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_whatsapp">WhatsApp</button>
+      <button class="btn-channel" id="btn-share-telegram" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_telegram">Telegram</button>
+      <button class="btn-channel" id="btn-share-email" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_email">Correo</button>
+      <button class="btn-channel" id="btn-share-sms" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_sms">SMS</button>
     </div>
 
     <!-- ===== UBICACIÓN DE EMERGENCIA ===== -->
     <div style="width:100%;max-width:320px;margin:16px auto 0;padding:0 2px;box-sizing:border-box;">
       <div style="font-size:10px;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;
-                  margin-bottom:6px;text-shadow:0 0 8px rgba(170,255,0,0.5);">
+                  margin-bottom:6px;text-shadow:0 0 8px rgba(170,255,0,0.5);" data-i18n="index.location.title">
         EMERGENCIA — UBICACIÓN
       </div>
       <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:10px;
-                  letter-spacing:0.4px;line-height:1.6;">
+                  letter-spacing:0.4px;line-height:1.6;" data-i18n="index.location.description">
         Genera un enlace de Google Maps con tu posición actual.
         Se obtiene una sola vez y no queda guardada en ningún sitio.
       </div>
@@ -2788,12 +2789,12 @@
         text-shadow:0 0 8px rgba(170,255,0,0.4);
         box-shadow:0 0 10px rgba(170,255,0,0.08);
         margin-bottom:8px;
-        -webkit-tap-highlight-color:transparent;">
+        -webkit-tap-highlight-color:transparent;" data-i18n="index.location.share_button">
         COMPARTIR MI UBICACION AHORA
       </button>
 
       <div id="location-result" style="display:none;margin-bottom:8px;">
-        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;letter-spacing:1px;">
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;letter-spacing:1px;" data-i18n="index.location.link_generated">
           Enlace generado — toca para abrir o comparte:
         </div>
         <a id="location-link" href="#" target="_blank" rel="noopener" style="
@@ -2812,7 +2813,7 @@
             font-family:inherit;font-size:10px;font-weight:700;
             letter-spacing:1.5px;text-transform:uppercase;
             color:#AAFF00;cursor:pointer;
-            -webkit-tap-highlight-color:transparent;">
+            -webkit-tap-highlight-color:transparent;" data-i18n="index.location.whatsapp_button">
             WhatsApp
           </button>
           <button onclick="copyLocationLink()" style="
@@ -2821,7 +2822,7 @@
             font-family:inherit;font-size:10px;font-weight:700;
             letter-spacing:1.5px;text-transform:uppercase;
             color:#AAFF00;cursor:pointer;
-            -webkit-tap-highlight-color:transparent;">
+            -webkit-tap-highlight-color:transparent;" data-i18n="index.location.copy_button">
             Copiar
           </button>
           <button onclick="shareLocationNative()" style="
@@ -2830,7 +2831,7 @@
             font-family:inherit;font-size:10px;font-weight:700;
             letter-spacing:1.5px;text-transform:uppercase;
             color:#AAFF00;cursor:pointer;
-            -webkit-tap-highlight-color:transparent;">
+            -webkit-tap-highlight-color:transparent;" data-i18n="index.location.share_native_button">
             Compartir
           </button>
         </div>
@@ -2843,11 +2844,11 @@
 
       <!-- Alertas oficiales -->
       <div style="font-size:10px;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;
-                  margin:18px 0 6px;text-shadow:0 0 8px rgba(170,255,0,0.5);">
+                  margin:18px 0 6px;text-shadow:0 0 8px rgba(170,255,0,0.5);" data-i18n="index.location.alerts_title">
         ALERTAS OFICIALES EN TU ZONA
       </div>
       <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:10px;
-                  letter-spacing:0.4px;line-height:1.6;">
+                  letter-spacing:0.4px;line-height:1.6;" data-i18n="index.location.alerts_description">
         Fuentes oficiales de acceso publico — sin registro.
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px;">
@@ -2857,8 +2858,8 @@
           border:1px solid rgba(170,255,0,0.15);
           border-radius:12px;text-decoration:none;">
           <div style="font-size:11px;font-weight:700;color:#AAFF00;
-                      letter-spacing:1px;margin-bottom:2px;">USGS Terremotos</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;">
+                      letter-spacing:1px;margin-bottom:2px;" data-i18n="index.location.usgs_title">USGS Terremotos</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;" data-i18n="index.location.usgs_sub">
             Mapa en tiempo real · earthquake.usgs.gov
           </div>
         </a>
@@ -2868,8 +2869,8 @@
           border:1px solid rgba(170,255,0,0.15);
           border-radius:12px;text-decoration:none;">
           <div style="font-size:11px;font-weight:700;color:#AAFF00;
-                      letter-spacing:1px;margin-bottom:2px;">MeteoAlarm Europa</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;">
+                      letter-spacing:1px;margin-bottom:2px;" data-i18n="index.location.meteoalarm_title">MeteoAlarm Europa</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;" data-i18n="index.location.meteoalarm_sub">
             Alertas meteorologicas oficiales · meteoalarm.org
           </div>
         </a>
@@ -2879,8 +2880,8 @@
           border:1px solid rgba(170,255,0,0.15);
           border-radius:12px;text-decoration:none;">
           <div style="font-size:11px;font-weight:700;color:#AAFF00;
-                      letter-spacing:1px;margin-bottom:2px;">Proteccion Civil Espana</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;">
+                      letter-spacing:1px;margin-bottom:2px;" data-i18n="index.location.proteccioncivil_title">Proteccion Civil Espana</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.3px;" data-i18n="index.location.proteccioncivil_sub">
             Alertas y emergencias · proteccioncivil.es
           </div>
         </a>
@@ -2903,12 +2904,12 @@
       <div class="scroll-arrow-up">
         <span></span><span></span><span></span>
       </div>
-      <div class="scroll-text">desliza para ver arriba</div>
+      <div class="scroll-text" data-i18n="index.consent.scroll_up_hint">desliza para ver arriba</div>
     </div>
   </div>
   <div class="scroll-indicator hidden" id="edit-scroll-indicator-bottom">
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-      <div class="scroll-text">desliza para ver más</div>
+      <div class="scroll-text" data-i18n="index.consent.scroll_hint">desliza para ver más</div>
       <div class="scroll-arrow">
         <span></span><span></span><span></span>
       </div>
@@ -2917,49 +2918,49 @@
 
   <div id="screen-edit-scroll">
   <div class="edit-header">
-    <div class="edit-title">Mi Perfil</div>
+    <div class="edit-title" data-i18n="index.edit.title">Mi Perfil</div>
     <div class="edit-header-right">
       <span class="plan-badge" id="plan-badge"></span>
-      <button class="btn-close" id="btn-close-edit">✕ Cerrar</button>
+      <button class="btn-close" id="btn-close-edit" data-i18n="index.edit.close_button">✕ Cerrar</button>
     </div>
   </div>
 
   <!-- BURBUJA TRIAL — hermana de .edit-header, ya no compite por espacio
        en su fila junto al título y el botón cerrar -->
   <div id="trial-bubble" style="background:rgba(170,255,0,0.08);border:1px solid rgba(170,255,0,0.3);border-radius:12px;padding:14px 16px;margin:12px 0 0;font-family:'Inter',sans-serif;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaff00;text-transform:uppercase;margin-bottom:6px;">Periodo de prueba</div>
-    <div id="trial-bubble-text" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;">Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.</div>
-    <button onclick="window.location.href='paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Ver planes — desde 2.99€/mes</button>
-    <a href="install.html" style="display:block;text-align:center;margin-top:10px;font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;">¿Cómo instalar la app en mi móvil?</a>
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaff00;text-transform:uppercase;margin-bottom:6px;" data-i18n="index.edit.trial_title">Periodo de prueba</div>
+    <div id="trial-bubble-text" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;" data-i18n="index.edit.trial_text">Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.</div>
+    <button onclick="window.location.href='paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.edit.trial_view_plans">Ver planes — desde 2.99€/mes</button>
+    <a href="install.html" style="display:block;text-align:center;margin-top:10px;font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;" data-i18n="index.edit.trial_install_link">¿Cómo instalar la app en mi móvil?</a>
   </div>
 
   <div class="edit-tabs-bar" id="edit-tabs-bar">
     <div class="edit-tabs-scroll">
-      <button class="edit-tab-btn" data-target="sec-diseno">Diseño</button>
-      <button class="edit-tab-btn" data-target="sec-perfil">Perfil</button>
-      <button class="edit-tab-btn" data-target="sec-privacidad">Privacidad</button>
-      <button class="edit-tab-btn" data-target="sec-seguridad">Seguridad</button>
-      <button class="edit-tab-btn" data-target="sec-cuenta">Cuenta</button>
+      <button class="edit-tab-btn" data-target="sec-diseno" data-i18n="index.edit.tab_design">Diseño</button>
+      <button class="edit-tab-btn" data-target="sec-perfil" data-i18n="index.edit.tab_profile">Perfil</button>
+      <button class="edit-tab-btn" data-target="sec-privacidad" data-i18n="index.edit.tab_privacy">Privacidad</button>
+      <button class="edit-tab-btn" data-target="sec-seguridad" data-i18n="index.edit.tab_security">Seguridad</button>
+      <button class="edit-tab-btn" data-target="sec-cuenta" data-i18n="index.edit.tab_account">Cuenta</button>
     </div>
-    <button class="edit-tab-save-btn" id="btn-save-tabbar" aria-label="Guardar identidad" title="Guardar identidad"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
+    <button class="edit-tab-save-btn" id="btn-save-tabbar" aria-label="Guardar identidad" title="Guardar identidad" data-i18n-aria="index.edit.save_aria" data-i18n-title="index.edit.save_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
   </div>
 
   <div class="edit-section gallery-section" id="sec-diseno">
-    <div class="edit-section-title">Imagen de tarjeta y fondo</div>
+    <div class="edit-section-title" data-i18n="index.edit.design_title">Imagen de tarjeta y fondo</div>
 
     <!-- Galería integrada -->
-    <div class="gallery-sublabel">Galería</div>
+    <div class="gallery-sublabel" data-i18n="index.edit.gallery_label">Galería</div>
     <div class="gallery-grid" id="gallery-grid"></div>
 
     <!-- Separador -->
     <div class="gallery-divider">
-      <span>o sube el tuyo</span>
+      <span data-i18n="index.edit.upload_own">o sube el tuyo</span>
     </div>
 
     <!-- Subir archivo propio -->
     <div class="upload-row">
-      <div class="btn-upload-media" id="btn-upload-img">Imagen / GIF</div>
-      <div class="btn-upload-media" id="btn-upload-vid">Video / MP4</div>
+      <div class="btn-upload-media" id="btn-upload-img" data-i18n="index.edit.upload_image_button">Imagen / GIF</div>
+      <div class="btn-upload-media" id="btn-upload-vid" data-i18n="index.edit.upload_video_button">Video / MP4</div>
     </div>
     <input type="file" id="media-file-img" accept="image/*" style="display:none">
     <input type="file" id="media-file-vid" accept="video/*" style="display:none">
@@ -2971,37 +2972,37 @@
     <input type="file" id="photo-file-input" accept="image/*" style="display:none">
 
     <!-- Extracción de datos por OCR -->
-    <div style="font-size:10px;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;line-height:1.6;letter-spacing:0.5px;margin-top:14px;">
+    <div style="font-size:10px;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;line-height:1.6;letter-spacing:0.5px;margin-top:14px;" data-i18n="index.edit.ocr_hint">
       Si tienes un documento personal (DNI, pasaporte, tarjeta de visita) puedes subirlo y el sistema intentará rellenar automáticamente tus datos. Recuerda revisar y completar los campos que queden vacíos — tú tienes siempre la última palabra sobre tu información.
     </div>
-    <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;">Extraer datos de documento</div>
+    <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;" data-i18n="index.edit.ocr_button">Extraer datos de documento</div>
     <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx" style="display:none">
   </div>
 
   <div class="edit-section qr-style-selector">
-    <div class="edit-section-title">Estilo del QR</div>
+    <div class="edit-section-title" data-i18n="index.edit.qr_style_title">Estilo del QR</div>
     <div style="display:flex;gap:10px;align-items:center;">
       <div id="qr-mini-preview" style="width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#f5f5f5;display:flex;align-items:center;justify-content:center;border:1px solid rgba(170,255,0,0.2);"></div>
-      <button id="btn-open-qr-designer" style="flex:1;padding:12px 8px;border-radius:10px;border:1.5px dashed rgba(170,255,0,0.35);background:rgba(170,255,0,0.04);font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(170,255,0,0.7);cursor:pointer;">
+      <button id="btn-open-qr-designer" style="flex:1;padding:12px 8px;border-radius:10px;border:1.5px dashed rgba(170,255,0,0.35);background:rgba(170,255,0,0.04);font-family:Inter,sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(170,255,0,0.7);cursor:pointer;" data-i18n="index.edit.qr_customize_button">
         Personalizar diseño
       </button>
     </div>
   </div>
 
   <div class="edit-section" id="sec-perfil">
-    <button class="btn-import" id="btn-open-import">IMPORTAR DATOS AUTOMATICAMENTE</button>
-    <div class="edit-section-title">Información personal</div>
+    <button class="btn-import" id="btn-open-import" data-i18n="index.edit.import_button">IMPORTAR DATOS AUTOMATICAMENTE</button>
+    <div class="edit-section-title" data-i18n="index.edit.personal_info_title">Información personal</div>
     <div class="field-group">
       <div class="field-wrap">
-        <div class="field-label">Nombre completo</div>
-        <input class="field-input" id="f-name" type="text" placeholder="Juan García López" autocomplete="name">
+        <div class="field-label" data-i18n="index.edit.name_label">Nombre completo</div>
+        <input class="field-input" id="f-name" type="text" placeholder="Juan García López" autocomplete="name" data-i18n-placeholder="index.edit.name_placeholder">
       </div>
       <div class="field-wrap">
-        <div class="field-label">Título / Profesión</div>
-        <input class="field-input" id="f-job" type="text" placeholder="Desarrollador Web · Madrid" autocomplete="organization-title">
+        <div class="field-label" data-i18n="index.edit.job_label">Título / Profesión</div>
+        <input class="field-input" id="f-job" type="text" placeholder="Desarrollador Web · Madrid" autocomplete="organization-title" data-i18n-placeholder="index.edit.job_placeholder">
       </div>
       <div class="field-wrap">
-        <div class="field-label">Teléfono</div>
+        <div class="field-label" data-i18n="index.step1.phone_label">Teléfono</div>
         <div id="f-phone-row" style="display:flex;gap:8px;">
           <select class="field-input" id="f-phone-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
             <option value="+34" selected>🇪🇸 +34</option>
@@ -3022,7 +3023,7 @@
             <option value="+507">🇵🇦 +507</option>
             <option value="+598">🇺🇾 +598</option>
             <option value="+504">🇭🇳 +504</option>
-            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+1" data-i18n="index.common.phone_country_us">🇺🇸 +1 (EE.UU./Canadá)</option>
             <option value="+44">🇬🇧 +44</option>
             <option value="+33">🇫🇷 +33</option>
             <option value="+49">🇩🇪 +49</option>
@@ -3033,20 +3034,20 @@
             <option value="+91">🇮🇳 +91</option>
             <option value="+81">🇯🇵 +81</option>
           </select>
-          <input class="field-input" id="f-phone-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+          <input class="field-input" id="f-phone-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;" data-i18n-placeholder="index.common.phone_number_placeholder">
         </div>
       </div>
       <div class="field-wrap">
-        <div class="field-label">Email</div>
-        <input class="field-input" id="f-email" type="email" placeholder="tu@email.com" autocomplete="email">
+        <div class="field-label" data-i18n="index.edit.email_label">Email</div>
+        <input class="field-input" id="f-email" type="email" placeholder="tu@email.com" autocomplete="email" data-i18n-placeholder="index.step1.email_placeholder">
         <div class="domain-btns">
-          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+          <button type="button" class="domain-btn" data-domain="@gmail.com" data-i18n="index.common.domain_gmail">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com" data-i18n="index.common.domain_hotmail">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com" data-i18n="index.common.domain_icloud">@icloud.com</button>
         </div>
       </div>
       <div class="field-wrap">
-        <div class="field-label">Teléfono móvil</div>
+        <div class="field-label" data-i18n="index.edit.mobile_label">Teléfono móvil</div>
         <div id="f-mobile-row" style="display:flex;gap:8px;">
           <select class="field-input" id="f-mobile-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
             <option value="+34" selected>🇪🇸 +34</option>
@@ -3067,7 +3068,7 @@
             <option value="+507">🇵🇦 +507</option>
             <option value="+598">🇺🇾 +598</option>
             <option value="+504">🇭🇳 +504</option>
-            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+1" data-i18n="index.common.phone_country_us">🇺🇸 +1 (EE.UU./Canadá)</option>
             <option value="+44">🇬🇧 +44</option>
             <option value="+33">🇫🇷 +33</option>
             <option value="+49">🇩🇪 +49</option>
@@ -3078,11 +3079,11 @@
             <option value="+91">🇮🇳 +91</option>
             <option value="+81">🇯🇵 +81</option>
           </select>
-          <input class="field-input" id="f-mobile-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+          <input class="field-input" id="f-mobile-number" type="tel" placeholder="600 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;" data-i18n-placeholder="index.common.phone_number_placeholder">
         </div>
       </div>
       <div class="field-wrap">
-        <div class="field-label">Teléfono fijo</div>
+        <div class="field-label" data-i18n="index.edit.landline_label">Teléfono fijo</div>
         <div id="f-landline-row" style="display:flex;gap:8px;">
           <select class="field-input" id="f-landline-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
             <option value="+34" selected>🇪🇸 +34</option>
@@ -3103,7 +3104,7 @@
             <option value="+507">🇵🇦 +507</option>
             <option value="+598">🇺🇾 +598</option>
             <option value="+504">🇭🇳 +504</option>
-            <option value="+1">🇺🇸 +1 (EE.UU./Canadá)</option>
+            <option value="+1" data-i18n="index.common.phone_country_us">🇺🇸 +1 (EE.UU./Canadá)</option>
             <option value="+44">🇬🇧 +44</option>
             <option value="+33">🇫🇷 +33</option>
             <option value="+49">🇩🇪 +49</option>
@@ -3114,185 +3115,185 @@
             <option value="+91">🇮🇳 +91</option>
             <option value="+81">🇯🇵 +81</option>
           </select>
-          <input class="field-input" id="f-landline-number" type="tel" placeholder="910 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;">
+          <input class="field-input" id="f-landline-number" type="tel" placeholder="910 000 000" autocomplete="tel-national" inputmode="numeric" style="flex:1;" data-i18n-placeholder="index.edit.landline_number_placeholder">
         </div>
       </div>
       <div class="field-wrap">
-        <div class="field-label">Correo secundario</div>
-        <input class="field-input" id="f-email2" type="email" placeholder="personal@email.com" autocomplete="email">
+        <div class="field-label" data-i18n="index.edit.email2_label">Correo secundario</div>
+        <input class="field-input" id="f-email2" type="email" placeholder="personal@email.com" autocomplete="email" data-i18n-placeholder="index.edit.email2_placeholder">
         <div class="domain-btns">
-          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+          <button type="button" class="domain-btn" data-domain="@gmail.com" data-i18n="index.common.domain_gmail">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com" data-i18n="index.common.domain_hotmail">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com" data-i18n="index.common.domain_icloud">@icloud.com</button>
         </div>
       </div>
       <div class="field-wrap">
-        <div class="field-label">Correo empresa</div>
-        <input class="field-input" id="f-email-work" type="email" placeholder="nombre@empresa.com" autocomplete="email">
+        <div class="field-label" data-i18n="index.edit.email_work_label">Correo empresa</div>
+        <input class="field-input" id="f-email-work" type="email" placeholder="nombre@empresa.com" autocomplete="email" data-i18n-placeholder="index.edit.email_work_placeholder">
         <div class="domain-btns">
-          <button type="button" class="domain-btn" data-domain="@gmail.com">@gmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@hotmail.com">@hotmail.com</button>
-          <button type="button" class="domain-btn" data-domain="@icloud.com">@icloud.com</button>
+          <button type="button" class="domain-btn" data-domain="@gmail.com" data-i18n="index.common.domain_gmail">@gmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@hotmail.com" data-i18n="index.common.domain_hotmail">@hotmail.com</button>
+          <button type="button" class="domain-btn" data-domain="@icloud.com" data-i18n="index.common.domain_icloud">@icloud.com</button>
         </div>
       </div>
       <div class="field-wrap">
-        <div class="field-label">Empresa / Organización</div>
-        <input class="field-input" id="f-company" type="text" placeholder="Mi Empresa S.L." autocomplete="organization">
+        <div class="field-label" data-i18n="index.edit.company_label">Empresa / Organización</div>
+        <input class="field-input" id="f-company" type="text" placeholder="Mi Empresa S.L." autocomplete="organization" data-i18n-placeholder="index.edit.company_placeholder">
       </div>
       <div class="field-wrap">
-        <div class="field-label">Dirección</div>
-        <input class="field-input" id="f-address" type="text" placeholder="Madrid, España" autocomplete="street-address">
+        <div class="field-label" data-i18n="index.edit.address_label">Dirección</div>
+        <input class="field-input" id="f-address" type="text" placeholder="Madrid, España" autocomplete="street-address" data-i18n-placeholder="index.edit.address_placeholder">
       </div>
     </div>
   </div>
 
   <div class="edit-section">
-    <div class="edit-section-title">Redes y perfiles</div>
+    <div class="edit-section-title" data-i18n="index.edit.social_title">Redes y perfiles</div>
     <div class="field-group">
       <div class="field-wrap">
         <div class="field-label">LinkedIn</div>
-        <input class="field-input" id="f-linkedin" type="url" placeholder="linkedin.com/in/tu-perfil">
+        <input class="field-input" id="f-linkedin" type="url" placeholder="linkedin.com/in/tu-perfil" data-i18n-placeholder="index.edit.linkedin_placeholder">
       </div>
       <div class="field-wrap">
         <div class="field-label">GitHub</div>
-        <input class="field-input" id="f-github" type="url" placeholder="github.com/tu-usuario">
+        <input class="field-input" id="f-github" type="url" placeholder="github.com/tu-usuario" data-i18n-placeholder="index.edit.github_placeholder">
       </div>
       <div class="field-wrap">
-        <div class="field-label">Web personal</div>
-        <input class="field-input" id="f-web" type="url" placeholder="tuwebpersonal.com">
+        <div class="field-label" data-i18n="index.edit.web_label">Web personal</div>
+        <input class="field-input" id="f-web" type="url" placeholder="tuwebpersonal.com" data-i18n-placeholder="index.edit.web_placeholder">
       </div>
       <div class="field-wrap">
         <div class="field-label">Twitter / X</div>
-        <input class="field-input" id="f-twitter" type="text" placeholder="@tu_usuario">
+        <input class="field-input" id="f-twitter" type="text" placeholder="@tu_usuario" data-i18n-placeholder="index.edit.twitter_placeholder">
       </div>
       <div class="field-wrap">
         <div class="field-label">Instagram</div>
-        <input class="field-input" id="f-instagram" type="text" placeholder="instagram.com/tu_usuario">
+        <input class="field-input" id="f-instagram" type="text" placeholder="instagram.com/tu_usuario" data-i18n-placeholder="index.edit.instagram_placeholder">
       </div>
       <div class="field-wrap">
         <div class="field-label">YouTube</div>
-        <input class="field-input" id="f-youtube" type="text" placeholder="youtube.com/@tu_canal">
+        <input class="field-input" id="f-youtube" type="text" placeholder="youtube.com/@tu_canal" data-i18n-placeholder="index.edit.youtube_placeholder">
       </div>
       <div class="field-wrap">
         <div class="field-label">TikTok</div>
-        <input class="field-input" id="f-tiktok" type="text" placeholder="tiktok.com/@tu_usuario">
+        <input class="field-input" id="f-tiktok" type="text" placeholder="tiktok.com/@tu_usuario" data-i18n-placeholder="index.edit.tiktok_placeholder">
       </div>
     </div>
   </div>
 
   <div class="edit-section" id="sec-privacidad">
-    <div class="edit-section-title">¿Qué incluir en el QR?</div>
+    <div class="edit-section-title" data-i18n="index.edit.privacy_title">¿Qué incluir en el QR?</div>
     <div class="field-group">
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Título / Profesión</div>
+        <div class="field-toggle-label" data-i18n="index.edit.job_label">Título / Profesión</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-job" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-job">Permitido</div>
+          <div class="toggle-status on" id="s-job" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Teléfono</div>
+        <div class="field-toggle-label" data-i18n="index.step1.phone_label">Teléfono</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-phone" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-phone">Permitido</div>
+          <div class="toggle-status on" id="s-phone" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Email</div>
+        <div class="field-toggle-label" data-i18n="index.edit.email_label">Email</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-email" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-email">Permitido</div>
+          <div class="toggle-status on" id="s-email" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Teléfono móvil</div>
+        <div class="field-toggle-label" data-i18n="index.edit.mobile_label">Teléfono móvil</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-mobile" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-mobile">Permitido</div>
+          <div class="toggle-status on" id="s-mobile" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Teléfono fijo</div>
+        <div class="field-toggle-label" data-i18n="index.edit.landline_label">Teléfono fijo</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-landline"><span class="toggle-slider"></span></label>
-          <div class="toggle-status off" id="s-landline">Bloqueado</div>
+          <div class="toggle-status off" id="s-landline" data-i18n="index.privacy.status_off">Bloqueado</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Correo secundario</div>
+        <div class="field-toggle-label" data-i18n="index.edit.email2_label">Correo secundario</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-email2"><span class="toggle-slider"></span></label>
-          <div class="toggle-status off" id="s-email2">Bloqueado</div>
+          <div class="toggle-status off" id="s-email2" data-i18n="index.privacy.status_off">Bloqueado</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Correo empresa</div>
+        <div class="field-toggle-label" data-i18n="index.edit.email_work_label">Correo empresa</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-email-work"><span class="toggle-slider"></span></label>
-          <div class="toggle-status off" id="s-email-work">Bloqueado</div>
+          <div class="toggle-status off" id="s-email-work" data-i18n="index.privacy.status_off">Bloqueado</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Empresa</div>
+        <div class="field-toggle-label" data-i18n="index.privacy.label_company">Empresa</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-company" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-company">Permitido</div>
+          <div class="toggle-status on" id="s-company" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Dirección</div>
+        <div class="field-toggle-label" data-i18n="index.edit.address_label">Dirección</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-address"><span class="toggle-slider"></span></label>
-          <div class="toggle-status off" id="s-address">Bloqueado</div>
+          <div class="toggle-status off" id="s-address" data-i18n="index.privacy.status_off">Bloqueado</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
         <div class="field-toggle-label">LinkedIn</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-linkedin" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-linkedin">Permitido</div>
+          <div class="toggle-status on" id="s-linkedin" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
         <div class="field-toggle-label">GitHub</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-github" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-github">Permitido</div>
+          <div class="toggle-status on" id="s-github" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
-        <div class="field-toggle-label">Web personal</div>
+        <div class="field-toggle-label" data-i18n="index.edit.web_label">Web personal</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-web" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-web">Permitido</div>
+          <div class="toggle-status on" id="s-web" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
         <div class="field-toggle-label">Twitter / X</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-twitter" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-twitter">Permitido</div>
+          <div class="toggle-status on" id="s-twitter" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
         <div class="field-toggle-label">Instagram</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-instagram" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-instagram">Permitido</div>
+          <div class="toggle-status on" id="s-instagram" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
         <div class="field-toggle-label">YouTube</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-youtube" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-youtube">Permitido</div>
+          <div class="toggle-status on" id="s-youtube" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
       <div class="field-toggle-wrap">
         <div class="field-toggle-label">TikTok</div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-tiktok" checked><span class="toggle-slider"></span></label>
-          <div class="toggle-status on" id="s-tiktok">Permitido</div>
+          <div class="toggle-status on" id="s-tiktok" data-i18n="index.privacy.status_on">Permitido</div>
         </div>
       </div>
     </div>
@@ -3300,34 +3301,34 @@
 
   <!-- SECCIÓN 2FA -->
   <div class="edit-section" id="sec-seguridad">
-    <div class="edit-section-title">Doble factor de autenticación (2FA)</div>
-    <div class="twofa-info">
+    <div class="edit-section-title" data-i18n="index.twofa.title">Doble factor de autenticación (2FA)</div>
+    <div class="twofa-info" data-i18n="index.twofa.info">
       Con 2FA activo, tras introducir tu contraseña necesitarás un segundo factor para entrar. Nivel de seguridad militar.
     </div>
     <div class="field-group">
       <div class="field-toggle-wrap">
         <div>
-          <div class="field-toggle-label">Autenticador TOTP</div>
-          <div class="twofa-sublabel">Google Authenticator / Authy</div>
+          <div class="field-toggle-label" data-i18n="index.twofa.totp_label">Autenticador TOTP</div>
+          <div class="twofa-sublabel" data-i18n="index.twofa.totp_sublabel">Google Authenticator / Authy</div>
         </div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-totp"><span class="toggle-slider"></span></label>
-          <div class="toggle-status off" id="s-totp">Bloqueado</div>
+          <div class="toggle-status off" id="s-totp" data-i18n="index.privacy.status_off">Bloqueado</div>
         </div>
       </div>
       <div id="totp-setup-area" style="display:none;">
-        <button class="btn-2fa-setup" id="btn-setup-totp">Configurar autenticador</button>
+        <button class="btn-2fa-setup" id="btn-setup-totp" data-i18n="index.twofa.setup_button">Configurar autenticador</button>
       </div>
 
     </div>
   </div>
 
-  <button class="btn-save" id="btn-save">Guardar identidad</button>
+  <button class="btn-save" id="btn-save" data-i18n="index.edit.save_button">Guardar identidad</button>
 
   <!-- BAJA VOLUNTARIA -->
   <div class="delete-account-section" id="sec-cuenta">
-    <div class="delete-account-label">Zona de eliminación de datos</div>
-    <div class="delete-account-info">
+    <div class="delete-account-label" data-i18n="index.delete.zone_label">Zona de eliminación de datos</div>
+    <div class="delete-account-info" data-i18n-html="index.delete.zone_info_html">
       Conforme al <strong>Art. 17 RGPD</strong> (derecho al olvido), puedes eliminar todos tus datos de IDENTIFLY en cualquier momento. Esta acción es <strong>irreversible</strong>.
     </div>
     <button class="btn-delete-account" id="btn-delete-account">
@@ -3337,7 +3338,7 @@
         <path d="M10 11v6M14 11v6"/>
         <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
       </svg>
-      Eliminar todos mis datos — Baja voluntaria
+      <span data-i18n="index.delete.button">Eliminar todos mis datos — Baja voluntaria</span>
     </button>
   </div>
   </div><!-- fin screen-edit-scroll -->
@@ -3351,8 +3352,8 @@
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
         <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
-      <div style="font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">¿Estás seguro?</div>
-      <div style="font-family:Inter,sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.6;">
+      <div style="font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;" data-i18n="index.delete_confirm.title">¿Estás seguro?</div>
+      <div style="font-family:Inter,sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.6;" data-i18n-html="index.delete_confirm.text_html">
         Esta acción eliminará <strong style="color:rgba(255,120,120,0.8);">todos tus datos</strong> de IDENTIFLY de forma permanente e irreversible:<br><br>
         — Tu perfil y datos personales<br>
         — Tu contraseña de acceso.<br>
@@ -3362,10 +3363,10 @@
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button id="btn-confirm-delete" style="width:100%;padding:14px;border-radius:10px;border:none;background:#cc0000;color:#fff;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">
+      <button id="btn-confirm-delete" style="width:100%;padding:14px;border-radius:10px;border:none;background:#cc0000;color:#fff;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.delete_confirm.confirm_button">
         Sí, eliminar todo — Confirmar baja
       </button>
-      <button id="btn-cancel-delete" style="width:100%;padding:14px;border-radius:10px;border:1px solid rgba(170,255,0,0.2);background:transparent;color:rgba(170,255,0,0.6);font-family:Inter,sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">
+      <button id="btn-cancel-delete" style="width:100%;padding:14px;border-radius:10px;border:1px solid rgba(170,255,0,0.2);background:transparent;color:rgba(170,255,0,0.6);font-family:Inter,sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.delete_confirm.cancel_button">
         Cancelar — Mantener mis datos
       </button>
     </div>
@@ -3375,33 +3376,33 @@
 <!-- =================== TOTP SETUP =================== -->
 <div id="screen-totp-setup">
   <div class="totp-header">
-    <div class="totp-title">Configurar TOTP</div>
-    <button class="btn-close" id="btn-close-totp">✕ Cerrar</button>
+    <div class="totp-title" data-i18n="index.totp.setup_title">Configurar TOTP</div>
+    <button class="btn-close" id="btn-close-totp" data-i18n="index.edit.close_button">✕ Cerrar</button>
   </div>
 
   <div class="totp-steps">
     <div class="totp-step">
       <div class="totp-step-num">1</div>
-      <div class="totp-step-text">Instala <strong style="color:#AAFF00">Google Authenticator</strong> o <strong style="color:#AAFF00">Authy</strong> en tu móvil desde la App Store o Google Play.</div>
+      <div class="totp-step-text" data-i18n-html="index.totp.step1_html">Instala <strong style="color:#AAFF00">Google Authenticator</strong> o <strong style="color:#AAFF00">Authy</strong> en tu móvil desde la App Store o Google Play.</div>
     </div>
     <div class="totp-step">
       <div class="totp-step-num">2</div>
-      <div class="totp-step-text">Abre la app y pulsa <strong style="color:#AAFF00">"+"</strong> → <strong style="color:#AAFF00">"Escanear código QR"</strong> y apunta la cámara al QR de abajo.</div>
+      <div class="totp-step-text" data-i18n-html="index.totp.step2_html">Abre la app y pulsa <strong style="color:#AAFF00">"+"</strong> → <strong style="color:#AAFF00">"Escanear código QR"</strong> y apunta la cámara al QR de abajo.</div>
     </div>
     <div class="totp-step">
       <div class="totp-step-num">3</div>
-      <div class="totp-step-text">Introduce el código de <strong style="color:#AAFF00">6 dígitos</strong> que aparece en la app para verificar que todo funciona.</div>
+      <div class="totp-step-text" data-i18n-html="index.totp.step3_html">Introduce el código de <strong style="color:#AAFF00">6 dígitos</strong> que aparece en la app para verificar que todo funciona.</div>
     </div>
   </div>
 
   <div class="totp-qr-wrap" id="totp-qr-container"></div>
 
-  <div class="totp-secret-box" id="totp-secret-display">Generando...</div>
+  <div class="totp-secret-box" id="totp-secret-display" data-i18n="index.totp.generating">Generando...</div>
 
   <input class="totp-verify-input" id="totp-verify-code" type="text" maxlength="6" placeholder="000000" inputmode="numeric" pattern="[0-9]*">
 
-  <button class="btn-save" id="btn-confirm-totp" style="margin-top:0;">Verificar y activar</button>
-  <div style="font-family:Inter,sans-serif;font-size:10px;color:rgba(255,255,255,0.3);text-align:center;margin-top:12px;letter-spacing:1px;">
+  <button class="btn-save" id="btn-confirm-totp" style="margin-top:0;" data-i18n="index.totp.confirm_button">Verificar y activar</button>
+  <div style="font-family:Inter,sans-serif;font-size:10px;color:rgba(255,255,255,0.3);text-align:center;margin-top:12px;letter-spacing:1px;" data-i18n="index.totp.manual_hint">
     O introduce manualmente la clave secreta en tu app autenticadora
   </div>
 </div>
@@ -3410,13 +3411,13 @@
 <div id="screen-2fa-verify">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;">
     <div class="verify-icon" id="verify-icon"></div>
-    <div class="verify-title" id="verify-title">Segundo factor</div>
-    <div class="verify-subtitle" id="verify-subtitle">Introduce el código de tu autenticador</div>
+    <div class="verify-title" id="verify-title" data-i18n="index.twofa_verify.title">Segundo factor</div>
+    <div class="verify-subtitle" id="verify-subtitle" data-i18n="index.twofa_verify.subtitle">Introduce el código de tu autenticador</div>
 
     <!-- Input TOTP -->
     <div id="verify-totp-area" style="width:100%;display:none;">
       <input class="totp-verify-input" id="verify-totp-input" type="text" placeholder="000000" inputmode="numeric" maxlength="6" pattern="[0-9]*">
-      <button class="btn-save" id="btn-verify-totp">Verificar código</button>
+      <button class="btn-save" id="btn-verify-totp" data-i18n="index.twofa_verify.verify_button">Verificar código</button>
     </div>
 
   </div>
@@ -3425,10 +3426,10 @@
 <!-- =================== DISEÑADOR QR =================== -->
 <div id="screen-qr-designer">
   <div class="qr-designer-header">
-    <div class="qr-designer-title">Diseño del QR</div>
+    <div class="qr-designer-title" data-i18n="index.qr_designer.title">Diseño del QR</div>
     <div style="display:flex; gap:8px; align-items:center;">
-      <button class="btn-qr-apply-header" id="btn-qr-apply-header">✓ Aplicar</button>
-      <button class="btn-close" id="btn-close-qr-designer">✕ Cerrar</button>
+      <button class="btn-qr-apply-header" id="btn-qr-apply-header" data-i18n="index.qr_designer.apply_header_button">✓ Aplicar</button>
+      <button class="btn-close" id="btn-close-qr-designer" data-i18n="index.edit.close_button">✕ Cerrar</button>
     </div>
   </div>
 
@@ -3441,47 +3442,47 @@
   <div class="qr-designer-scroll">
 
     <!-- Templates -->
-    <div class="qr-section-label">Plantillas</div>
+    <div class="qr-section-label" data-i18n="index.qr_designer.templates_label">Plantillas</div>
     <div class="qr-templates-grid" id="qr-templates-grid"></div>
 
     <!-- Patrón de módulos -->
-    <div class="qr-section-label">Patrón de módulos</div>
+    <div class="qr-section-label" data-i18n="index.qr_designer.pattern_label">Patrón de módulos</div>
     <div class="qr-pattern-grid" id="qr-pattern-grid"></div>
 
     <!-- Estilo de esquinas -->
-    <div class="qr-section-label">Esquinas</div>
+    <div class="qr-section-label" data-i18n="index.qr_designer.corners_label">Esquinas</div>
     <div class="qr-corner-grid" id="qr-corner-grid"></div>
 
     <!-- Colores -->
-    <div class="qr-section-label">Colores</div>
+    <div class="qr-section-label" data-i18n="index.qr_designer.colors_label">Colores</div>
     <div class="qr-color-row">
       <div class="qr-color-item">
-        <div class="qr-color-lbl">Módulos</div>
+        <div class="qr-color-lbl" data-i18n="index.qr_designer.color_dots">Módulos</div>
         <div class="qr-color-swatch" id="swatch-dots" style="background:#1a1a1a;">
           <input type="color" id="color-dots" value="#1a1a1a">
         </div>
       </div>
       <div class="qr-color-item">
-        <div class="qr-color-lbl">Fondo</div>
+        <div class="qr-color-lbl" data-i18n="index.qr_designer.color_bg">Fondo</div>
         <div class="qr-color-swatch" id="swatch-bg" style="background:#f5f5f5;">
           <input type="color" id="color-bg" value="#f5f5f5">
         </div>
       </div>
       <div class="qr-color-item">
-        <div class="qr-color-lbl">Esquinas externas</div>
+        <div class="qr-color-lbl" data-i18n="index.qr_designer.color_corner_sq">Esquinas externas</div>
         <div class="qr-color-swatch" id="swatch-corner-sq" style="background:#1a1a1a;">
           <input type="color" id="color-corner-sq" value="#1a1a1a">
         </div>
       </div>
       <div class="qr-color-item">
-        <div class="qr-color-lbl">Esquinas internas</div>
+        <div class="qr-color-lbl" data-i18n="index.qr_designer.color_corner_dot">Esquinas internas</div>
         <div class="qr-color-swatch" id="swatch-corner-dot" style="background:#1a1a1a;">
           <input type="color" id="color-corner-dot" value="#1a1a1a">
         </div>
       </div>
     </div>
 
-    <button class="btn-qr-apply" id="btn-qr-apply">Aplicar diseño</button>
+    <button class="btn-qr-apply" id="btn-qr-apply" data-i18n="index.qr_designer.apply_button">Aplicar diseño</button>
   </div>
 </div>
 
@@ -3492,8 +3493,8 @@
 
 <!-- Install Banner -->
 <div class="install-banner" id="install-banner">
-  <div class="install-banner-text">Instala IDENTIFLY en tu pantalla de inicio para acceso rápido</div>
-  <button class="btn-install" id="btn-install-do">Instalar</button>
+  <div class="install-banner-text" data-i18n="index.install_banner.text">Instala IDENTIFLY en tu pantalla de inicio para acceso rápido</div>
+  <button class="btn-install" id="btn-install-do" data-i18n="index.install_banner.install_button">Instalar</button>
   <button class="btn-install-close" id="btn-install-close">✕</button>
 </div>
 
@@ -3692,7 +3693,7 @@ function _mostrarMensajeRecuperarAcceso(texto, esError) {
 document.getElementById('btn-recover-send-code')?.addEventListener('click', async () => {
   const btn = document.getElementById('btn-recover-send-code');
   btn.disabled = true;
-  btn.textContent = 'Enviando...';
+  btn.textContent = t('index.recover_access.sending_button');
   try {
     const res = await fetch('/api/send-email', {
       method: 'POST',
@@ -3701,18 +3702,18 @@ document.getElementById('btn-recover-send-code')?.addEventListener('click', asyn
     });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      _mostrarMensajeRecuperarAcceso(errData.error || 'No se pudo enviar el código. Inténtalo de nuevo.', true);
+      _mostrarMensajeRecuperarAcceso(errData.error || t('index.recover_access.send_error'), true);
       btn.disabled = false;
-      btn.textContent = 'Enviar código a mi correo';
+      btn.textContent = t('index.recover_access.send_button');
       return;
     }
     document.getElementById('recover-access-step1').style.display = 'none';
     document.getElementById('recover-access-step2').style.display = 'block';
     document.getElementById('recover-access-msg').style.display = 'none';
   } catch (_) {
-    _mostrarMensajeRecuperarAcceso('Sin conexión. Comprueba tu red e inténtalo de nuevo.', true);
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.network_error'), true);
     btn.disabled = false;
-    btn.textContent = 'Enviar código a mi correo';
+    btn.textContent = t('index.recover_access.send_button');
   }
 });
 
@@ -3725,10 +3726,10 @@ document.getElementById('btn-recover-resend')?.addEventListener('click', async (
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: _reg.email })
     });
-    if (res.ok) _mostrarMensajeRecuperarAcceso('Nuevo código enviado a ' + _reg.email + '.', false);
-    else _mostrarMensajeRecuperarAcceso('No se pudo reenviar el código. Inténtalo de nuevo.', true);
+    if (res.ok) _mostrarMensajeRecuperarAcceso(t('index.recover_access.resent_prefix') + ' ' + _reg.email + '.', false);
+    else _mostrarMensajeRecuperarAcceso(t('index.recover_access.resend_error'), true);
   } catch (_) {
-    _mostrarMensajeRecuperarAcceso('Sin conexión. Inténtalo de nuevo.', true);
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.network_error_short'), true);
   }
   btn.disabled = false;
 });
@@ -3737,12 +3738,12 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
   const codeInput = document.getElementById('recover-access-code');
   const code = codeInput.value.trim();
   if (!/^\d{6}$/.test(code)) {
-    _mostrarMensajeRecuperarAcceso('Introduce el código de 6 dígitos.', true);
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.enter_6_digits'), true);
     return;
   }
   const btn = document.getElementById('btn-recover-verify');
   btn.disabled = true;
-  btn.textContent = 'Verificando...';
+  btn.textContent = t('index.recover_access.verifying_button');
   try {
     const res = await fetch('/api/register-complete', {
       method: 'POST',
@@ -3759,13 +3760,13 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
       window.location.reload();
       return;
     }
-    _mostrarMensajeRecuperarAcceso('Código incorrecto o caducado. Pulsa "Reenviar código" para probar de nuevo.', true);
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.wrong_code'), true);
     btn.disabled = false;
-    btn.textContent = 'Verificar código';
+    btn.textContent = t('index.recover_access.verify_button');
   } catch (_) {
-    _mostrarMensajeRecuperarAcceso('Sin conexión. Inténtalo de nuevo.', true);
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.network_error_short'), true);
     btn.disabled = false;
-    btn.textContent = 'Verificar código';
+    btn.textContent = t('index.recover_access.verify_button');
   }
 });
 
@@ -3857,7 +3858,7 @@ const btnListenTerms = document.getElementById('btn-listen-terms');
 btnListenTerms.addEventListener('click', () => {
   const synth = window.speechSynthesis;
   if (!synth) {
-    btnListenTerms.textContent = 'Lectura por voz no disponible';
+    btnListenTerms.textContent = t('index.consent.voice_unavailable');
     btnListenTerms.disabled = true;
     return;
   }
@@ -3865,12 +3866,12 @@ btnListenTerms.addEventListener('click', () => {
   // Pausar / reanudar si ya hay una lectura en curso
   if (synth.speaking && !synth.paused) {
     synth.pause();
-    btnListenTerms.textContent = '▶ Escuchar términos';
+    btnListenTerms.textContent = t('index.consent.listen_button');
     return;
   }
   if (synth.paused) {
     synth.resume();
-    btnListenTerms.textContent = 'Pausar';
+    btnListenTerms.textContent = t('index.consent.pause_button');
     return;
   }
 
@@ -3882,7 +3883,7 @@ btnListenTerms.addEventListener('click', () => {
   const utterance = new SpeechSynthesisUtterance(fullText);
   utterance.lang = 'es-ES';
 
-  const resetButton = () => { btnListenTerms.textContent = '▶ Escuchar términos'; };
+  const resetButton = () => { btnListenTerms.textContent = t('index.consent.listen_button'); };
   utterance.onend = () => {
     resetButton();
     // Lectura completada: equivale a haber leído todo, sin necesidad de scroll
@@ -3892,7 +3893,7 @@ btnListenTerms.addEventListener('click', () => {
 
   synth.cancel();
   synth.speak(utterance);
-  btnListenTerms.textContent = '⏸ Pausar';
+  btnListenTerms.textContent = t('index.consent.pause_button_active');
 });
 
 // =================== ESTADO ===================
@@ -3958,7 +3959,7 @@ function handlePinInput(char) {
 }
 
 // Construir QWERTY
-(function buildQwertyKbdPin() {
+window.i18nReady.finally(function buildQwertyKbdPin() {
   const container = document.getElementById('qwerty-kbd-pin');
   if (!container) return;
   const ROWS_LETTERS = [
@@ -4002,7 +4003,7 @@ function handlePinInput(char) {
           });
         } else if (key === 'CLR') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = 'Limpiar'; btn.style.flex = '1.5';
+          btn.textContent = t('index.qwerty_pin.clear'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); pinBuffer = ''; updateDots(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
@@ -4010,7 +4011,7 @@ function handlePinInput(char) {
           });
         } else if (key === 'NUMS') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = '123'; btn.style.flex = '1.5';
+          btn.textContent = t('index.qwerty_pin.nums'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'nums'; _dragKey = null; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
@@ -4018,7 +4019,7 @@ function handlePinInput(char) {
           });
         } else if (key === 'BACK') {
           btn.className = 'qwerty-key qwerty-action';
-          btn.textContent = 'ABC'; btn.style.flex = '1.5';
+          btn.textContent = t('index.qwerty_pin.back'); btn.style.flex = '1.5';
           btn._kbdAction = () => { playKeyClick(); mode = 'letters'; _dragKey = null; render(); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
@@ -4026,7 +4027,7 @@ function handlePinInput(char) {
           });
         } else if (key === 'SPACE') {
           btn.className = 'qwerty-key qwerty-space';
-          btn.style.flex = '4'; btn.setAttribute('aria-label','espacio');
+          btn.style.flex = '4'; btn.setAttribute('aria-label', t('index.qwerty_pin.space_aria'));
           btn._kbdAction = () => { playKeyClick(); handlePinInput(' '); };
           btn.addEventListener('click', (e) => {
             if (btn._touchHandledAt && Date.now() - btn._touchHandledAt < 400) return;
@@ -4088,7 +4089,7 @@ function handlePinInput(char) {
   }, { passive: false });
   container.addEventListener('touchend', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } });
   container.addEventListener('touchcancel', function() { if (_dragKey) { _dragKey.classList.remove('kbd-pressed'); _dragKey = null; } });
-})();
+});
 
 // ===== OJO PIN =====
 document.getElementById('eye-pin').addEventListener('click', () => {
@@ -4113,9 +4114,9 @@ document.querySelectorAll('.domain-btn').forEach(btn => {
 });
 
 if (!isFirstTime) {
-  pinHint.textContent = 'Introduce tu contraseña';
+  window.i18nReady.finally(() => { pinHint.textContent = t('index.pin.enter_password_hint'); });
   const lbl = document.getElementById('pin-label-text');
-  if (lbl) lbl.textContent = 'Contraseña de acceso';
+  if (lbl) window.i18nReady.finally(() => { lbl.textContent = t('index.pin.access_password_label'); });
   const sub = document.getElementById('pin-sublabel-text');
   if (sub) sub.style.display = 'none';
   const str = document.getElementById('pin-strength');
@@ -4147,19 +4148,19 @@ function pinError() {
 
   const left = 3 - attempts;
   const msg = left === 1
-    ? 'Contraseña incorrecta — te queda 1 intento'
-    : `Contraseña incorrecta — te quedan ${left} intentos`;
+    ? t('index.pin.wrong_password_1_left')
+    : t('index.pin.wrong_password_n_left').replace('{n}', left);
   showErrorToast(msg);
 
   if (pinDotsEl) { pinDotsEl.classList.add('error'); }
-  pinHint.textContent = 'Contraseña incorrecta — inténtalo de nuevo';
+  pinHint.textContent = t('index.pin.wrong_password_retry');
   pinHint.style.color = '#ff4444';
   setTimeout(() => {
     if (pinDotsEl) pinDotsEl.classList.remove('error');
     pinBuffer = '';
     updateDots();
     pinHint.style.color = '';
-    pinHint.textContent = 'Introduce tu contraseña';
+    pinHint.textContent = t('index.pin.enter_password_hint');
   }, 700);
 }
 
@@ -4218,7 +4219,7 @@ function iplanNav(dir) {
     d.classList.toggle('pdot-on', i === iplanIdx);
   });
   document.getElementById('iplan-prev').style.display = iplanIdx === 0 ? 'none' : 'inline-block';
-  document.getElementById('iplan-next').textContent = iplanIdx === slides.length - 1 ? 'Cerrar' : 'Siguiente →';
+  document.getElementById('iplan-next').textContent = iplanIdx === slides.length - 1 ? t('index.plans.close_button') : t('index.plans.next_button');
   if (iplanIdx === slides.length - 1 && dir > 0) {
     document.getElementById('iplan-next').onclick = closeIPlans;
   } else {
@@ -4260,7 +4261,7 @@ pinEnterBtn.addEventListener('click', async () => {
     isFirstTime = false;
     pinEnterBtn.classList.remove('ready');
     pinEnterBtn.disabled = true;
-    showToast('Contraseña guardada ✓');
+    showToast(t('index.pin.password_saved_toast'));
     sessionCryptoKey = await deriveKeyFromPin(pinBuffer);
     await migrateTOTPIfNeeded(sessionCryptoKey);
     pinSuccess();
@@ -4410,7 +4411,7 @@ function selectGalleryItem(item, el) {
   selectedGalleryId = item.id;
   profileData.media = { src: item.src, type: 'video', galleryId: item.id, thumb: item.thumb };
   renderCard();
-  showToast('Video seleccionado ✓');
+  showToast(t('index.media.video_selected_toast'));
 }
 
 // =================== EXTRACCIÓN DE DOCUMENTO (OCR) ===================
@@ -4661,8 +4662,8 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
   e.target.value = ''; // permitir volver a elegir el mismo archivo
 
   const btn = document.getElementById('btn-ocr-doc');
-  btn.textContent = 'Analizando documento...';
-  showToast('Procesando documento — puede tardar unos segundos');
+  btn.textContent = t('index.import.analyzing_button');
+  showToast(t('index.import.processing_toast'));
 
   try {
     let extracted = null;
@@ -4684,13 +4685,13 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
     // Fallback local: sin red, límite diario agotado o error del
     // servicio de IA — se usa el pipeline local 100% auto-hospedado (ver
     // arriba) para que el usuario nunca se quede sin nada.
-    showToast('Servicio de IA no disponible — usando extracción local');
+    showToast(t('index.import.ai_unavailable_toast'));
     const text = await extractTextLocally(file);
     const extractedLocal = extractData(text);
     const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extractedLocal[k]);
 
     if (!mappedKeys.length) {
-      showToast('No se detectaron datos — rellénalos manualmente');
+      showToast(t('index.import.no_data_found_toast'));
       return;
     }
 
@@ -4699,23 +4700,25 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
     renderImportResults(extractedLocal);
   } catch (err) {
     console.error('OCR:', err);
-    showToast('Error al procesar el documento');
+    showToast(t('index.import.process_error_toast'));
   } finally {
-    btn.textContent = 'Extraer datos de documento';
+    btn.textContent = t('index.edit.ocr_button');
   }
 });
 
 // =================== TOGGLES — etiquetas en tiempo real ===================
-['phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web','twitter','instagram','youtube','tiktok'].forEach(field => {
-  const chk = document.getElementById('t-'+field);
-  const lbl = document.getElementById('s-'+field);
-  if (!chk || !lbl) return;
-  const update = () => {
-    lbl.textContent = chk.checked ? 'Permitido' : 'Bloqueado';
-    lbl.className = 'toggle-status ' + (chk.checked ? 'on' : 'off');
-  };
-  chk.addEventListener('change', update);
-  update();
+window.i18nReady.finally(() => {
+  ['phone','email','mobile','landline','email2','email-work','company','address','linkedin','github','web','twitter','instagram','youtube','tiktok'].forEach(field => {
+    const chk = document.getElementById('t-'+field);
+    const lbl = document.getElementById('s-'+field);
+    if (!chk || !lbl) return;
+    const update = () => {
+      lbl.textContent = chk.checked ? t('index.privacy.status_on') : t('index.privacy.status_off');
+      lbl.className = 'toggle-status ' + (chk.checked ? 'on' : 'off');
+    };
+    chk.addEventListener('change', update);
+    update();
+  });
 });
 
 // =================== SUBIR IMAGEN / GIF ===================
@@ -4742,10 +4745,10 @@ document.getElementById('media-file-img').addEventListener('change', (e) => {
     wrap.style.display = 'block';
 
     renderCard();
-    showToast(isGif ? 'GIF cargado ✓' : 'Imagen cargada ✓');
+    showToast(isGif ? t('index.media.gif_loaded_toast') : t('index.media.image_loaded_toast'));
   };
   reader.onerror = () => {
-    showToast('No se pudo cargar la imagen — intenta de nuevo');
+    showToast(t('index.media.image_error_toast'));
     e.target.value = '';
   };
   reader.readAsDataURL(file);
@@ -4762,7 +4765,7 @@ document.getElementById('media-file-vid').addEventListener('change', (e) => {
 
   // Validación de tamaño: máximo 50MB antes de leer el archivo
   if (file.size > 50 * 1024 * 1024) {
-    showToast('Video demasiado grande — máximo 50MB');
+    showToast(t('index.media.video_too_large_toast'));
     e.target.value = '';
     return;
   }
@@ -4784,10 +4787,10 @@ document.getElementById('media-file-vid').addEventListener('change', (e) => {
     wrap.style.display = 'block';
 
     renderCard();
-    showToast('Video cargado ✓');
+    showToast(t('index.media.video_loaded_toast'));
   };
   reader.onerror = () => {
-    showToast('Error al leer el video');
+    showToast(t('index.media.video_read_error_toast'));
   };
   reader.readAsDataURL(file);
 });
@@ -4797,8 +4800,8 @@ document.getElementById('card-container').addEventListener('click', () => {
   isFlipped = !isFlipped;
   document.getElementById('card-inner').classList.toggle('flipped', isFlipped);
   document.getElementById('flip-hint').textContent = isFlipped
-    ? '↺ Toca para volver a la tarjeta'
-    : '↺ Toca la tarjeta para mostrar el QR';
+    ? t('index.main.flip_hint_back')
+    : t('index.main.flip_hint');
 });
 
 // =================== QR (vCard) ===================
@@ -4901,39 +4904,39 @@ function buildQROptions(design, size, data) {
 
 // ---- TEMPLATES predefinidos ----
 const QR_TEMPLATES = [
-  { id:'t1', name:'Clásico',   design:{ dotsType:'square',        dotsColor:'#1a1a1a', bgColor:'#f5f5f5', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#1a1a1a', cornerDotColor:'#1a1a1a' }},
-  { id:'t2', name:'Suave',     design:{ dotsType:'rounded',       dotsColor:'#222222', bgColor:'#ffffff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#222222', cornerDotColor:'#222222' }},
-  { id:'t3', name:'Dots',      design:{ dotsType:'dots',          dotsColor:'#111111', bgColor:'#f0f0f0', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#111111', cornerDotColor:'#111111' }},
-  { id:'t4', name:'Classy',    design:{ dotsType:'classy',        dotsColor:'#1a1a1a', bgColor:'#f5f5f5', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#1a1a1a', cornerDotColor:'#1a1a1a' }},
-  { id:'t5', name:'Smooth',    design:{ dotsType:'classy-rounded',dotsColor:'#000000', bgColor:'#eeeeee', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#000000', cornerDotColor:'#000000' }},
-  { id:'t6', name:'Circles',   design:{ dotsType:'extra-rounded', dotsColor:'#111111', bgColor:'#f8f8f8', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#111111', cornerDotColor:'#111111' }},
-  { id:'t7', name:'Neón',      design:{ dotsType:'extra-rounded', dotsColor:'#AAFF00', bgColor:'#080808', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#AAFF00', cornerDotColor:'#AAFF00' }},
-  { id:'t8', name:'Femenino',  design:{ dotsType:'dots',          dotsColor:'#c0006a', bgColor:'#fff0f5', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#c0006a', cornerDotColor:'#ff69b4' }},
-  { id:'t9', name:'Rústico',   design:{ dotsType:'classy',        dotsColor:'#3d2b1a', bgColor:'#f5f0e8', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#3d2b1a', cornerDotColor:'#8b5e3c' }},
-  { id:'t10',name:'Azul',      design:{ dotsType:'rounded',       dotsColor:'#0066cc', bgColor:'#e8f4ff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#0066cc', cornerDotColor:'#0099ff' }},
-  { id:'t11',name:'Morado',    design:{ dotsType:'dots',          dotsColor:'#6600cc', bgColor:'#f5eeff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#6600cc', cornerDotColor:'#9933ff' }},
-  { id:'t12',name:'Verde',     design:{ dotsType:'rounded',       dotsColor:'#006633', bgColor:'#eefff4', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#006633', cornerDotColor:'#00aa55' }},
+  { id:'t1', nameKey:'index.qr_designer.tpl_classic',  design:{ dotsType:'square',        dotsColor:'#1a1a1a', bgColor:'#f5f5f5', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#1a1a1a', cornerDotColor:'#1a1a1a' }},
+  { id:'t2', nameKey:'index.qr_designer.tpl_soft',     design:{ dotsType:'rounded',       dotsColor:'#222222', bgColor:'#ffffff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#222222', cornerDotColor:'#222222' }},
+  { id:'t3', nameKey:'index.qr_designer.tpl_dots',     design:{ dotsType:'dots',          dotsColor:'#111111', bgColor:'#f0f0f0', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#111111', cornerDotColor:'#111111' }},
+  { id:'t4', nameKey:'index.qr_designer.tpl_classy',   design:{ dotsType:'classy',        dotsColor:'#1a1a1a', bgColor:'#f5f5f5', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#1a1a1a', cornerDotColor:'#1a1a1a' }},
+  { id:'t5', nameKey:'index.qr_designer.tpl_smooth',   design:{ dotsType:'classy-rounded',dotsColor:'#000000', bgColor:'#eeeeee', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#000000', cornerDotColor:'#000000' }},
+  { id:'t6', nameKey:'index.qr_designer.tpl_circles',  design:{ dotsType:'extra-rounded', dotsColor:'#111111', bgColor:'#f8f8f8', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#111111', cornerDotColor:'#111111' }},
+  { id:'t7', nameKey:'index.qr_designer.tpl_neon',     design:{ dotsType:'extra-rounded', dotsColor:'#AAFF00', bgColor:'#080808', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#AAFF00', cornerDotColor:'#AAFF00' }},
+  { id:'t8', nameKey:'index.qr_designer.tpl_feminine', design:{ dotsType:'dots',          dotsColor:'#c0006a', bgColor:'#fff0f5', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#c0006a', cornerDotColor:'#ff69b4' }},
+  { id:'t9', nameKey:'index.qr_designer.tpl_rustic',   design:{ dotsType:'classy',        dotsColor:'#3d2b1a', bgColor:'#f5f0e8', cornerSquareType:'square',        cornerDotType:'square',  cornerSquareColor:'#3d2b1a', cornerDotColor:'#8b5e3c' }},
+  { id:'t10',nameKey:'index.qr_designer.tpl_blue',     design:{ dotsType:'rounded',       dotsColor:'#0066cc', bgColor:'#e8f4ff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#0066cc', cornerDotColor:'#0099ff' }},
+  { id:'t11',nameKey:'index.qr_designer.tpl_purple',   design:{ dotsType:'dots',          dotsColor:'#6600cc', bgColor:'#f5eeff', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#6600cc', cornerDotColor:'#9933ff' }},
+  { id:'t12',nameKey:'index.qr_designer.tpl_green',    design:{ dotsType:'rounded',       dotsColor:'#006633', bgColor:'#eefff4', cornerSquareType:'extra-rounded',  cornerDotType:'dot',     cornerSquareColor:'#006633', cornerDotColor:'#00aa55' }},
 ];
 
 // ---- PATRONES de módulos ----
 const QR_PATTERNS = [
-  { id:'square',         name:'Clásico'  },
-  { id:'rounded',        name:'Suave'    },
-  { id:'dots',           name:'Círculos' },
-  { id:'classy',         name:'Classy'   },
-  { id:'classy-rounded', name:'Smooth'   },
-  { id:'extra-rounded',  name:'Fluido'   },
+  { id:'square',         nameKey:'index.qr_designer.pat_classic' },
+  { id:'rounded',        nameKey:'index.qr_designer.pat_soft'    },
+  { id:'dots',           nameKey:'index.qr_designer.pat_circles' },
+  { id:'classy',         nameKey:'index.qr_designer.pat_classy'  },
+  { id:'classy-rounded', nameKey:'index.qr_designer.pat_smooth'  },
+  { id:'extra-rounded',  nameKey:'index.qr_designer.pat_fluid'   },
 ];
 
 // ---- ESTILOS de esquinas ----
 const QR_CORNERS_SQ = [
-  { id:'square',        name:'Cuadrado' },
-  { id:'dot',           name:'Círculo'  },
-  { id:'extra-rounded', name:'Redondo'  },
+  { id:'square',        nameKey:'index.qr_designer.corner_square' },
+  { id:'dot',           nameKey:'index.qr_designer.corner_circle' },
+  { id:'extra-rounded', nameKey:'index.qr_designer.corner_round'  },
 ];
 const QR_CORNERS_DOT = [
-  { id:'square', name:'Cuadrado' },
-  { id:'dot',    name:'Círculo'  },
+  { id:'square', nameKey:'index.qr_designer.corner_square' },
+  { id:'dot',    nameKey:'index.qr_designer.corner_circle' },
 ];
 
 let qrStylingInstance = null;
@@ -5054,7 +5057,7 @@ function showQRStylingError(container, sizePx, onRetry) {
   if (sizePx < 100) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.title = 'No se pudo generar — toca para reintentar';
+    btn.title = t('index.qr_error.retry_title');
     btn.style.cssText = `width:100%;height:100%;background:transparent;
       border:1.5px dashed rgba(255,80,80,0.5);border-radius:8px;
       color:#ff5050;font-size:${Math.round(sizePx * 0.4)}px;cursor:pointer;`;
@@ -5065,10 +5068,10 @@ function showQRStylingError(container, sizePx, onRetry) {
   }
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;color:#ff5050;font-family:Inter,sans-serif;text-align:center;padding:8px;box-sizing:border-box;';
-  wrap.innerHTML = '<span style="font-size:20px;">⚠</span><span style="font-size:10px;">No se pudo generar el QR</span>';
+  wrap.innerHTML = `<span style="font-size:20px;">⚠</span><span style="font-size:10px;">${t('index.qr_error.generate_error')}</span>`;
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.textContent = 'Reintentar';
+  btn.textContent = t('index.qr_error.retry_button');
   btn.style.cssText = `background:transparent;border:1.5px solid #ff5050;color:#ff5050;
     font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
     padding:5px 12px;border-radius:16px;cursor:pointer;font-family:inherit;`;
@@ -5204,7 +5207,7 @@ function buildDesignerGrids() {
       const pDiv = document.createElement('div');
       const lbl = document.createElement('div');
       lbl.className = 'qr-template-lbl';
-      lbl.textContent = t.name;
+      lbl.textContent = window.t(t.nameKey);
       item.appendChild(pDiv);
       item.appendChild(lbl);
       tGrid.appendChild(item);
@@ -5234,7 +5237,7 @@ function buildDesignerGrids() {
       const pDiv = document.createElement('div');
       const lbl = document.createElement('div');
       lbl.className = 'qr-pattern-lbl';
-      lbl.textContent = p.name;
+      lbl.textContent = t(p.nameKey);
       item.appendChild(pDiv);
       item.appendChild(lbl);
       pGrid.appendChild(item);
@@ -5262,7 +5265,7 @@ function buildDesignerGrids() {
       const pDiv = document.createElement('div');
       const lbl = document.createElement('div');
       lbl.className = 'qr-corner-lbl';
-      lbl.textContent = c.name;
+      lbl.textContent = t(c.nameKey);
       item.appendChild(pDiv);
       item.appendChild(lbl);
       cGrid.appendChild(item);
@@ -5362,7 +5365,7 @@ function applyQRDesign() {
   generateQR();
   renderQRMini();
   document.getElementById('screen-qr-designer').classList.remove('open');
-  showToast('Diseño aplicado ✓');
+  showToast(t('index.qr_designer.applied_toast'));
 }
 
 document.getElementById('btn-qr-apply').addEventListener('click', applyQRDesign);
@@ -5430,38 +5433,38 @@ document.getElementById('btn-share').addEventListener('click', async () => {
       const blank = await isImageBlobBlank(blob);
 
       if (!blank && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] })) {
-        await navigator.share({ title: 'Mi contacto IDENTIFLY', text: profileData.name || 'Contacto', files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] });
+        await navigator.share({ title: t('index.share.contact_title'), text: profileData.name || t('index.share.contact_fallback_text'), files: [new File([blob],'identifly_contacto.png',{type:'image/png'})] });
       } else if (!blank) {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'identifly_contacto.png';
         a.click();
-        showToast('QR de un solo uso descargado ✓');
+        showToast(t('index.share.qr_downloaded_toast'));
       } else if (navigator.share) {
         // La imagen salió en blanco (bug de Safari/WebKit) — se comparte
         // el enlace como texto en vez de una imagen vacía sin avisar.
-        await navigator.share({ title: 'Mi contacto IDENTIFLY', text: `Mi contacto IDENTIFLY: ${shareUrl}`, url: shareUrl });
+        await navigator.share({ title: t('index.share.contact_title'), text: t('index.share.contact_text_prefix') + ' ' + shareUrl, url: shareUrl });
       } else {
-        showToast('No se pudo generar la imagen del QR — usa uno de los canales de abajo');
+        showToast(t('index.share.qr_generate_error_toast'));
       }
-    } catch(e) { showToast('Compartir no disponible'); }
+    } catch(e) { showToast(t('index.share.unavailable_toast')); }
   }, 400);
 });
 
 document.getElementById('btn-share-whatsapp')?.addEventListener('click', async () => {
   try {
     const shareUrl = await generateShareLink();
-    const text = encodeURIComponent(`Mi contacto IDENTIFLY: ${shareUrl}`);
+    const text = encodeURIComponent(t('index.share.contact_text_prefix') + ' ' + shareUrl);
     window.open(`https://wa.me/?text=${text}`, '_blank');
-  } catch(e) { showToast('No se pudo generar el enlace'); }
+  } catch(e) { showToast(t('index.share.link_error_toast')); }
 });
 
 document.getElementById('btn-share-telegram')?.addEventListener('click', async () => {
   try {
     const shareUrl = await generateShareLink();
-    const text = encodeURIComponent('Mi contacto IDENTIFLY');
+    const text = encodeURIComponent(t('index.share.contact_title'));
     window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${text}`, '_blank');
-  } catch(e) { showToast('No se pudo generar el enlace'); }
+  } catch(e) { showToast(t('index.share.link_error_toast')); }
 });
 
 document.getElementById('btn-share-email')?.addEventListener('click', async () => {
@@ -5474,19 +5477,19 @@ document.getElementById('btn-share-email')?.addEventListener('click', async () =
     await new Promise(r => setTimeout(r, 300));
     const blob = await shareQR.getRawData('png');
     const blank = await isImageBlobBlank(blob);
-    const subject = encodeURIComponent('Mi contacto IDENTIFLY');
+    const subject = encodeURIComponent(t('index.share.contact_title'));
 
     if (!blank) {
       const file = new File([blob], 'identifly_contacto.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'Mi contacto IDENTIFLY',
+          title: t('index.share.contact_title'),
           // El QR (imagen adjunta) sigue siendo la vía principal; este texto
           // es la alternativa para quien no escanee. Se usa el formato de
           // negrita que WhatsApp interpreta (asteriscos) en vez de mostrar
           // el enlace desnudo -- el enlace en sí no cambia, solo se envuelve
           // en un texto de llamada a la acción corto.
-          text: `📇 *Toca aquí para ver el contacto* ${shareUrl}`,
+          text: t('index.share.tap_to_view_prefix') + ' ' + shareUrl,
           files: [file]
         });
       } else {
@@ -5494,24 +5497,24 @@ document.getElementById('btn-share-email')?.addEventListener('click', async () =
         a.href = URL.createObjectURL(blob);
         a.download = 'identifly_contacto.png';
         a.click();
-        const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}\n\nAdjunta también la imagen del QR que se acaba de descargar.`);
+        const body = encodeURIComponent(t('index.share.email_body_with_qr').replace('{url}', shareUrl));
         setTimeout(() => { window.location.href = `mailto:?subject=${subject}&body=${body}`; }, 500);
       }
     } else {
       // La imagen salió en blanco (bug de Safari/WebKit) — se comparte el
       // enlace por email como texto, sin adjuntar una imagen vacía.
-      const body = encodeURIComponent(`Aquí tienes mi contacto (enlace de un solo uso):\n${shareUrl}`);
+      const body = encodeURIComponent(t('index.share.email_body_no_qr').replace('{url}', shareUrl));
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
-  } catch(e) { showToast('No se pudo generar el enlace'); }
+  } catch(e) { showToast(t('index.share.link_error_toast')); }
 });
 
 document.getElementById('btn-share-sms')?.addEventListener('click', async () => {
   try {
     const shareUrl = await generateShareLink();
-    const body = encodeURIComponent(`Mi contacto IDENTIFLY: ${shareUrl}`);
+    const body = encodeURIComponent(t('index.share.contact_text_prefix') + ' ' + shareUrl);
     window.location.href = `sms:?body=${body}`;
-  } catch(e) { showToast('No se pudo generar el enlace'); }
+  } catch(e) { showToast(t('index.share.link_error_toast')); }
 });
 
 
@@ -5632,7 +5635,7 @@ function openEdit() {
     const chk = document.getElementById('t-'+field);
     const lbl = document.getElementById('s-'+field);
     if (chk && lbl) {
-      lbl.textContent = chk.checked ? 'Permitido' : 'Bloqueado';
+      lbl.textContent = chk.checked ? window.t('index.privacy.status_on') : window.t('index.privacy.status_off');
       lbl.className = 'toggle-status ' + (chk.checked ? 'on' : 'off');
     }
   });
@@ -5681,7 +5684,7 @@ function openEdit() {
       if (!el.parentElement.querySelector('.reg-locked-note')) {
         const note = document.createElement('div');
         note.className = 'reg-locked-note';
-        note.textContent = 'Dato de registro · no editable';
+        note.textContent = window.t('index.edit.registration_locked_note');
         note.style.cssText = 'font-size:9px;letter-spacing:1px;margin-top:3px;color:rgba(170,255,0,0.4);';
         el.insertAdjacentElement('afterend', note);
       }
@@ -5731,7 +5734,7 @@ document.getElementById('photo-file-input').addEventListener('change', (e) => {
     renderCard();
   };
   reader.onerror = () => {
-    showToast('No se pudo cargar la imagen — intenta de nuevo');
+    showToast(t('index.media.image_error_toast'));
     e.target.value = '';
   };
   reader.readAsDataURL(file);
@@ -5812,7 +5815,7 @@ function saveProfile() {
 
 document.getElementById('btn-save').addEventListener('click', () => {
   closeEdit();
-  showToast('Identidad guardada ✓');
+  showToast(t('index.edit.saved_toast'));
 });
 
 // =================== AUTOGUARDADO RESILIENTE ===================
@@ -5965,7 +5968,7 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
   document.getElementById('btn-consent-accept').disabled = true;
   document.getElementById('btn-consent-accept').classList.remove('active');
 
-  showToast('Todos tus datos han sido eliminados');
+  showToast(t('index.delete.all_deleted_toast'));
 });
 
 // =================== 2FA SISTEMA ===================
@@ -6115,9 +6118,9 @@ document.getElementById('t-totp').addEventListener('change', (e) => {
   if (e.target.checked) {
     if (!localStorage.getItem(TOTP_KEY)) {
       area.style.display = 'block';
-      lbl.textContent = 'Pendiente'; lbl.className = 'toggle-status off';
+      lbl.textContent = t('index.twofa.status_pending'); lbl.className = 'toggle-status off';
     } else {
-      lbl.textContent = 'Permitido'; lbl.className = 'toggle-status on';
+      lbl.textContent = t('index.privacy.status_on'); lbl.className = 'toggle-status on';
       twoFAConfig.totp = true;
       localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
     }
@@ -6125,9 +6128,9 @@ document.getElementById('t-totp').addEventListener('change', (e) => {
     localStorage.removeItem(TOTP_KEY);
     twoFAConfig.totp = false;
     localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
-    lbl.textContent = 'Bloqueado'; lbl.className = 'toggle-status off';
+    lbl.textContent = t('index.privacy.status_off'); lbl.className = 'toggle-status off';
     area.style.display = 'none';
-    showToast('TOTP desactivado');
+    showToast(t('index.twofa.disabled_toast'));
   }
 });
 
@@ -6150,7 +6153,7 @@ document.getElementById('btn-close-totp').addEventListener('click', () => {
   document.getElementById('screen-totp-setup').classList.remove('open');
   if (!twoFAConfig.totp) {
     document.getElementById('t-totp').checked = false;
-    document.getElementById('s-totp').textContent = 'Bloqueado';
+    document.getElementById('s-totp').textContent = t('index.privacy.status_off');
     document.getElementById('s-totp').className = 'toggle-status off';
     document.getElementById('totp-setup-area').style.display = 'none';
   }
@@ -6158,19 +6161,19 @@ document.getElementById('btn-close-totp').addEventListener('click', () => {
 
 document.getElementById('btn-confirm-totp').addEventListener('click', async () => {
   const code = document.getElementById('totp-verify-code').value.trim();
-  if (!code || code.length !== 6) { showToast('Introduce 6 dígitos'); return; }
+  if (!code || code.length !== 6) { showToast(t('index.twofa.enter_6_digits')); return; }
   if (verifyTOTPCode(pendingTOTPSecret, code)) {
     const encrypted = await encryptTOTPSecret(pendingTOTPSecret, sessionCryptoKey);
     localStorage.setItem(TOTP_KEY, encrypted);
     twoFAConfig.totp = true;
     localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
-    document.getElementById('s-totp').textContent = 'Permitido';
+    document.getElementById('s-totp').textContent = t('index.privacy.status_on');
     document.getElementById('s-totp').className = 'toggle-status on';
     document.getElementById('totp-setup-area').style.display = 'none';
     document.getElementById('screen-totp-setup').classList.remove('open');
-    showToast('✓ TOTP activado');
+    showToast(t('index.twofa.activated_toast'));
   } else {
-    showToast('Código incorrecto');
+    showToast(t('index.twofa.wrong_code_toast'));
     document.getElementById('totp-verify-code').value = '';
   }
 });
@@ -6187,8 +6190,8 @@ async function check2FAAndEnter() {
   const screen = document.getElementById('screen-2fa-verify');
   screen.classList.add('open');
   document.getElementById('verify-icon').textContent = '🔐';
-  document.getElementById('verify-title').textContent = 'Código autenticador';
-  document.getElementById('verify-subtitle').textContent = 'Introduce el código de 6 dígitos de tu app';
+  document.getElementById('verify-title').textContent = t('index.twofa_verify.totp_title');
+  document.getElementById('verify-subtitle').textContent = t('index.twofa_verify.totp_subtitle');
   document.getElementById('verify-totp-area').style.display = 'block';
 }
 
@@ -6199,7 +6202,7 @@ document.getElementById('btn-verify-totp').addEventListener('click', () => {
     document.getElementById('screen-2fa-verify').classList.remove('open');
     doEnter();
   } else {
-    showToast('Código incorrecto');
+    showToast(t('index.twofa.wrong_code_toast'));
     document.getElementById('verify-totp-input').value = '';
   }
 });
@@ -6208,7 +6211,7 @@ document.getElementById('btn-verify-totp').addEventListener('click', () => {
 function init2FAToggles() {
   const ta = twoFAConfig.totp && !!localStorage.getItem(TOTP_KEY);
   document.getElementById('t-totp').checked = ta;
-  document.getElementById('s-totp').textContent = ta ? 'Permitido' : 'Bloqueado';
+  document.getElementById('s-totp').textContent = ta ? t('index.privacy.status_on') : t('index.privacy.status_off');
   document.getElementById('s-totp').className = 'toggle-status ' + (ta ? 'on' : 'off');
 }
 
@@ -6232,8 +6235,8 @@ setTimeout(renderQRMini, 500);
 // inexistente, dato que se pierde en silencio). Twitter/Instagram/
 // YouTube/TikTok SÍ tienen campo real desde ahora — reconectados aquí.
 const IMPORT_FIELD_MAP = {
-  nombre:           { id: 'f-name',       label: 'NOMBRE' },
-  cargo:            { id: 'f-job',        label: 'CARGO / PROFESION' },
+  nombre:           { id: 'f-name',       labelKey: 'index.import.field_name' },
+  cargo:            { id: 'f-job',        labelKey: 'index.import.field_job' },
   // "telefono" (el campo genérico #f-phone) ya NO está en este mapa a
   // propósito: desde el registro con país+número (ver applyRegistrationLock)
   // ese campo queda bloqueado/de solo lectura para cuentas registradas.
@@ -6242,20 +6245,20 @@ const IMPORT_FIELD_MAP = {
   // pasaron a ser un selector de país + campo de número separados; el
   // bucle que aplica los resultados (btn-apply-all) reconoce este par y
   // reparte el valor extraído entre ambos con parseTelefono().
-  telefono_fijo:    { countryId: 'f-landline-country', numberId: 'f-landline-number', label: 'TELEFONO FIJO' },
-  movil:            { countryId: 'f-mobile-country',   numberId: 'f-mobile-number',   label: 'MOVIL' },
-  email_principal:  { id: 'f-email',      label: 'EMAIL PRINCIPAL' },
-  email_secundario: { id: 'f-email2',     label: 'EMAIL SECUNDARIO' },
-  email_trabajo:    { id: 'f-email-work', label: 'EMAIL TRABAJO' },
-  empresa:          { id: 'f-company',    label: 'EMPRESA' },
-  ciudad:           { id: 'f-address',    label: 'CIUDAD' },
-  linkedin:         { id: 'f-linkedin',   label: 'LINKEDIN' },
-  github:           { id: 'f-github',     label: 'GITHUB' },
-  web:              { id: 'f-web',        label: 'WEB' },
-  twitter:          { id: 'f-twitter',    label: 'TWITTER / X' },
-  instagram:        { id: 'f-instagram',  label: 'INSTAGRAM' },
-  youtube:          { id: 'f-youtube',    label: 'YOUTUBE' },
-  tiktok:           { id: 'f-tiktok',     label: 'TIKTOK' },
+  telefono_fijo:    { countryId: 'f-landline-country', numberId: 'f-landline-number', labelKey: 'index.import.field_landline' },
+  movil:            { countryId: 'f-mobile-country',   numberId: 'f-mobile-number',   labelKey: 'index.import.field_mobile' },
+  email_principal:  { id: 'f-email',      labelKey: 'index.import.field_email_main' },
+  email_secundario: { id: 'f-email2',     labelKey: 'index.import.field_email_secondary' },
+  email_trabajo:    { id: 'f-email-work', labelKey: 'index.import.field_email_work' },
+  empresa:          { id: 'f-company',    labelKey: 'index.import.field_company' },
+  ciudad:           { id: 'f-address',    labelKey: 'index.import.field_city' },
+  linkedin:         { id: 'f-linkedin',   labelKey: 'index.import.field_linkedin' },
+  github:           { id: 'f-github',     labelKey: 'index.import.field_github' },
+  web:              { id: 'f-web',        labelKey: 'index.import.field_web' },
+  twitter:          { id: 'f-twitter',    labelKey: 'index.import.field_twitter' },
+  instagram:        { id: 'f-instagram',  labelKey: 'index.import.field_instagram' },
+  youtube:          { id: 'f-youtube',    labelKey: 'index.import.field_youtube' },
+  tiktok:           { id: 'f-tiktok',     labelKey: 'index.import.field_tiktok' },
 };
 
 // Reparte un teléfono extraído (texto libre, tal como lo detecta
@@ -6540,7 +6543,7 @@ function renderImportResults(extracted) {
   const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extracted[k]);
 
   if (mappedKeys.length === 0) {
-    resultsDiv.innerHTML = '<div class="import-empty">No se encontraron datos reconocibles. Intenta con mas texto.</div>';
+    resultsDiv.innerHTML = `<div class="import-empty">${t('index.import.no_recognizable_data')}</div>`;
     resultsDiv.style.display = 'block';
     document.getElementById('import-actions').style.display = 'none';
     return;
@@ -6548,8 +6551,8 @@ function renderImportResults(extracted) {
 
   mappedKeys.forEach(key => {
     const { value, confidence } = extracted[key];
-    const { label } = IMPORT_FIELD_MAP[key];
-    const confText  = confidence === 'high' ? 'SEGURO' : confidence === 'medium' ? 'PROBABLE' : 'REVISAR';
+    const { labelKey } = IMPORT_FIELD_MAP[key];
+    const confText  = confidence === 'high' ? t('index.import.confidence_high') : confidence === 'medium' ? t('index.import.confidence_medium') : t('index.import.confidence_low');
     const confColor = confidence === 'high' ? '#00ffcc' : confidence === 'medium' ? '#f0a500' : '#ff6b6b';
 
     const row = document.createElement('div');
@@ -6563,7 +6566,7 @@ function renderImportResults(extracted) {
 
     const lbl = document.createElement('span');
     lbl.className = 'import-field-label';
-    lbl.textContent = label;
+    lbl.textContent = t(labelKey);
 
     const val = document.createElement('span');
     val.className = 'import-value';
@@ -6600,7 +6603,7 @@ function _importModalSetup() {
 
     if (!text) {
       const resultsDiv = document.getElementById('import-results');
-      resultsDiv.innerHTML = '<div class="import-empty">Pega algun texto primero.</div>';
+      resultsDiv.innerHTML = `<div class="import-empty">${t('index.import.paste_text_first')}</div>`;
       resultsDiv.style.display = 'block';
       return;
     }
@@ -6654,17 +6657,17 @@ if (document.readyState === 'loading') {
   const TOUR_KEY = 'identity_tour_done';
   const STEPS = [
     { sel: '.consent-block-text',  screen: 'consent',
-      msg: 'Lee las condiciones de uso antes de continuar. Son breves y claras.' },
+      get msg() { return t('index.tour.step1_msg'); } },
     { sel: '#screen-pin .pin-keypad', screen: 'pin',
-      msg: 'Introduce tu contraseña maestra aquí. Combina números, letras y símbolos.' },
+      get msg() { return t('index.tour.step2_msg'); } },
     { sel: '#card-container',      screen: 'main',
-      msg: 'Esta es tu identidad digital. Tócala para girarla y ver tu QR personal.' },
+      get msg() { return t('index.tour.step3_msg'); } },
     { sel: '#btn-open-edit',       screen: 'main',
-      msg: 'Personaliza tu nombre, foto y vídeo de fondo desde aquí.' },
+      get msg() { return t('index.tour.step4_msg'); } },
     { sel: '#btn-open-qr-designer', screen: 'main',
-      msg: 'Diseña el estilo visual de tu código QR.' },
+      get msg() { return t('index.tour.step5_msg'); } },
     { sel: '#btn-setup-totp',      screen: 'main',
-      msg: 'Activa la verificación en dos pasos para proteger tu identidad.' },
+      get msg() { return t('index.tour.step6_msg'); } },
   ];
   let step = 0;
 
@@ -6723,7 +6726,7 @@ if (document.readyState === 'loading') {
     document.getElementById('tour-step-num').textContent = `${step + 1} / ${STEPS.length}`;
     document.getElementById('tour-msg').textContent       = STEPS[step].msg;
     const hasMore = STEPS.slice(step + 1).some(s => !!getEl(s.sel));
-    document.getElementById('tour-btn-next').textContent  = hasMore ? 'Siguiente →' : '¡Empezar!';
+    document.getElementById('tour-btn-next').textContent  = hasMore ? t('register.tour.next_button') : t('register.tour.start_button');
 
     bubble.classList.add('out');
     setTimeout(() => {
@@ -6790,12 +6793,14 @@ if (_trialReg.timestamp) {
   const _remaining = 30 - _trialDays;
   const _bubble = document.getElementById('trial-bubble-text');
   if (_bubble) {
-    if (_remaining > 0) {
-      _bubble.textContent = `Te quedan ${_remaining} días de prueba gratuita. Pasado ese periodo elige un plan para continuar.`;
-    } else {
-      _bubble.textContent = 'Tu periodo de prueba ha finalizado. Elige un plan para seguir usando IDENTIFLY.';
-      _bubble.style.color = 'rgba(255,100,100,0.8)';
-    }
+    window.i18nReady.finally(() => {
+      if (_remaining > 0) {
+        _bubble.textContent = t('index.edit.trial_remaining').replace('{n}', _remaining);
+      } else {
+        _bubble.textContent = t('index.edit.trial_expired');
+        _bubble.style.color = 'rgba(255,100,100,0.8)';
+      }
+    });
   }
 }
 
@@ -6816,8 +6821,8 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
     <div class="tour-step-num" id="tour-step-num">1 / 6</div>
     <div class="tour-msg" id="tour-msg"></div>
     <div class="tour-actions">
-      <button class="tour-btn-skip" id="tour-btn-skip">Saltar tour</button>
-      <button class="tour-btn-next" id="tour-btn-next">Siguiente →</button>
+      <button class="tour-btn-skip" id="tour-btn-skip" data-i18n="register.tour.skip_button">Saltar tour</button>
+      <button class="tour-btn-next" id="tour-btn-next" data-i18n="register.tour.next_button">Siguiente →</button>
     </div>
   </div>
 </div>
@@ -6835,13 +6840,13 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
 
     errorDiv.style.display  = 'none';
     resultDiv.style.display = 'none';
-    btn.textContent = 'OBTENIENDO UBICACION...';
+    btn.textContent = t('index.location.obtaining_button');
     btn.disabled = true;
 
     if (!navigator.geolocation) {
-      errorDiv.textContent = 'Tu navegador no admite geolocalizacion.';
+      errorDiv.textContent = t('index.location.geolocation_unsupported');
       errorDiv.style.display = 'block';
-      btn.textContent = 'COMPARTIR MI UBICACION AHORA';
+      btn.textContent = t('index.location.share_button');
       btn.disabled = false;
       return;
     }
@@ -6854,18 +6859,18 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
         link.href        = _locationUrl;
         link.textContent = _locationUrl;
         resultDiv.style.display = 'block';
-        btn.textContent  = 'COMPARTIR MI UBICACION AHORA';
+        btn.textContent  = t('index.location.share_button');
         btn.disabled     = false;
       },
       function(err) {
         const msgs = {
-          1: 'Permiso denegado. Activa la ubicacion en los ajustes del navegador.',
-          2: 'No se pudo obtener la posicion. Comprueba tu conexion GPS.',
-          3: 'Tiempo de espera agotado. Intentalo de nuevo.'
+          1: t('index.location.error_permission_denied'),
+          2: t('index.location.error_no_position'),
+          3: t('index.location.error_timeout')
         };
-        errorDiv.textContent = msgs[err.code] || 'Error al obtener la ubicacion.';
+        errorDiv.textContent = msgs[err.code] || t('index.location.error_generic');
         errorDiv.style.display = 'block';
-        btn.textContent = 'COMPARTIR MI UBICACION AHORA';
+        btn.textContent = t('index.location.share_button');
         btn.disabled = false;
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -6876,8 +6881,8 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
     if (!_locationUrl) return;
     if (navigator.share) {
       navigator.share({
-        title: 'Mi ubicacion — IDENTIFLY',
-        text: 'Esta es mi ubicacion actual:',
+        title: t('index.location.share_native_title'),
+        text: t('index.location.share_native_text'),
         url: _locationUrl
       }).catch(function() {});
     } else {
@@ -6887,16 +6892,16 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
 
   window.sendLocationWhatsApp = function() {
     if (!_locationUrl) return;
-    const text = encodeURIComponent('Mi ubicacion actual (IDENTIFLY): ' + _locationUrl);
+    const text = encodeURIComponent(t('index.location.whatsapp_text_prefix') + ' ' + _locationUrl);
     window.open('https://wa.me/?text=' + text, '_blank', 'noopener');
   };
 
   window.copyLocationLink = function() {
     if (!_locationUrl) return;
     navigator.clipboard.writeText(_locationUrl).then(function() {
-      showToast('Enlace copiado');
+      showToast(t('index.location.copied_toast'));
     }).catch(function() {
-      showToast('No se pudo copiar');
+      showToast(t('index.location.copy_error_toast'));
     });
   };
 })();
@@ -6919,16 +6924,16 @@ if ('serviceWorker' in navigator) {
   <div id="import-overlay" style="position:absolute;inset:0;"></div>
   <div class="import-container">
     <div class="import-header">
-      <div class="import-title">IMPORTAR DATOS</div>
-      <button class="import-close" id="btn-close-import">X Cerrar</button>
+      <div class="import-title" data-i18n="index.import.title">IMPORTAR DATOS</div>
+      <button class="import-close" id="btn-close-import" data-i18n="index.import.close_button">X Cerrar</button>
     </div>
-    <div class="import-subtitle">Pega aqui tu bio de LinkedIn, CV, perfil o cualquier texto con tus datos</div>
-    <textarea id="import-textarea" placeholder="Pega aqui tu texto..."></textarea>
-    <button id="btn-analyze">ANALIZAR Y EXTRAER DATOS</button>
+    <div class="import-subtitle" data-i18n="index.import.subtitle">Pega aqui tu bio de LinkedIn, CV, perfil o cualquier texto con tus datos</div>
+    <textarea id="import-textarea" placeholder="Pega aqui tu texto..." data-i18n-placeholder="index.import.textarea_placeholder"></textarea>
+    <button id="btn-analyze" data-i18n="index.import.analyze_button">ANALIZAR Y EXTRAER DATOS</button>
     <div id="import-results" style="display:none;"></div>
     <div id="import-actions">
-      <button id="btn-apply-all">APLICAR TODOS</button>
-      <button id="btn-cancel-import">Cancelar</button>
+      <button id="btn-apply-all" data-i18n="index.import.apply_all_button">APLICAR TODOS</button>
+      <button id="btn-cancel-import" data-i18n="index.import.cancel_button">Cancelar</button>
     </div>
   </div>
 </div>
