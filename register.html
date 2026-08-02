@@ -792,6 +792,18 @@
         </div>
         <div class="field-hint" data-i18n="register.step1.phone_hint">Se usará como dato de contacto verificado de tu perfil</div>
       </div>
+
+      <div class="field-wrap">
+        <div class="field-label" data-i18n="register.step1.language_label">Idioma</div>
+        <select class="field-input" id="r-language">
+          <option value="es">🇪🇸 Español</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="pt">🇵🇹 Português</option>
+          <option value="de">🇩🇪 Deutsch</option>
+        </select>
+        <div class="field-hint" data-i18n="register.step1.language_hint">Se fijará como idioma de tu cuenta tras el registro</div>
+      </div>
     </div>
 
     <div class="form-card">
@@ -1146,6 +1158,34 @@ window.i18nReady.finally(() => {
     () => { pwd2Buffer = pwd2Buffer.slice(0,-1); updatePwdDisplay(2); checkStep2Ready(); },
     () => { pwd2Buffer = ''; updatePwdDisplay(2); checkStep2Ready(); }
   );
+  // Preselecciona el idioma que el loader ya detectó (registro previo en
+  // este dispositivo, o si no navigator.language) -- el usuario puede
+  // cambiarlo libremente antes de completar el registro; a partir de ahí
+  // queda fijo (ver applyRegistrationLock() en index.html).
+  const langSelect = document.getElementById('r-language');
+  if (langSelect && window.currentLanguage) langSelect.value = window.currentLanguage;
+
+  // Cambio de idioma EN VIVO: el resto del formulario (Paso 2, toasts,
+  // validaciones) debe verse en el idioma recién elegido sin esperar a
+  // completar el registro. applyI18n() (dentro de setLanguage) solo
+  // actualiza los elementos data-i18n* -- los teclados QWERTY escriben
+  // sus etiquetas de acción (Limpiar/123/ABC/Listo) directamente en el
+  // DOM al construirse, así que hay que reconstruirlos para que también
+  // reflejen el nuevo idioma.
+  langSelect?.addEventListener('change', (e) => {
+    window.setLanguage(e.target.value).then(() => {
+      buildQwertyKbd('qwerty-kbd-1',
+        c => handlePwdInput(1, c),
+        () => { pwd1Buffer = pwd1Buffer.slice(0,-1); updatePwdDisplay(1); checkStep1Ready(); },
+        () => { pwd1Buffer = ''; updatePwdDisplay(1); checkStep1Ready(); }
+      );
+      buildQwertyKbd('qwerty-kbd-2',
+        c => handlePwdInput(2, c),
+        () => { pwd2Buffer = pwd2Buffer.slice(0,-1); updatePwdDisplay(2); checkStep2Ready(); },
+        () => { pwd2Buffer = ''; updatePwdDisplay(2); checkStep2Ready(); }
+      );
+    });
+  });
 });
 
 // ===== BOTONES DOMINIO EMAIL =====
@@ -1355,6 +1395,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   const email = document.getElementById('r-email').value.trim();
   const phoneCountryCode = document.getElementById('r-phone-country').value;
   const phoneNumber = document.getElementById('r-phone-number').value.trim();
+  const language = document.getElementById('r-language').value;
   const btn   = document.getElementById('btn-step1');
 
   btn.disabled = true;
@@ -1394,7 +1435,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   // El código ya no se genera aquí — send-email.js lo genera y lo guarda
   // en el servidor (ver register-complete.js, que es quien lo valida de
   // verdad).
-  step1Data = { name, email, pwd: pwd1Buffer, phoneCountryCode, phoneNumber };
+  step1Data = { name, email, pwd: pwd1Buffer, phoneCountryCode, phoneNumber, language };
 
   try {
     const sendRes = await fetch('/api/send-email', {
@@ -1534,6 +1575,7 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
     timestamp: new Date().toISOString(),
     phoneCountryCode: step1Data.phoneCountryCode,
     phoneNumber:      step1Data.phoneNumber,
+    language:  step1Data.language,
   };
 
   localStorage.setItem(REG_KEY, JSON.stringify(registration));

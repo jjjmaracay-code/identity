@@ -3047,6 +3047,16 @@
         </div>
       </div>
       <div class="field-wrap">
+        <div class="field-label" data-i18n="index.step1.language_label">Idioma</div>
+        <select class="field-input" id="f-language">
+          <option value="es">🇪🇸 Español</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="pt">🇵🇹 Português</option>
+          <option value="de">🇩🇪 Deutsch</option>
+        </select>
+      </div>
+      <div class="field-wrap">
         <div class="field-label" data-i18n="index.edit.mobile_label">Teléfono móvil</div>
         <div id="f-mobile-row" style="display:flex;gap:8px;">
           <select class="field-input" id="f-mobile-country" style="flex:0 0 128px;padding-left:8px;padding-right:4px;">
@@ -5646,6 +5656,7 @@ function openEdit() {
     const fPhoneCountry = document.getElementById('f-phone-country');
     const fPhoneNumber  = document.getElementById('f-phone-number');
     const fPhoneRow     = document.getElementById('f-phone-row');
+    const fLanguage     = document.getElementById('f-language');
     let reg = null;
     try { reg = JSON.parse(localStorage.getItem('identity_registration')); } catch(e) {}
 
@@ -5655,6 +5666,7 @@ function openEdit() {
       fEmail.disabled = false;
       fPhoneCountry.disabled = false;
       fPhoneNumber.disabled  = false;
+      fLanguage.disabled = false;
       return;
     }
 
@@ -5664,6 +5676,19 @@ function openEdit() {
     fEmail.disabled = true;
 
     const lockedTargets = [fName, fEmail];
+
+    // El idioma se fija en el registro desde esta versión -- las cuentas
+    // registradas antes de este cambio no tienen reg.language guardado y el
+    // selector se queda editable con normalidad (no se puede bloquear un
+    // dato que nunca se pidió al registrarse), igual que ya se hace arriba
+    // con el teléfono.
+    if (reg.language) {
+      fLanguage.value = reg.language;
+      fLanguage.disabled = true;
+      lockedTargets.push(fLanguage);
+    } else {
+      fLanguage.disabled = false;
+    }
 
     // El teléfono se pide en el registro desde esta versión — las cuentas
     // registradas antes de este cambio no tienen phoneCountryCode/

@@ -103,6 +103,8 @@
   "register.step1.send_error": "Error al enviar el código — inténtalo de nuevo",
   "register.step1.code_sent_prefix": "Código enviado a",
   "register.step1.emailjs_error": "Error al enviar — configura EmailJS",
+  "register.step1.language_label": "Idioma",
+  "register.step1.language_hint": "Se fijará como idioma de tu cuenta tras el registro",
   "register.common.eye_aria": "Ver contraseña",
   "register.common.req_len": "Mínimo 8 caracteres",
   "register.common.req_num": "Al menos 1 número",
@@ -160,6 +162,7 @@
   "index.common.domain_icloud": "@icloud.com",
   "index.step1.phone_label": "Teléfono",
   "index.step1.email_placeholder": "tu@email.com",
+  "index.step1.language_label": "Idioma",
 
   "index.plans.trial_title": "Tu periodo de prueba",
   "index.plans.trial_days_label": "días restantes de prueba gratuita",
