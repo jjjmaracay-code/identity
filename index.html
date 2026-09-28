@@ -29,6 +29,25 @@
     --white: #ffffff;
     --text: #e8e8e8;
     --muted: rgba(255,255,255,0.35);
+    /* Profundidad sutil y consistente -- reemplaza los glows/sombras
+       multicapa dispersos por un pequeño set de niveles reutilizables. */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+    --shadow-md: 0 8px 20px -8px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.35);
+    --shadow-lg: 0 24px 48px -16px rgba(0,0,0,0.6), 0 8px 20px -8px rgba(0,0,0,0.4);
+    --hairline: rgba(255,255,255,0.08);
+  }
+
+  /* Respeta la preferencia de movimiento reducido del sistema: en vez de
+     auditar cada animación/transición una a una, se recorta su duración
+     globalmente (patrón estándar) -- ninguna deja de aplicar su estado
+     final, solo se saltan la transición visual. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -329,13 +348,19 @@
     -webkit-backface-visibility: hidden;
     border-radius: 16px;
     overflow: hidden;
-    border: 2px solid var(--green);
-    /* Glow exterior verde + sombra multicapa profunda y dramática */
-    box-shadow:
-      0 0 20px rgba(170,255,0,0.4),
-      0 30px 80px rgba(0,0,0,0.75),
-      0 14px 36px rgba(0,0,0,0.55),
-      0 5px 14px rgba(0,0,0,0.45);
+    /* Borde discreto en vez del contorno verde luminoso anterior -- la
+       identidad de marca se conserva en el acento verde de los textos y
+       controles, no hace falta repetirla en el borde de toda la tarjeta. */
+    border: 1px solid rgba(170,255,0,0.16);
+    box-shadow: var(--shadow-lg);
+    transition: box-shadow 0.4s ease;
+  }
+
+  /* Ligero aumento de profundidad durante el giro -- da sensación de
+     "levantarse" de la superficie sin inclinaciones permanentes ni
+     depender de ninguna librería de animación. */
+  .card-inner.flipped .card-face {
+    box-shadow: 0 32px 60px -14px rgba(0,0,0,0.7), 0 10px 24px -6px rgba(0,0,0,0.45);
   }
 
   /* FRENTE: foto del usuario */
@@ -371,40 +396,43 @@
     width: 100%;
     height: 25%;
     background: #000;
-    border-top: 1px solid var(--green);
+    border-top: 1px solid var(--hairline);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 8px 16px;
+    gap: 4px;
+    padding: 10px 16px;
   }
 
+  /* Nombre y profesión son la información que de verdad importa en la
+     tarjeta -- antes competían en tamaño con las etiquetas decorativas de
+     alrededor; ahora tienen más peso y sin el glow que dificultaba leer
+     nombres largos. */
   .card-front-name {
     font-family: 'Inter', sans-serif;
-    font-size: clamp(15px, 4vw, 18px);
-    font-weight: 700;
+    font-size: clamp(20px, 6vw, 27px);
+    font-weight: 800;
     color: #ffffff;
-    text-shadow: 0 0 10px rgba(255,255,255,0.45);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     text-align: center;
-    line-height: 1.2;
-    letter-spacing: 0.5px;
+    line-height: 1.15;
+    letter-spacing: 0.2px;
   }
 
   .card-front-title {
     font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    font-weight: 300;
-    color: rgba(170,255,0,0.55);
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(170,255,0,0.75);
+    letter-spacing: 1px;
     text-align: center;
   }
 
   .card-front-hint {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 300;
-    color: rgba(170,255,0,0.35);
+    color: rgba(255,255,255,0.3);
     letter-spacing: 1px;
     font-family: 'Inter', sans-serif;
   }
@@ -417,17 +445,24 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 20px;
+    gap: 8px;
+    padding: 16px;
   }
 
+  /* .card-back-label, .card-back-name, .card-back-sub y
+     .card-back-expand-btn llevan flex-shrink:0: son el texto que NUNCA
+     debe ocultarse ni comprimirse (nombre, etiquetas, botón de ampliar).
+     El QR (#qr-container) es el único elemento cuyo tamaño se calcula en
+     JS para ocupar exactamente el hueco que sobra -- ver
+     fitCardBackQrSquare() en el script. */
   .card-back-label {
     font-family: 'Inter', sans-serif;
-    font-size: 9px;
-    font-weight: 300;
-    letter-spacing: 3px;
-    color: rgba(255,255,255,0.35);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.45);
     text-transform: uppercase;
+    flex-shrink: 0;
   }
 
   #qr-canvas {
@@ -436,19 +471,45 @@
 
   .card-back-name {
     font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
     text-align: center;
+    flex-shrink: 0;
   }
 
   .card-back-sub {
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 300;
-    color: rgba(255,255,255,0.25);
-    letter-spacing: 2px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 1.5px;
     text-align: center;
     font-family: 'Inter', sans-serif;
+    flex-shrink: 0;
+  }
+
+  /* Botón visible para abrir la ampliación desde el reverso, además del
+     propio QR (que ya es tocable). Deliberadamente compacto -- una fila
+     de texto pequeña, no un botón ancho. */
+  .card-back-expand-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(170,255,0,0.3);
+    background: rgba(170,255,0,0.06);
+    color: rgba(170,255,0,0.8);
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .card-back-expand-btn:active {
+    background: rgba(170,255,0,0.15);
   }
 
   /* Vista ampliada del QR de contacto — overlay independiente del giro de
@@ -935,6 +996,16 @@
     background: rgba(170,255,0,0.18);
   }
 
+  /* No existía ningún estado visual para "sección activa" -- se
+     scrolleaba al tocar una pestaña pero ninguna quedaba marcada, ni
+     siquiera la que se acababa de tocar. Se activa vía JS (scroll-spy +
+     clic, ver setupEditTabsActiveState) añadiendo esta clase. */
+  .edit-tab-btn.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--black);
+  }
+
   #sec-diseno, #sec-perfil, #sec-privacidad, #sec-seguridad, #sec-cuenta {
     scroll-margin-top: 84px;
   }
@@ -963,14 +1034,14 @@
 
   .edit-section-title {
     font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    letter-spacing: 4px;
+    font-size: 11px;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
-    color: rgba(170,255,0,0.4);
-    font-weight: 500;
-    margin-bottom: 12px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(170,255,0,0.1);
+    color: rgba(170,255,0,0.6);
+    font-weight: 600;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--hairline);
   }
 
   .field-group {
@@ -996,10 +1067,11 @@
 
   .field-input {
     width: 100%;
-    padding: 12px 14px;
+    padding: 13px 14px;
     border-radius: 10px;
-    border: 1px solid rgba(170,255,0,0.35);
-    background: rgba(170,255,0,0.07);
+    border: 1px solid rgba(170,255,0,0.3);
+    background: rgba(170,255,0,0.06);
+    box-shadow: var(--shadow-sm);
     font-family: 'Inter', sans-serif;
     font-size: 15px;
     font-weight: 400;
@@ -1009,10 +1081,12 @@
     -webkit-appearance: none;
   }
 
+  /* Antes el texto ganaba un resplandor verde al enfocar -- se veía
+     "premium" pero dificultaba leer lo que se estaba escribiendo, sobre
+     todo con letras finas. El foco ya queda claro con el borde. */
   .field-input:focus {
-    border-color: rgba(170,255,0,0.9);
-    text-shadow: 0 0 8px #aaff00, 0 0 20px rgba(170,255,0,0.5);
-    background: rgba(170,255,0,0.07);
+    border-color: rgba(170,255,0,0.85);
+    background: rgba(170,255,0,0.08);
   }
 
   .field-input::placeholder { color: rgba(255,255,255,0.4); font-weight: 300; }
@@ -1142,12 +1216,12 @@
     font-family: 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     text-transform: uppercase;
     cursor: pointer;
     margin-top: 12px;
-    transition: background 0.15s, transform 0.1s;
-    box-shadow: 0 0 20px rgba(170,255,0,0.3);
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: var(--shadow-md);
   }
 
   .btn-save:active { background: #88cc00; transform: scale(0.98); }
@@ -2791,9 +2865,17 @@
       <!-- REVERSO -->
       <div class="card-face card-back">
         <div class="card-back-label" data-i18n="index.main.scan_label">Escanea para contactar</div>
-        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:100%;max-width:280px;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:zoom-in;"></div>
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:100%;max-width:280px;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:zoom-in;flex-shrink:0;"></div>
         <div class="card-back-name" id="qr-name">—</div>
         <div class="card-back-sub" data-i18n="index.main.card_back_sub">IDENTIFLY · Tarjeta Digital</div>
+        <!-- Reutiliza openQrZoom() (misma función que al tocar el QR, ver
+             el bloque "VISTA AMPLIADA DEL QR" en el script) -- no duplica
+             lógica. stopPropagation evita que el click llegue al listener
+             de giro de #card-container, igual que en #qr-container. -->
+        <button class="card-back-expand-btn" id="btn-expand-qr-back" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          <span data-i18n="index.main.expand_qr_button">Ampliar QR</span>
+        </button>
       </div>
     </div>
   </div>
@@ -4348,12 +4430,39 @@ pinEnterBtn.addEventListener('click', async () => {
 });
 
 // =================== CARD ===================
-function renderCard() {
+// Si el diccionario de i18n todavía no ha cargado, t(key) devuelve la
+// propia key tal cual (ver window.t en i18n/loader.js) -- se detecta ese
+// caso y se usa el texto estático que el HTML ya trae por defecto, para
+// no enseñar "index.main.default_name" en el instante entre el primer
+// renderCard() y que resuelva window.i18nReady.
+function tOrFallback(key, fallback) {
+  const val = window.t(key);
+  return val === key ? fallback : val;
+}
+
+// Nombre y profesión a mostrar, con la misma prioridad de siempre: perfil
+// guardado > nombre verificado en el registro > texto de ejemplo
+// traducido. Separado de renderCard() para poder reafirmar SOLO estos dos
+// textos (ver reapplyCardNameAndJob() más abajo) sin volver a tocar
+// foto/vídeo/fondo cada vez.
+function computeDisplayNameAndJob() {
   // El nombre verificado del registro es el valor por defecto si el perfil no tiene nombre
   let regName = null;
   try { regName = JSON.parse(localStorage.getItem('identity_registration'))?.name || null; } catch(e) {}
-  const name = profileData.name || regName || 'Tu Nombre';
-  const job  = profileData.job  || 'Tu título profesional';
+  // Antes el texto de ejemplo estaba escrito en español a fuego aquí --
+  // funcionaba por coincidencia mientras nadie hubiera guardado un nombre
+  // (mismo texto que el HTML trae por defecto), pero si el idioma no era
+  // español no se traducía. Usa las mismas claves que ya declara el HTML
+  // en data-i18n (index.main.default_name/default_job) para el caso sin
+  // nombre, y solo para ese caso -- ver el porqué de reapplyCardNameAndJob()
+  // más abajo.
+  const name = profileData.name || regName || tOrFallback('index.main.default_name', 'Tu Nombre');
+  const job  = profileData.job  || tOrFallback('index.main.default_job', 'Tu título profesional');
+  return { name, job };
+}
+
+function renderCard() {
+  const { name, job } = computeDisplayNameAndJob();
 
   document.getElementById('card-name').textContent = name;
   document.getElementById('card-job').textContent  = job;
@@ -4401,7 +4510,88 @@ function renderCard() {
   }
 
   renderBgMedia();
+  fitCardBackQrSquare();
 }
+
+// Ajusta #qr-container al mayor cuadrado que cabe en el hueco que
+// realmente sobra dentro de .card-back, una vez reservado el espacio de
+// la etiqueta, el nombre, el subtítulo y el botón "Ampliar QR" -- ninguno
+// de esos cuatro se oculta ni se comprime (flex-shrink:0, ver su CSS): es
+// el QR el que se adapta a ellos, nunca al revés. Se usan
+// offsetWidth/offsetHeight (ignoran el rotateY(180deg) de .card-back: son
+// medidas de layout, no de pintado) para que funcione igual esté la
+// tarjeta mostrando el frente o el reverso.
+function fitCardBackQrSquare() {
+  const back = document.querySelector('.card-back');
+  const container = document.getElementById('qr-container');
+  if (!back || !container) return;
+
+  const label = back.querySelector('.card-back-label');
+  const name = document.getElementById('qr-name');
+  const sub = back.querySelector('.card-back-sub');
+  const btn = document.getElementById('btn-expand-qr-back');
+  const otros = [label, name, sub, btn].filter(Boolean);
+
+  const style = getComputedStyle(back);
+  const paddingV = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+  const paddingH = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+  const gap = parseFloat(style.rowGap || style.gap) || 0;
+
+  const otrosAltura = otros.reduce((suma, el) => suma + el.offsetHeight, 0);
+  // Un hueco (gap) entre cada dos elementos consecutivos de la columna:
+  // 4 huecos entre los 4 "otros" + el QR (5 elementos en total).
+  const huecos = gap * otros.length;
+
+  const altoDisponible = back.clientHeight - paddingV - otrosAltura - huecos;
+  const anchoDisponible = back.clientWidth - paddingH;
+
+  // Máximo histórico de 280px: conserva el tamaño habitual en tarjetas
+  // grandes en vez de estirar el QR sin límite si sobrara mucho alto.
+  const lado = Math.max(0, Math.min(anchoDisponible, altoDisponible, 280));
+
+  container.style.width = lado + 'px';
+  container.style.height = lado + 'px';
+}
+
+window.addEventListener('resize', fitCardBackQrSquare);
+window.addEventListener('orientationchange', fitCardBackQrSquare);
+
+// #card-name tiene data-i18n="index.main.default_name" (para que, sin
+// JavaScript, muestre el texto de ejemplo ya traducido por el propio
+// HTML). i18n/loader.js aplica esa traducción de forma incondicional en
+// CUALQUIER elemento [data-i18n] en cuanto termina de cargar el
+// diccionario (ver applyI18n() en i18n/loader.js), sin comprobar si ese
+// elemento ya tiene un valor dinámico -- si el diccionario tarda en
+// llegar más que renderCard() (red lenta, primera carga de la PWA, el
+// propio Service Worker sirviendo el JSON), sobrescribe el nombre real ya
+// pintado con el texto de ejemplo. No se puede arreglar en el loader
+// compartido sin afectar también a register.html/recovery.html/share.html.
+//
+// index.html no tiene ningún mecanismo propio de cambio de idioma en
+// vivo -- ni f-language ni ningún otro control llaman a
+// window.setLanguage()/applyI18n() (comprobado: la única llamada a
+// applyI18n() que se ejecuta en esta página es la de dentro de
+// window.i18nReady, una única vez por carga). El idioma solo cambia
+// recargando la página, y en cada recarga este mismo archivo vuelve a
+// declararse desde cero -- no hay estado que "perder" entre cargas.
+//
+// Reafirma SOLO el nombre y la profesión, nunca la foto/vídeo/fondo:
+// llamar a renderCard() completo aquí reasignaría cardVideo.src al mismo
+// valor que ya tenía, lo que reinicia la reproducción del vídeo del
+// usuario en la mayoría de navegadores (asignar `.src` relanza el
+// algoritmo de selección de recurso aunque el valor no cambie). No es un
+// temporizador ni un bucle: window.i18nReady se resuelve una única vez.
+function reapplyCardNameAndJob() {
+  const { name, job } = computeDisplayNameAndJob();
+  document.getElementById('card-name').textContent = name;
+  document.getElementById('card-job').textContent  = job;
+  document.getElementById('qr-name').textContent   = name;
+  // El nombre real puede ocupar más o menos alto que el texto de ejemplo
+  // que tenía antes (una o dos palabras cambia si envuelve a dos líneas)
+  // -- recalcula el hueco disponible para el QR con el texto definitivo.
+  fitCardBackQrSquare();
+}
+window.i18nReady.finally(reapplyCardNameAndJob);
 
 // =================== FONDO ANIMADO ===================
 function renderBgMedia() {
@@ -5526,6 +5716,7 @@ function closeQrZoom() {
 
 (function setupQrZoom() {
   const container = document.getElementById('qr-container');
+  const expandBtn = document.getElementById('btn-expand-qr-back');
   const closeBtn = document.getElementById('qr-zoom-close');
   const overlay = document.getElementById('qr-zoom-overlay');
   const stage = document.getElementById('qr-zoom-stage');
@@ -5539,6 +5730,17 @@ function closeQrZoom() {
     // Imprescindible: sin esto, el click subiría hasta el listener de
     // giro de #card-container y volvería a poner la tarjeta de frente
     // en el mismo gesto con el que se pretende ampliar el QR.
+    e.stopPropagation();
+    openQrZoom();
+  });
+
+  // Botón visible "Ampliar QR" del reverso: misma función openQrZoom(),
+  // sin duplicar lógica. También dentro de #card-container, así que
+  // necesita el mismo stopPropagation que el QR para no disparar el giro,
+  // y la misma comprobación de isFlipped por la misma razón (el botón
+  // vive en la cara de atrás, invisible mientras se ve el frente).
+  expandBtn?.addEventListener('click', (e) => {
+    if (!isFlipped) return;
     e.stopPropagation();
     openQrZoom();
   });
@@ -6103,11 +6305,40 @@ function closeEdit() {
 }
 
 // =================== TABS DE NAVEGACIÓN INTERNA (Mi Perfil) ===================
-document.querySelectorAll('.edit-tab-btn').forEach(btn => {
+const editTabButtons = Array.from(document.querySelectorAll('.edit-tab-btn'));
+
+function setActiveEditTab(target) {
+  editTabButtons.forEach(b => b.classList.toggle('active', b.dataset.target === target));
+}
+
+editTabButtons.forEach(btn => {
   btn.addEventListener('click', () => {
+    // Marcar al instante: no hace falta esperar a que el scroll-spy de
+    // abajo detecte que la sección ya está a la vista.
+    setActiveEditTab(btn.dataset.target);
     document.getElementById(btn.dataset.target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+
+// Scroll-spy: mantiene marcada la pestaña de la sección visible aunque el
+// usuario haga scroll manual sin tocar ninguna pestaña. Se limita a
+// #screen-edit-scroll (el contenedor con scroll real, no la ventana) y
+// respeta que las secciones no siempre llenan el viewport.
+(function setupEditTabsActiveState() {
+  const scrollRoot = document.getElementById('screen-edit-scroll');
+  if (!scrollRoot || !editTabButtons.length || typeof IntersectionObserver === 'undefined') return;
+
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) setActiveEditTab(visible.target.id);
+  }, { root: scrollRoot, rootMargin: '-84px 0px -60% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
+
+  editTabButtons.forEach(btn => {
+    const section = document.getElementById(btn.dataset.target);
+    if (section) observer.observe(section);
+  });
+})();
 
 // Foto file input legacy (por si acaso)
 document.getElementById('photo-file-input').addEventListener('change', (e) => {

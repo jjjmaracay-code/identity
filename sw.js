@@ -1,3 +1,12 @@
+// v10: los diccionarios /i18n/*.json son recursos no-HTML -- caen en la
+// misma estrategia "cache primero" que qr-code-styling.js (ver el
+// handler de fetch mas abajo) y no estan en CACHE_URLS, pero se cachean
+// igual la primera vez que index.html/register.html/etc. los piden. Un
+// dispositivo que ya tuviera un idioma cacheado desde antes de anadir la
+// clave index.main.expand_qr_button seguiria sirviendo ese diccionario
+// viejo para siempre sin este cambio de version, sin importar que el
+// servidor ya tenga el archivo correcto.
+//
 // v9: sube la version para forzar que activate() purgue la cache v8 --
 // necesario porque los recursos no-HTML (incluido qr-code-styling.js) se
 // sirven con estrategia "cache primero" (ver el handler de fetch mas
@@ -8,7 +17,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v9';
+const CACHE_NAME = 'identity-v10';
 const CACHE_URLS = [
   './index.html',
   './register.html',

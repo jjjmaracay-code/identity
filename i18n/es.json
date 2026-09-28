@@ -258,6 +258,7 @@
   "index.main.share_hint": "toca para compartir",
   "index.main.scan_label": "Escanea para contactar",
   "index.main.card_back_sub": "IDENTIFLY · Tarjeta Digital",
+  "index.main.expand_qr_button": "Ampliar QR",
   "index.main.flip_hint": "↺ Toca la tarjeta para mostrar el QR",
   "index.main.flip_hint_back": "↺ Toca para volver a la tarjeta",
   "index.main.lock_button": "Bloquear",

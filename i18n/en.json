@@ -258,6 +258,7 @@
   "index.main.share_hint": "tap to share",
   "index.main.scan_label": "Scan to get in touch",
   "index.main.card_back_sub": "IDENTIFLY · Digital Card",
+  "index.main.expand_qr_button": "Enlarge QR",
   "index.main.flip_hint": "↺ Tap the card to show the QR",
   "index.main.flip_hint_back": "↺ Tap to go back to the card",
   "index.main.lock_button": "Lock",

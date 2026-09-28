@@ -258,6 +258,7 @@
   "index.main.share_hint": "zum Teilen tippen",
   "index.main.scan_label": "Scannen, um Kontakt aufzunehmen",
   "index.main.card_back_sub": "IDENTIFLY · Digitale Karte",
+  "index.main.expand_qr_button": "QR vergrößern",
   "index.main.flip_hint": "↺ Karte antippen, um den QR-Code anzuzeigen",
   "index.main.flip_hint_back": "↺ Tippen, um zur Karte zurückzukehren",
   "index.main.lock_button": "Sperren",

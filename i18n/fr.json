@@ -258,6 +258,7 @@
   "index.main.share_hint": "touchez pour partager",
   "index.main.scan_label": "Scannez pour me contacter",
   "index.main.card_back_sub": "IDENTIFLY · Carte numérique",
+  "index.main.expand_qr_button": "Agrandir le QR",
   "index.main.flip_hint": "↺ Touchez la carte pour afficher le QR",
   "index.main.flip_hint_back": "↺ Touchez pour revenir à la carte",
   "index.main.lock_button": "Verrouiller",
