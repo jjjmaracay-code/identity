@@ -451,6 +451,52 @@
     font-family: 'Inter', sans-serif;
   }
 
+  /* Vista ampliada del QR de contacto — overlay independiente del giro de
+     la tarjeta (no es descendiente de #card-container, así que ningún
+     click dentro de ella puede activar el listener de giro). */
+  .qr-zoom-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10600;
+    background: rgba(0,0,0,0.95);
+    flex-direction: column;
+    /* Áreas seguras del dispositivo (notch, barra de gestos, etc.) */
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .qr-zoom-overlay.open { display: flex; }
+  .qr-zoom-close {
+    align-self: flex-end;
+    flex: 0 0 auto;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(170,255,0,0.35);
+    background: rgba(170,255,0,0.08);
+    color: #AAFF00;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+  .qr-zoom-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .qr-zoom-stage svg {
+    display: block;
+    /* El tamaño real (el mayor cuadrado que cabe en ancho Y alto) lo
+       calcula fitQrZoomSquare() en JS -- ver más abajo -- porque depende
+       de ambas dimensiones del hueco disponible a la vez, no solo del
+       ancho. */
+  }
+
   /* Selector de estilos QR */
   .qr-style-selector {
     margin-bottom: 16px;
@@ -2745,11 +2791,19 @@
       <!-- REVERSO -->
       <div class="card-face card-back">
         <div class="card-back-label" data-i18n="index.main.scan_label">Escanea para contactar</div>
-        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:400px;height:400px;display:flex;align-items:center;justify-content:center;"></div>
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:100%;max-width:280px;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:zoom-in;"></div>
         <div class="card-back-name" id="qr-name">—</div>
         <div class="card-back-sub" data-i18n="index.main.card_back_sub">IDENTIFLY · Tarjeta Digital</div>
       </div>
     </div>
+  </div>
+
+  <!-- Vista ampliada del QR de contacto (ver CSS .qr-zoom-* y el bloque
+       de JS "VISTA AMPLIADA DEL QR" más abajo). No es descendiente de
+       #card-container a propósito, para no interferir con su giro. -->
+  <div class="qr-zoom-overlay" id="qr-zoom-overlay" aria-hidden="true">
+    <button class="qr-zoom-close" id="qr-zoom-close" type="button" aria-label="Cerrar">✕</button>
+    <div class="qr-zoom-stage" id="qr-zoom-stage"></div>
   </div>
 
   <div class="main-bottom">
@@ -4889,7 +4943,14 @@ function makeISvg(bg, fg) {
 }
 
 // Opciones QR completas
-function buildQROptions(design, size, data) {
+// ecLevel: nivel de corrección de errores. Por defecto 'H' (el de siempre).
+// Prueba aislada test/contact-qr-q: solo renderQRLive() y generateQR() pasan
+// 'Q' explícitamente; todas las demás llamadas (miniatura, previews del
+// diseñador y QR de un solo uso) no pasan este argumento y siguen en 'H'.
+// marginPx: si se pasa, sustituye el margen por defecto (isPreview?1:5).
+// Lo usa generateQR() para fijar un margen calculado en módulos reales
+// (ver qrExactSizeAndMargin) sin afectar a ninguna otra llamada.
+function buildQROptions(design, size, data, ecLevel = 'H', marginPx) {
   const isPreview = size <= 100;
   return {
     // SVG en vez del canvas por defecto de la librería: el modo canvas
@@ -4901,8 +4962,8 @@ function buildQROptions(design, size, data) {
     type: 'svg',
     width: size, height: size,
     data: data || 'IDENTITY',
-    margin: isPreview ? 1 : 5,
-    qrOptions: { errorCorrectionLevel: 'H' },
+    margin: marginPx != null ? marginPx : (isPreview ? 1 : 5),
+    qrOptions: { errorCorrectionLevel: ecLevel },
     imageOptions: { crossOrigin: 'anonymous', margin: isPreview ? 1 : 3, imageSize: 0.3 },
     dotsOptions: { type: design.dotsType, color: design.dotsColor },
     backgroundOptions: { color: design.bgColor },
@@ -4910,6 +4971,85 @@ function buildQROptions(design, size, data) {
     cornersDotOptions: { type: design.cornerDotType, color: design.cornerDotColor },
     image: '',
   };
+}
+
+// Módulos mínimos de zona de silencio exterior (ISO/IEC 18004 recomienda
+// al menos 4). Solo se usa en el QR principal de la tarjeta (generateQR);
+// el resto de llamadas a buildQROptions no pasan marginPx y conservan el
+// margen fijo de siempre.
+const QR_MIN_QUIET_MODULES = 4;
+
+// Construye una instancia desechable de QRCodeStyling (nunca se añade al
+// DOM) solo para leer cuántos módulos tiene el QR resultante de esta
+// vCard + nivel de corrección. La librería vendorizada no expone la
+// versión/los módulos como API pública documentada; se lee la propiedad
+// interna `_qr` con comprobación defensiva -- si una futura actualización
+// de la librería dejara de exponerla, se devuelve null y quien llame debe
+// usar qrFallbackSizeAndMargin() en vez de romper el render.
+function qrProbeModuleCount(design, sizePx, data, ecLevel) {
+  try {
+    const probe = new QRCodeStyling(buildQROptions(design, sizePx, data, ecLevel));
+    return (probe._qr && typeof probe._qr.getModuleCount === 'function')
+      ? probe._qr.getModuleCount()
+      : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// El `margin` de buildQROptions son píxeles absolutos del lienzo SVG
+// interno (ver arriba), no módulos. INTENTO ANTERIOR (descartado tras
+// medir el SVG real, no solo la fórmula): despejar directamente el margen
+// en píxeles sobre un lienzo de tamaño FIJO. La propia librería calcula el
+// tamaño de módulo como Math.floor((size - 2*margin) / moduleCount) y
+// luego CENTRA la rejilla resultante en el lienzo completo (ver
+// drawDots()/drawCorners() en vendor/qr-code-styling/qr-code-styling.js).
+// Si esa división no es un entero exacto, el redondeo hacia abajo interno
+// y el recentrado posterior pueden dejar un margen EFECTIVO muy distinto
+// del pedido -- medido con la ficha completa (137 módulos) sobre un
+// lienzo fijo de 400px: margen pedido 11px/3.99 módulos (teórico), margen
+// REAL en el SVG resultante 63px/31.5 módulos por lado. Nunca se midió
+// por debajo del mínimo (el redondeo hacia abajo de la librería solo
+// puede aumentar el margen efectivo, nunca reducirlo, porque el hueco
+// "no usado" por el redondeo se reparte como margen extra al centrar),
+// pero el resultado es muy impreciso e innecesariamente grande.
+//
+// Solución: en vez de fijar el tamaño del lienzo y despejar el margen, se
+// elige primero un tamaño de módulo ENTERO (h) y se construyen el lienzo
+// y el margen A PARTIR de él, de modo que esa división interna sea exacta
+// y no quede nada que redondear:
+//   h      = tamaño de módulo elegido (entero, próximo a approxSize)
+//   margin = minModules * h                      (entero, exacto)
+//   size   = moduleCount * h + 2 * margin          (entero, exacto)
+// Con size y margin así construidos, (size - 2*margin) = moduleCount*h,
+// que se divide exactamente entre moduleCount -- el Math.floor interno no
+// recorta nada y el margen efectivo coincide con el pedido. Verificado
+// generando el SVG real y midiendo la posición de sus módulos (ver
+// informe): con estos valores, el margen medido en el SVG sale exacto.
+function qrExactSizeAndMargin(moduleCount, approxSize, minModules) {
+  const h = Math.max(1, Math.round(approxSize / (moduleCount + 2 * minModules)));
+  const margin = minModules * h;
+  const size = moduleCount * h + 2 * margin;
+  return { size, margin };
+}
+
+// Fallback para cuando qrProbeModuleCount() no puede determinar el número
+// de módulos real (p.ej. si una futura versión de la librería deja de
+// exponer `_qr`). No hay forma de calcular el tamaño/margen exactos sin
+// saber el número de módulos, así que se usa el PEOR CASO posible según
+// el propio estándar: la versión 1 de QR (21x21 módulos) es la más
+// pequeña que puede existir para cualquier dato y nivel de corrección. Un
+// margen/lienzo calculados para ese mínimo teórico son conservadores por
+// construcción: si el QR real tiene más módulos que 21 (el caso normal),
+// el margen efectivo solo puede salir igual o mayor al pedido -- nunca
+// menor -- por el mismo motivo explicado arriba (el redondeo interno de
+// la librería solo añade margen, no lo quita). No es preciso: en la
+// práctica probablemente da un margen bastante mayor que
+// QR_MIN_QUIET_MODULES cuando el QR real tiene más de 21 módulos, pero
+// garantiza el mínimo exigido en vez de arriesgarse a incumplirlo.
+function qrFallbackSizeAndMargin(approxSize, minModules) {
+  const QR_MIN_POSSIBLE_MODULES = 21; // versión 1, el QR más pequeño posible que existe
+  return qrExactSizeAndMargin(QR_MIN_POSSIBLE_MODULES, approxSize, minModules);
 }
 
 // ---- TEMPLATES predefinidos ----
@@ -5145,7 +5285,7 @@ function saveQRStylingCache(svg, fingerprint) {
 function renderQRLive() {
   const wrap = document.getElementById('qr-live-preview');
   if (!wrap) return;
-  renderQRStylingSafe(wrap, buildQROptions(qrDesign, 280, buildVCard()), 120);
+  renderQRStylingSafe(wrap, buildQROptions(qrDesign, 280, buildVCard(), 'Q'), 120);
 }
 
 // Preview mini en la pantalla de edición
@@ -5155,29 +5295,73 @@ function renderQRMini() {
   renderQRStylingSafe(wrap, buildQROptions(qrDesign, 64, 'IDENTITY'), 64);
 }
 
+// Tamaño APROXIMADO de referencia para el lienzo intrínseco (viewBox) del
+// QR principal -- ya no es el tamaño final exacto (ver qrExactSizeAndMargin
+// más arriba): el tamaño real se deriva del número de módulos para que el
+// margen salga exacto, y queda cerca de este valor pero no
+// necesariamente igual. Es independiente del tamaño en pantalla: al ser
+// SVG, el margen calculado en módulos se mantiene exacto al escalar por
+// CSS a cualquier tamaño visible (tarjeta o vista ampliada), porque el
+// escalado es uniforme en ambos ejes.
+const QR_MAIN_APPROX_SIZE = 400;
+
 // QR principal en la tarjeta. Si la librería ya está cargada, se genera
-// directo; si no, y hay una versión en caché cuya huella (opciones
-// serializadas) coincide con lo que se generaría ahora, se muestra esa
-// imagen al instante mientras se confirma en segundo plano -- si la
-// confirmación falla, se deja la imagen en caché tal cual, nunca se
-// sustituye por un hueco vacío o un error.
+// directo; si no, y hay una versión en caché cuya huella coincide con lo
+// que se generaría ahora, se muestra esa imagen al instante mientras se
+// confirma en segundo plano -- si la confirmación falla, se deja la
+// imagen en caché tal cual, nunca se sustituye por un hueco vacío o un
+// error.
 function generateQR() {
   const container = document.getElementById('qr-container');
   if (!container) return;
 
-  const options = buildQROptions(qrDesign, 400, buildVCard());
-  const fingerprint = JSON.stringify(options);
+  // Si la ampliación estuviera abierta mostrando un QR de datos/diseño
+  // anteriores, se cierra: es un clon estático (ver openQrZoom) que no se
+  // actualiza solo, así que cualquier regeneración del QR principal (tras
+  // guardar el perfil o aplicar un diseño) podría dejarla mostrando algo
+  // desactualizado si no se fuerza su cierre aquí.
+  if (isQrZoomOpen()) closeQrZoom();
+
+  const vcard = buildVCard();
+
+  // La huella se basa en los DATOS de entrada (no en el tamaño/margen ya
+  // resueltos, que dependen de poder leer el número de módulos y solo se
+  // calculan una vez la librería está cargada). Esto también invalida
+  // automáticamente cualquier imagen guardada en la caché con el formato
+  // de huella anterior a este cambio: al ser una forma de JSON distinta,
+  // nunca coincidirá.
+  const fingerprint = JSON.stringify({
+    vcard, ecLevel: 'Q', design: qrDesign,
+    approxSize: QR_MAIN_APPROX_SIZE, minQuietModules: QR_MIN_QUIET_MODULES,
+  });
 
   function renderDirecto() {
     if (!container.isConnected) return;
     try {
+      // Tamaño de lienzo y margen derivados del número de módulos real
+      // (ver qrExactSizeAndMargin) para que el margen EFECTIVO -- medido
+      // en el SVG ya generado, no solo calculado -- sea exactamente
+      // QR_MIN_QUIET_MODULES módulos, sea cual sea la longitud de la
+      // vCard. Si no se puede determinar el número de módulos (ver
+      // qrProbeModuleCount), se usa el fallback conservador basado en el
+      // peor caso posible (versión 1 de QR, 21 módulos).
+      const moduleCount = qrProbeModuleCount(qrDesign, QR_MAIN_APPROX_SIZE, vcard, 'Q');
+      const { size, margin } = moduleCount
+        ? qrExactSizeAndMargin(moduleCount, QR_MAIN_APPROX_SIZE, QR_MIN_QUIET_MODULES)
+        : qrFallbackSizeAndMargin(QR_MAIN_APPROX_SIZE, QR_MIN_QUIET_MODULES);
+      const options = buildQROptions(qrDesign, size, vcard, 'Q', margin);
+
       container.innerHTML = '';
       qrStylingInstance = new QRCodeStyling(options);
       qrStylingInstance.append(container);
       setTimeout(() => {
         const el = container.firstChild;
         if (el) {
-          el.style.width = '280px'; el.style.height = '280px'; el.style.display = 'block';
+          // 100% en vez de un píxel fijo: el contenedor (#qr-container)
+          // ya es responsive (ver su estilo en el HTML), así que el SVG
+          // ocupa exactamente el ancho disponible en la tarjeta, sin
+          // desbordar ni recortarse en pantallas estrechas.
+          el.style.width = '100%'; el.style.height = '100%'; el.style.display = 'block';
           saveQRStylingCache(el.outerHTML, fingerprint);
         }
       }, 300);
@@ -5204,6 +5388,177 @@ function generateQR() {
     // si ya había una imagen en caché mostrada, se deja intacta
   });
 }
+
+// =================== VISTA AMPLIADA DEL QR ===================
+// Reutiliza el SVG YA renderizado en #qr-container (clonándolo) en vez de
+// volver a generarlo: garantiza que la vista ampliada muestre exactamente
+// la misma vCard y el mismo diseño que la tarjeta, sin duplicar lógica de
+// codificación ni arriesgarse a que diverjan.
+let _qrZoomResizeHandler = null;
+let _qrZoomKeydownHandler = null;
+let _qrZoomPreviousFocus = null;
+
+// El SVG de qr-code-styling define ids propios (clip-path-dot-color-0,
+// dot-color-0, etc., ver vendor/qr-code-styling/qr-code-styling.js) y los
+// referencia con fill/clip-path en formato `url('#id')` -- confirmado por
+// lectura del bundle. cloneNode(true) copia esos ids tal cual: si el
+// clon se inserta en el mismo documento que el original (que sigue en
+// #qr-container mientras la ampliación está abierta), quedan dos
+// elementos con el mismo id a la vez, lo cual es inválido y puede hacer
+// que las referencias url(#id) se resuelvan de forma ambigua. Se
+// renombran los ids del clon y se reescriben todas las referencias
+// internas (fill, clip-path, mask, filter, href/xlink:href e id dentro de
+// url() en atributos style) para que seporten sus propios ids únicos sin
+// perder ninguna referencia.
+function cloneQrSvgWithUniqueIds(sourceSvg) {
+  const clone = sourceSvg.cloneNode(true);
+  const idMap = new Map();
+  const suffix = Date.now() + '-' + Math.floor(Math.random() * 1e6);
+  clone.querySelectorAll('[id]').forEach((el, i) => {
+    const oldId = el.id;
+    const newId = `qrzoom-${suffix}-${i}-${oldId}`;
+    idMap.set(oldId, newId);
+    el.setAttribute('id', newId);
+  });
+  if (!idMap.size) return clone;
+
+  const URL_REF_RE = /url\((['"]?)#([^'")]+)\1\)/g;
+  const rewriteUrlRefs = (value) => value.replace(URL_REF_RE, (full, quote, id) =>
+    idMap.has(id) ? `url(${quote}#${idMap.get(id)}${quote})` : full);
+
+  clone.querySelectorAll('*').forEach((el) => {
+    ['fill', 'stroke', 'clip-path', 'mask', 'filter'].forEach((attr) => {
+      const val = el.getAttribute(attr);
+      if (val && val.includes('url(')) el.setAttribute(attr, rewriteUrlRefs(val));
+    });
+    ['href', 'xlink:href'].forEach((attr) => {
+      const val = el.getAttribute(attr);
+      if (val && val[0] === '#' && idMap.has(val.slice(1))) {
+        el.setAttribute(attr, `#${idMap.get(val.slice(1))}`);
+      }
+    });
+    const style = el.getAttribute('style');
+    if (style && style.includes('url(')) el.setAttribute('style', rewriteUrlRefs(style));
+  });
+  return clone;
+}
+
+// Calcula el mayor cuadrado que cabe a la vez en el ancho Y el alto
+// disponibles dentro de #qr-zoom-stage (que ya descuenta, vía CSS, las
+// áreas seguras del dispositivo y el botón de cerrar). Se recalcula en
+// cada apertura y en cada resize/cambio de orientación mientras está
+// abierta, porque depende de ambas dimensiones a la vez y estas cambian
+// con la orientación del dispositivo.
+function fitQrZoomSquare() {
+  const stage = document.getElementById('qr-zoom-stage');
+  const svg = stage && stage.firstElementChild;
+  if (!stage || !svg) return;
+  const side = Math.max(0, Math.min(stage.clientWidth, stage.clientHeight));
+  svg.style.width = side + 'px';
+  svg.style.height = side + 'px';
+}
+
+function isQrZoomOpen() {
+  const overlay = document.getElementById('qr-zoom-overlay');
+  return !!overlay && overlay.classList.contains('open');
+}
+
+function openQrZoom() {
+  const overlay = document.getElementById('qr-zoom-overlay');
+  const stage = document.getElementById('qr-zoom-stage');
+  const closeBtn = document.getElementById('qr-zoom-close');
+  const qrContainer = document.getElementById('qr-container');
+  const sourceSvg = qrContainer && qrContainer.querySelector('svg');
+  if (!overlay || !stage || !closeBtn || !sourceSvg) return; // aún no hay QR renderizado
+
+  stage.innerHTML = '';
+  const clone = cloneQrSvgWithUniqueIds(sourceSvg);
+  clone.removeAttribute('style'); // el tamaño en pantalla lo decide fitQrZoomSquare()
+  stage.appendChild(clone);
+
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  fitQrZoomSquare();
+
+  _qrZoomResizeHandler = fitQrZoomSquare;
+  window.addEventListener('resize', _qrZoomResizeHandler);
+  window.addEventListener('orientationchange', _qrZoomResizeHandler);
+
+  // Cierre con Escape -- solo mientras esta vista está abierta, para no
+  // interferir con ningún otro atajo de teclado de la app.
+  _qrZoomKeydownHandler = (e) => { if (e.key === 'Escape') closeQrZoom(); };
+  document.addEventListener('keydown', _qrZoomKeydownHandler);
+
+  // Foco: se guarda el elemento activo (normalmente #qr-container, que
+  // recibió el click) para devolvérselo al cerrar, y se mueve el foco al
+  // botón de cerrar -- ninguno de los dos toca el giro de la tarjeta,
+  // que solo reacciona a clicks, no al foco.
+  _qrZoomPreviousFocus = document.activeElement;
+  closeBtn.focus();
+}
+
+function closeQrZoom() {
+  const overlay = document.getElementById('qr-zoom-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  overlay.setAttribute('aria-hidden', 'true');
+  if (_qrZoomResizeHandler) {
+    window.removeEventListener('resize', _qrZoomResizeHandler);
+    window.removeEventListener('orientationchange', _qrZoomResizeHandler);
+    _qrZoomResizeHandler = null;
+  }
+  if (_qrZoomKeydownHandler) {
+    document.removeEventListener('keydown', _qrZoomKeydownHandler);
+    _qrZoomKeydownHandler = null;
+  }
+  if (_qrZoomPreviousFocus && typeof _qrZoomPreviousFocus.focus === 'function') {
+    _qrZoomPreviousFocus.focus();
+  }
+  _qrZoomPreviousFocus = null;
+  // Se vacía el clon: si quedara colgado con el SVG de una vCard/diseño
+  // anterior, una futura apertura sin datos nuevos que renderizar (aunque
+  // no ocurre hoy, generateQR() siempre corre antes) podría llegar a
+  // reutilizarlo. openQrZoom() vuelve a clonar desde cero en cada
+  // apertura, así que esto es una garantía adicional, no la única.
+  const stage = document.getElementById('qr-zoom-stage');
+  if (stage) stage.innerHTML = '';
+}
+
+(function setupQrZoom() {
+  const container = document.getElementById('qr-container');
+  const closeBtn = document.getElementById('qr-zoom-close');
+  const overlay = document.getElementById('qr-zoom-overlay');
+  const stage = document.getElementById('qr-zoom-stage');
+  if (!container || !closeBtn || !overlay || !stage) return;
+
+  container.addEventListener('click', (e) => {
+    // El QR solo es visible cuando la tarjeta está girada hacia el
+    // reverso; si por lo que sea el click llegara con la tarjeta de
+    // frente, no tiene sentido abrir la ampliación.
+    if (!isFlipped) return;
+    // Imprescindible: sin esto, el click subiría hasta el listener de
+    // giro de #card-container y volvería a poner la tarjeta de frente
+    // en el mismo gesto con el que se pretende ampliar el QR.
+    e.stopPropagation();
+    openQrZoom();
+  });
+
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeQrZoom();
+  });
+
+  // Click en el hueco vacío también cierra: tanto en el fondo del overlay
+  // (el padding que reserva las áreas seguras) como en el espacio vacío
+  // de #qr-zoom-stage alrededor del cuadrado (por ejemplo, en horizontal,
+  // los lados del hueco que el QR cuadrado no llega a cubrir). Un único
+  // listener en el overlay basta porque el click de stage burbujea hasta
+  // aquí; solo se compara contra sus propios target directos (overlay o
+  // stage), nunca contra el SVG clonado ni el botón de cerrar.
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target === stage) closeQrZoom();
+  });
+})();
 
 // Construir grids del diseñador
 function buildDesignerGrids() {
@@ -5530,6 +5885,11 @@ document.getElementById('btn-share-sms')?.addEventListener('click', async () => 
 
 // =================== BLOQUEAR ===================
 document.getElementById('btn-lock').addEventListener('click', () => {
+  // Si la ampliación del QR estuviera abierta, se cierra antes de
+  // bloquear: al ser un overlay de z-index alto e independiente de
+  // #card-container, de lo contrario seguiría visible por encima de la
+  // pantalla de PIN, mostrando los datos de contacto tras bloquear.
+  if (isQrZoomOpen()) closeQrZoom();
   pinBuffer = '';
   sessionCryptoKey = null;
   updateDots();
