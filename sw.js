@@ -1,3 +1,11 @@
+// v12: misma razón que v11/v10 -- esta fase ("Mis QR · Redes y web") añade
+// 15 claves nuevas a los 5 diccionarios (index.myqr.*). Sin subir la
+// versión, un dispositivo que ya tuviera un idioma cacheado desde antes
+// seguiría sirviendo ese diccionario viejo (mostrando la key cruda en vez
+// del texto del nuevo panel) hasta que algo purgue esa caché. No se
+// añaden recursos nuevos a CACHE_URLS: los iconos de plataforma son SVG
+// inline en index.html, no archivos aparte.
+//
 // v11: mismo motivo que v10 -- esta fase añadió claves nuevas a los 5
 // diccionarios (ayudas de prerrellenado de redes sociales, aviso de
 // enlace inválido). Sin subir la versión, un dispositivo que ya tuviera
@@ -24,7 +32,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v11';
+const CACHE_NAME = 'identity-v12';
 const CACHE_URLS = [
   './index.html',
   './register.html',
