@@ -3144,7 +3144,20 @@
       <!-- REVERSO -->
       <div class="card-face card-back">
         <div class="card-back-label" data-i18n="index.main.scan_label">Escanea para contactar</div>
-        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:100%;max-width:280px;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:zoom-in;flex-shrink:0;"></div>
+        <!-- transform:translateZ(0) fuerza su propia capa de composición:
+             mitigación de bajo riesgo (no toca vCard, nivel de corrección,
+             colores ni margen) para una hipótesis sin confirmar en
+             dispositivo -- los módulos de datos del QR (SVG con
+             clip-path, ver cloneQrSvgWithUniqueIds más abajo) podrían
+             dejar de pintarse en WebKit/iOS por estar dentro de
+             .card-back, que tiene backface-visibility:hidden + doble
+             rotateY(180deg) (ver .card-inner.flipped y .card-back en el
+             CSS) además de overflow:hidden aquí mismo -- combinación
+             conocida de causar que WebKit deje de pintar contenido
+             clip-path/mask hasta el próximo repintado forzado (coincide
+             con que "Ampliar QR" sí lo muestra: es un clon fuera de ese
+             contexto 3D). Pendiente de confirmar en el iPhone real. -->
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:100%;max-width:280px;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:zoom-in;flex-shrink:0;transform:translateZ(0);-webkit-transform:translateZ(0);"></div>
         <div class="card-back-name" id="qr-name">—</div>
         <div class="card-back-sub" data-i18n="index.main.card_back_sub">IDENTIFLY · Tarjeta Digital</div>
         <!-- Reutiliza openQrZoom() (misma función que al tocar el QR, ver
@@ -4810,6 +4823,16 @@ function computeDisplayNameAndJob() {
   return { name, job };
 }
 
+// Clave del último medio (foto/vídeo) ya aplicado a la tarjeta -- evita
+// recrear el <video>/<img> del frente y el fondo animado cuando
+// renderCard() se llama por motivos que no tocan profileData.media (p.ej.
+// el autoguardado de texto en saveProfile(), o visibilitychange/pagehide
+// mientras se edita): reasignar cardVideo.src relanza el algoritmo de
+// selección de recurso aunque el valor no cambie, lo que reinicia/detiene
+// la reproducción del vídeo del usuario (mismo motivo ya documentado más
+// abajo para reapplyCardNameAndJob(), aquí extendido a renderCard()).
+let _lastCardMediaKey;
+
 function renderCard() {
   const { name, job } = computeDisplayNameAndJob();
 
@@ -4817,48 +4840,54 @@ function renderCard() {
   document.getElementById('card-job').textContent  = job;
   document.getElementById('qr-name').textContent   = name;
 
-  const cardPhoto = document.getElementById('card-photo');
-  const cardVideo = document.getElementById('card-video');
-  const placeholder = document.getElementById('photo-placeholder');
-
   const media = profileData.media;
+  const mediaKey = media && media.src ? media.type + ':' + media.src : null;
 
-  if (media && media.type === 'video') {
-    if (media.src && media.src.startsWith('blob:') && media.thumb) {
-      // Safari bloquea el autoplay de blob URLs dentro de contenedores con
-      // transform 3D: usar el thumbnail como imagen estática en la tarjeta.
-      placeholder.style.display = 'none';
+  if (mediaKey !== _lastCardMediaKey) {
+    _lastCardMediaKey = mediaKey;
+
+    const cardPhoto = document.getElementById('card-photo');
+    const cardVideo = document.getElementById('card-video');
+    const placeholder = document.getElementById('photo-placeholder');
+
+    if (media && media.type === 'video') {
+      if (media.src && media.src.startsWith('blob:') && media.thumb) {
+        // Safari bloquea el autoplay de blob URLs dentro de contenedores con
+        // transform 3D: usar el thumbnail como imagen estática en la tarjeta.
+        placeholder.style.display = 'none';
+        cardVideo.style.display = 'none';
+        cardVideo.removeAttribute('src');
+        cardPhoto.src = media.thumb;
+        cardPhoto.style.display = 'block';
+      } else if (media.src) {
+        // URL normal (galería del sistema) o base64: el video sí reproduce
+        // dentro del flip 3D, así que mantenemos el elemento video con autoplay.
+        placeholder.style.display = 'none';
+        cardPhoto.style.display = 'none';
+        if (media.thumb) cardVideo.poster = media.thumb;
+        cardVideo.src = media.src;
+        cardVideo.style.display = 'block';
+      } else {
+        // Video sin src válido: mostrar placeholder
+        cardVideo.style.display = 'none';
+        cardVideo.removeAttribute('src');
+        cardPhoto.style.display = 'none';
+        placeholder.style.display = 'flex';
+      }
+    } else if (media && media.src) {
       cardVideo.style.display = 'none';
-      cardVideo.removeAttribute('src');
-      cardPhoto.src = media.thumb;
+      placeholder.style.display = 'none';
+      cardPhoto.src = media.src;
       cardPhoto.style.display = 'block';
-    } else if (media.src) {
-      // URL normal (galería del sistema) o base64: el video sí reproduce
-      // dentro del flip 3D, así que mantenemos el elemento video con autoplay.
-      placeholder.style.display = 'none';
-      cardPhoto.style.display = 'none';
-      if (media.thumb) cardVideo.poster = media.thumb;
-      cardVideo.src = media.src;
-      cardVideo.style.display = 'block';
     } else {
-      // Video sin src válido: mostrar placeholder
       cardVideo.style.display = 'none';
-      cardVideo.removeAttribute('src');
       cardPhoto.style.display = 'none';
       placeholder.style.display = 'flex';
     }
-  } else if (media && media.src) {
-    cardVideo.style.display = 'none';
-    placeholder.style.display = 'none';
-    cardPhoto.src = media.src;
-    cardPhoto.style.display = 'block';
-  } else {
-    cardVideo.style.display = 'none';
-    cardPhoto.style.display = 'none';
-    placeholder.style.display = 'flex';
+
+    renderBgMedia();
   }
 
-  renderBgMedia();
   fitCardBackQrSquare();
 }
 
@@ -4951,8 +4980,21 @@ function renderBgMedia() {
 
   if (media.type === 'video') {
     const v = document.createElement('video');
-    v.src = media.src;
+    if (media.thumb) v.poster = media.thumb;
     v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+    // Si el vídeo no puede reproducirse (formato no soportado, fallo de
+    // red), se conserva una imagen fija en vez de dejar el fondo vacío --
+    // sin reintentar: un solo fallo basta para no volver a intentarlo.
+    v.onerror = () => {
+      if (!bg.contains(v)) return;
+      bg.removeChild(v);
+      if (media.thumb) {
+        const i = document.createElement('img');
+        i.src = media.thumb;
+        bg.appendChild(i);
+      }
+    };
+    v.src = media.src;
     bg.appendChild(v);
   } else {
     const i = document.createElement('img');
