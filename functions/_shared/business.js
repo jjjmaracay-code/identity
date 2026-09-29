@@ -187,13 +187,16 @@ export async function authenticateOwner(env, email, token) {
 // (BusinessCardDO, ver workers/business-do/src/business-card-do.js),
 // direccionado siempre por env.BUSINESS_DO.idFromName(emailKey) — un
 // mecanismo de la propia plataforma, no un secreto que gestionemos ni
-// podamos rotar. Cloudflare garantiza que como mucho una invocación de
-// fetch() de ESA instancia concreta se ejecuta a la vez: dos peticiones
-// para el mismo propietario (publicar/despublicar/reactivar, incluida
-// la primera publicación) quedan serializadas por la plataforma, no por
-// un patrón de lectura/relectura/borrado sobre KV. Ese registro vive en
-// el almacenamiento propio del Durable Object (this.state.storage),
-// nunca duplicado en una clave KV aparte — una sola copia autoritativa.
+// podamos rotar. Las operaciones sobre this.state.storage de una MISMA
+// instancia están protegidas automáticamente por las "input gates" de
+// Cloudflare; esa protección automática NO cubre otras llamadas
+// asíncronas dentro del mismo método (en particular, escribir en KV), así
+// que el propio BusinessCardDO envuelve explícitamente cada operación de
+// publicar/despublicar/reactivar en `state.blockConcurrencyWhile(...)` —
+// ver los comentarios de ese archivo para el detalle exacto de qué
+// protege cada mecanismo. El registro vive en el almacenamiento propio
+// del Durable Object (this.state.storage), nunca duplicado en una clave
+// KV aparte — una sola copia autoritativa.
 //
 // La única pieza que SÍ vive en KV es PUBLIC_ID_INDEX_PREFIX+id ->
 // emailKey: un índice de solo lectura para que la tarjeta pública

@@ -1,32 +1,32 @@
 # Worker COMPAÑERO del proyecto Pages de IDENTIFLY. Aloja el único
 # Durable Object de Business (BusinessCardDO): un coordinador por
 # propietario que serializa publicar/actualizar/despublicar/reactivar
-# para esa cuenta, resolviendo la carrera que KV por sí solo no puede
-# resolver de verdad.
+# para esa cuenta.
 #
-# NO DESPLEGADO. Preparado para revisión y despliegue manual cuando se
-# decida activar Business en Preview/Producción. Antes de desplegar:
-#   1. Verificar contra la documentación vigente de Cloudflare (Durable
-#      Objects + Workers) que `new_sqlite_classes` sigue siendo la vía
-#      recomendada para una clase NUEVA (backend de almacenamiento
-#      SQLite por instancia) frente a la alternativa `new_classes`
-#      (backend clásico). Esta pieza puede cambiar entre versiones de
-#      wrangler/plataforma y no se ha podido confirmar en vivo en este
-#      entorno.
-#   2. Sustituir los `id`/`preview_id` de abajo por los IDs reales del
-#      namespace KV `BUSINESS_KV` ya usado por el proyecto Pages
-#      (Production y Preview respectivamente) -- deben ser LOS MISMOS
-#      namespaces que el proyecto Pages, no unos nuevos: este worker solo
-#      necesita escribir el índice público id->propietario, que la
-#      tarjeta pública (functions/c/[id].js, dentro del proyecto Pages)
-#      lee del mismo sitio.
-#   3. Desplegar con `wrangler deploy` (un Worker normal, NO
-#      `wrangler pages deploy`) DESDE ESTA CARPETA.
-#   4. En el proyecto Pages, enlazar el binding cruzado hacia este
-#      Worker -- ver el wrangler.toml preparado en la raíz del repo.
+# NO DESPLEGADO. Un solo archivo define DOS despliegues (Production y
+# Preview) como dos Workers con nombre distinto -- cada uno con su propia
+# instancia de Durable Object y, por tanto, datos de prueba totalmente
+# separados de producción, tal como exige la instrucción.
+#
+#   wrangler deploy                 -> despliega "identifly-business-do" (Production)
+#   wrangler deploy --env preview   -> despliega "identifly-business-do-preview" (Preview)
+#
+# `workers_dev = false`: este Worker no necesita ni debe tener una URL
+# pública propia (*.workers.dev) -- todo el tráfico real llega a través
+# del binding desde el proyecto Pages, nunca por una petición HTTP
+# directa a este Worker (ver src/business-card-do.js, cuyo export
+# default ya responde 404 a cualquier tráfico directo como segunda capa).
+#
+# Antes de desplegar, sustituir el `id` de BUSINESS_KV de cada entorno
+# por el id real del namespace KV correspondiente (Production/Preview)
+# ya usado por el proyecto Pages -- deben ser LOS MISMOS namespaces, no
+# unos nuevos: este Worker solo necesita escribir/leer el índice público
+# id->propietario ('bizid:'), que la tarjeta pública (dentro del
+# proyecto Pages) consulta del mismo sitio.
 name = "identifly-business-do"
 main = "src/business-card-do.js"
 compatibility_date = "2024-01-01"
+workers_dev = false
 
 [[durable_objects.bindings]]
 name = "BUSINESS_DO"
@@ -38,5 +38,11 @@ new_sqlite_classes = ["BusinessCardDO"]
 
 [[kv_namespaces]]
 binding = "BUSINESS_KV"
-id = "PENDIENTE: id del namespace BUSINESS_KV de Production"
-preview_id = "PENDIENTE: id del namespace BUSINESS_KV de Preview"
+id = "PENDIENTE: id real del namespace BUSINESS_KV de Production"
+
+[env.preview]
+name = "identifly-business-do-preview"
+
+[[env.preview.kv_namespaces]]
+binding = "BUSINESS_KV"
+id = "PENDIENTE: id real del namespace BUSINESS_KV de Preview"

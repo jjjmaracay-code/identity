@@ -3,36 +3,67 @@
 // el runtime local auténtico de Cloudflare (workerd), no contra una
 // reimplementación en memoria.
 //
-// ESTE SCRIPT NO SE HA PODIDO EJECUTAR DESDE EL ENTORNO DE DESARROLLO
-// AUTOMATIZADO QUE PREPARÓ ESTE CÓDIGO: ese entorno bloquea las
-// conexiones de red salientes (incluso a 127.0.0.1) desde los comandos
-// de shell, así que ni `curl` ni `fetch()` han podido dispararse desde
-// ahí. El binding del Durable Object SÍ se verificó como realmente
-// conectado (`wrangler pages dev` reportó
-// "env.BUSINESS_DO ... Durable Object local [connected]"), pero las
-// peticiones concurrentes en sí las debe ejecutar quien tenga acceso de
-// red normal en su máquina -- ver los pasos de abajo.
+// ESTE SCRIPT NO SE HA EJECUTADO TODAVÍA. El entorno de desarrollo
+// automatizado que preparó este código bloquea toda conexión de red
+// saliente desde los comandos de shell, incluso a 127.0.0.1 (se intentó
+// una vez, con una denegación explícita del permiso; no se ha vuelto a
+// intentar). El binding del Durable Object SÍ se verificó como realmente
+// conectado más de una vez (`wrangler pages dev` reportó
+// "env.BUSINESS_DO ... Durable Object local [connected]"), pero disparar
+// las peticiones HTTP concurrentes en sí requiere una máquina con acceso
+// de red normal — no está marcado como superado, solo preparado.
 //
-// CÓMO EJECUTARLO:
-//   Terminal 1 (arranca el Worker que aloja el Durable Object):
-//     cd workers/business-do
-//     npx wrangler dev --port 8793
+// PASOS EXACTOS (PowerShell, tres ventanas). Todas las rutas son
+// relativas a la raíz del repo (C:\Users\N6506\Desktop\IA\IDENTIFLY).
 //
-//   Terminal 2 (arranca el proyecto Pages enlazado a ese Durable Object):
-//     cd ../..   (raíz del repo)
-//     npx wrangler pages dev . --port 8794 \
-//       --kv PLANS_KV --kv SHARE_KV --kv BUSINESS_KV \
-//       --do BUSINESS_DO=BusinessCardDO@identifly-business-do \
-//       --compatibility-date=2024-01-01
-//   Confirma en la salida de la Terminal 2 que aparece
-//   "env.BUSINESS_DO ... Durable Object local [connected]" antes de continuar.
+// Ventana 1 — arranca el Worker que aloja el Durable Object:
+//   cd workers/business-do
+//   npx wrangler@4.143.0 dev --port 8793
+//   (deja esta ventana abierta; no hace falta ver nada especial aquí)
 //
-//   Terminal 3 (este script, con datos ficticios -- necesita una cuenta
-//   registrada localmente en PLANS_KV; el más simple es usar
-//   register-complete.js/claim-token.js contra la Terminal 2, o insertar
-//   el registro directamente con `wrangler kv key put` apuntando al
-//   namespace local de PLANS_KV que reporte la Terminal 2):
-//     node scripts/test-concurrency-real.mjs http://127.0.0.1:8794 tu-email-de-prueba@example.com TU_TOKEN
+// Ventana 2 — arranca el proyecto Pages enlazado a ese Durable Object:
+//   npx wrangler@4.143.0 pages dev . --port 8794 `
+//     --kv PLANS_KV --kv SHARE_KV --kv BUSINESS_KV `
+//     --do BUSINESS_DO=BusinessCardDO@identifly-business-do `
+//     --compatibility-date=2024-01-01
+//   Debe aparecer la línea:
+//     env.BUSINESS_DO (BusinessCardDO, defined in identifly-business-do)   Durable Object   local [connected]
+//   Si dice [not connected], la Ventana 1 no está corriendo o el nombre
+//   "identifly-business-do" no coincide con el `name` de
+//   workers/business-do/wrangler.toml -- no continúes hasta ver [connected].
+//
+// Ventana 3 — siembra una cuenta de prueba en el MISMO KV local que ve
+// la Ventana 2 (comando verificado: escribe y relee correctamente contra
+// la persistencia local por defecto de wrangler) y lanza la prueba:
+//   cd C:\Users\N6506\Desktop\IA\IDENTIFLY
+//   @'
+//   name = "identifly-pages-local-seed"
+//   compatibility_date = "2024-01-01"
+//   [[kv_namespaces]]
+//   binding = "PLANS_KV"
+//   id = "PLANS_KV"
+//   '@ | Set-Content -Encoding utf8 __tmp-seed.toml
+//
+//   npx wrangler@4.143.0 kv key put --config __tmp-seed.toml --binding PLANS_KV --local `
+//     "reg:concurrencia@example.com" '{"registeredAt":"2024-01-01T00:00:00.000Z","token":"testtoken123"}'
+//   npx wrangler@4.143.0 kv key put --config __tmp-seed.toml --binding PLANS_KV --local `
+//     "concurrencia@example.com" '{"plan":"lifetime"}'
+//
+//   node workers/business-do/scripts/test-concurrency-real.mjs `
+//     http://127.0.0.1:8794 concurrencia@example.com testtoken123
+//
+//   # Limpieza al terminar (no dejar datos de prueba ni el toml temporal):
+//   npx wrangler@4.143.0 kv key delete --config __tmp-seed.toml --binding PLANS_KV --local "reg:concurrencia@example.com"
+//   npx wrangler@4.143.0 kv key delete --config __tmp-seed.toml --binding PLANS_KV --local "concurrencia@example.com"
+//   Remove-Item __tmp-seed.toml
+//
+// RESULTADO ESPERADO: el script imprime "Respuesta A" y "Respuesta B" con
+// el MISMO `id` en ambas, y termina con
+//   "OK: ambas peticiones concurrentes coinciden en el mismo id".
+// Si alguna vez imprimiera dos ids distintos, sería una regresión real
+// del Durable Object (no debería ocurrir dado su modelo de ejecución de
+// una sola instancia a la vez) y habría que investigarlo antes de
+// considerar esto cerrado.
 
 const [, , baseUrlArg, emailArg, tokenArg] = process.argv;
 if (!baseUrlArg || !emailArg || !tokenArg) {
