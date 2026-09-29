@@ -23,16 +23,13 @@
 # como parte del build de Pages: `wrangler deploy` ejecutado DESDE esta
 # carpeta empaqueta únicamente este directorio como su propio Worker.
 #
-# Antes de desplegar, sustituir el `id` de BUSINESS_KV de cada entorno
-# por el id real del namespace KV correspondiente (Production/Preview) --
-# NINGUNO existe todavía en la cuenta (verificado en modo lectura el
-# 2026-09-29: `wrangler kv namespace list` solo devuelve
-# identifly_plans/identifly_share_tokens; no hay namespace de Preview
-# configurado en absoluto para este proyecto Pages, ver INFORME de
-# entrega). Deben ser LOS MISMOS namespaces que use el proyecto Pages
-# para BUSINESS_KV, no unos nuevos aparte: este Worker solo necesita
-# escribir/leer el índice público id->propietario ('bizid:'), que la
-# tarjeta pública (dentro del proyecto Pages) consulta del mismo sitio.
+# Namespaces BUSINESS_KV creados el 2026-09-29 (modo lectura confirmó que
+# no existía ninguno antes): "identifly_business" (Production, id abajo)
+# e "identifly_business_preview" (Preview, id abajo). Deben ser LOS
+# MISMOS namespaces que use el proyecto Pages para BUSINESS_KV, no unos
+# aparte: este Worker solo necesita escribir/leer el índice público
+# id->propietario ('bizid:'), que la tarjeta pública (dentro del
+# proyecto Pages) consulta del mismo sitio.
 name = "identifly-business-do"
 main = "business-card-do.js"
 # Igual que la fecha de compatibilidad real del proyecto Pages
@@ -52,11 +49,19 @@ new_sqlite_classes = ["BusinessCardDO"]
 
 [[kv_namespaces]]
 binding = "BUSINESS_KV"
-id = "PENDIENTE: id real del namespace BUSINESS_KV de Production"
+id = "5ec19ea6cc88459b99c990924ab94b9c" # identifly_business (Production)
 
 [env.preview]
 name = "identifly-business-do-preview"
 
+# wrangler NO hereda "durable_objects" de nivel superior en un entorno
+# nombrado (avisó de esto al desplegar por primera vez) -- hay que
+# repetirlo aquí explícitamente, o el Worker de Preview se despliega sin
+# ningún Durable Object accesible.
+[[env.preview.durable_objects.bindings]]
+name = "BUSINESS_DO"
+class_name = "BusinessCardDO"
+
 [[env.preview.kv_namespaces]]
 binding = "BUSINESS_KV"
-id = "PENDIENTE: id real del namespace BUSINESS_KV de Preview"
+id = "9d75e4fc19cf48679c1729704b14ae4f" # identifly_business_preview
