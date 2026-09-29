@@ -24,14 +24,22 @@
 # carpeta empaqueta únicamente este directorio como su propio Worker.
 #
 # Antes de desplegar, sustituir el `id` de BUSINESS_KV de cada entorno
-# por el id real del namespace KV correspondiente (Production/Preview)
-# ya usado por el proyecto Pages -- deben ser LOS MISMOS namespaces, no
-# unos nuevos: este Worker solo necesita escribir/leer el índice público
-# id->propietario ('bizid:'), que la tarjeta pública (dentro del
-# proyecto Pages) consulta del mismo sitio.
+# por el id real del namespace KV correspondiente (Production/Preview) --
+# NINGUNO existe todavía en la cuenta (verificado en modo lectura el
+# 2026-09-29: `wrangler kv namespace list` solo devuelve
+# identifly_plans/identifly_share_tokens; no hay namespace de Preview
+# configurado en absoluto para este proyecto Pages, ver INFORME de
+# entrega). Deben ser LOS MISMOS namespaces que use el proyecto Pages
+# para BUSINESS_KV, no unos nuevos aparte: este Worker solo necesita
+# escribir/leer el índice público id->propietario ('bizid:'), que la
+# tarjeta pública (dentro del proyecto Pages) consulta del mismo sitio.
 name = "identifly-business-do"
 main = "business-card-do.js"
-compatibility_date = "2024-01-01"
+# Igual que la fecha de compatibilidad real del proyecto Pages
+# (verificado en modo lectura: `wrangler pages download config identity`
+# devuelve compatibility_date = "2026-06-13") -- evita cualquier
+# diferencia de comportamiento del runtime entre este Worker y Pages.
+compatibility_date = "2026-06-13"
 workers_dev = false
 
 [[durable_objects.bindings]]
