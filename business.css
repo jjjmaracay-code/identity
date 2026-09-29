@@ -233,13 +233,16 @@
   --pv-action-color: #AAFF00; --pv-action-border: 1px solid rgba(170,255,0,0.5);
   --pv-action-shadow: inset 0 1px 0 rgba(170,255,0,0.5), 0 8px 20px -8px rgba(0,0,0,0.6);
 }
+/* Claro: fondo blanco, tipografía negra también en títulos y controles
+   -- sin ningún verde de acento (ver instrucción). Profundidad solo con
+   sombras suaves. */
 #business-preview-body[data-theme="light"], .biz-pv-card[data-theme="light"] {
   --pv-bg: #ffffff; --pv-text: #1a1a1a; --pv-muted: rgba(0,0,0,0.5);
-  --pv-accent: #2f6600; --pv-accent-glow: none;
+  --pv-accent: #1a1a1a; --pv-accent-glow: none;
   --pv-surface: #f2f2f2; --pv-surface-border: rgba(0,0,0,0.08);
   --pv-shadow: 0 4px 14px -4px rgba(0,0,0,0.18); --pv-hairline: rgba(0,0,0,0.08);
-  --pv-accent-soft-bg: rgba(47,102,0,0.06); --pv-accent-border: rgba(47,102,0,0.35);
-  --pv-action-bg: #2f6600;
+  --pv-accent-soft-bg: rgba(0,0,0,0.04); --pv-accent-border: rgba(0,0,0,0.18);
+  --pv-action-bg: #1a1a1a;
   --pv-action-color: #ffffff; --pv-action-border: none;
   --pv-action-shadow: 0 4px 14px -4px rgba(0,0,0,0.25);
 }
@@ -270,7 +273,7 @@
 .biz-theme-thumb.light-sample { background: #ffffff; }
 .biz-theme-thumb.selected { border-color: var(--green); box-shadow: 0 0 0 2px rgba(170,255,0,0.2); }
 .biz-theme-thumb-title { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #AAFF00; margin-bottom: 6px; }
-.biz-theme-thumb.light-sample .biz-theme-thumb-title { color: #2f6600; }
+.biz-theme-thumb.light-sample .biz-theme-thumb-title { color: #1a1a1a; }
 .biz-theme-thumb-line { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); margin: 5px auto; width: 70%; }
 .biz-theme-thumb.light-sample .biz-theme-thumb-line { background: rgba(0,0,0,0.12); }
 .biz-theme-thumb-label { font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-top: 8px; }
@@ -285,6 +288,7 @@
 .biz-logopres-preview { width: 56px; height: 56px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; }
 .biz-logopres-preview img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 .biz-logopres-label { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+.biz-logopres-desc { font-size: 8.5px; line-height: 1.35; color: rgba(255,255,255,0.4); margin-top: 3px; }
 
 /* ---- Controles deslizantes limitados (tamaño / espacio / intensidad) ---- */
 .biz-slider-row { margin-bottom: 14px; }

@@ -270,7 +270,7 @@
 
   "index.myqr.open_button": "QR SELECT",
   "index.myqr.panel_title": "QR SELECT",
-  "index.myqr.panel_subtitle": "Suas redes e seu site",
+  "index.myqr.panel_subtitle": "Compartilhe suas redes e seu site separadamente.",
   "index.myqr.empty_text": "Você ainda não tem links de redes sociais ou site salvos. Adicione-os no editor do seu cartão para gerar aqui o QR de cada um.",
   "index.myqr.empty_editor_button": "Ir para o editor",
   "index.myqr.offline_hint": "O código é gerado no seu dispositivo, sem conexão. Para abrir o link será necessária conexão com a internet.",
@@ -521,18 +521,18 @@
   "index.install_banner.text": "Instale o IDENTIFLY na sua tela inicial para acesso rápido",
   "index.install_banner.install_button": "Instalar",
 
-  "index.business.open_subtitle": "Sua atividade, seu cartão público",
-  "index.business.hub_subtitle": "Sua atividade, seu cartão público",
+  "index.business.open_subtitle": "Crie e compartilhe seu cartão profissional público.",
+  "index.business.hub_subtitle": "Crie e compartilhe seu cartão profissional público.",
   "index.business.paid_feature_badge": "Função paga",
   "index.business.paid_feature_desc": "Publicar um cartão Business requer um plano pago. Você pode ver como funciona; para editar e publicar, melhore seu plano.",
   "index.business.upgrade_button": "Melhorar plano",
   "index.business.paid_feature_toast": "IDENTIFLY BUSINESS é uma função paga. Melhore seu plano para editar e publicar.",
   "index.business.mode_professional_name": "Profissional",
-  "index.business.mode_professional_desc": "Para quem oferece serviços a título pessoal: especialidade, apresentação breve e projetos.",
+  "index.business.mode_professional_desc": "Apresente sua especialidade e seus projetos.",
   "index.business.mode_freelance_name": "Autônomo",
-  "index.business.mode_freelance_desc": "Para quem presta serviços por conta própria: atividade, área de atendimento, horários e pedidos de orçamento.",
+  "index.business.mode_freelance_desc": "Mostre seus serviços e como contratá-lo.",
   "index.business.mode_company_name": "Empresa",
-  "index.business.mode_company_desc": "Para um negócio: marca, catálogo ou serviços, endereço comercial e contato geral.",
+  "index.business.mode_company_desc": "Apresente seu negócio, catálogo e contato.",
   "index.business.status_access_inactive": "Acesso pago inativo — seus dados são mantidos",
   "index.business.status_unpublished": "Não publicado",
   "index.business.status_pending": "Publicado — alterações pendentes de publicação",
@@ -636,5 +636,8 @@
   "index.business.pres_integrated": "Integrado",
   "index.business.field_logo_size": "Tamanho do logo",
   "index.business.field_logo_padding": "Espaço ao redor",
-  "index.business.field_gradient_intensity": "Intensidade da transição"
+  "index.business.field_gradient_intensity": "Intensidade da transição",
+  "index.business.pres_direct_desc": "Seu logo diretamente sobre o fundo do cartão.",
+  "index.business.pres_framed_desc": "Uma base suave para destacar seu logo.",
+  "index.business.pres_integrated_desc": "Um contorno degradê que suaviza a transição."
 }

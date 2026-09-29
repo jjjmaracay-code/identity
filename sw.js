@@ -1,3 +1,15 @@
+// v17: corrige tres detalles de la fase anterior sin cambiar
+// funcionalidad: (1) el tema claro ya no lleva ningún verde de acento
+// (era un resto sin querer, ver instrucción "fondo blanco y tipografía
+// negra también en títulos y controles"); (2) la lista de redes de
+// Business pasa a coincidir con las que ya existían en el resto de la
+// app (se quita 'facebook'/'whatsapp', inventadas sin base, y se añade
+// 'github', que sí existe en el perfil personal y en QR SELECT); (3)
+// textos cortos aprobados para QR SELECT/Business/presentaciones del
+// logo en los 5 idiomas. Sube la versión porque business.js/business.css
+// cambian de contenido real y los 5 diccionarios llevan valores nuevos
+// para claves que un dispositivo ya podría tener cacheadas desde v16.
+//
 // v16: añade los dos temas exclusivos ("Oscuro IDENTIFLY"/"Claro") y las
 // tres presentaciones del logo (directo/con soporte/integrado) de
 // IDENTIFLY BUSINESS. Sube la versión porque cambia el contenido real de
@@ -83,7 +95,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v16';
+const CACHE_NAME = 'identity-v17';
 const CACHE_URLS = [
   './index.html',
   './register.html',

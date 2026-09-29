@@ -20,8 +20,11 @@
   const META_KEY = 'identity_business_publish_meta';
 
   const MODALITIES = ['professional', 'freelance', 'company'];
-  const SOCIAL_KEYS = ['instagram', 'facebook', 'linkedin', 'twitter', 'youtube', 'tiktok', 'whatsapp'];
-  const SOCIAL_LABELS = { instagram: 'Instagram', facebook: 'Facebook', linkedin: 'LinkedIn', twitter: 'X / Twitter', youtube: 'YouTube', tiktok: 'TikTok', whatsapp: 'WhatsApp' };
+  // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
+  // ese archivo para el porqué (se corrige aquí una lista anterior que
+  // inventaba 'facebook'/'whatsapp' sin base real y omitía 'github').
+  const SOCIAL_KEYS = ['linkedin', 'github', 'instagram', 'twitter', 'youtube', 'tiktok'];
+  const SOCIAL_LABELS = { linkedin: 'LinkedIn', github: 'GitHub', instagram: 'Instagram', twitter: 'X / Twitter', youtube: 'YouTube', tiktok: 'TikTok' };
   const ACTION_KEYS = ['contact', 'quote', 'booking', 'catalog'];
 
   // MISMOS límites que functions/_shared/business.js — si se cambian ahí,
@@ -447,9 +450,10 @@
         <div class="biz-theme-thumb-label">${escapeHtml(label)}</div>
       </button>`;
 
-    const presThumb = (id, label) => `<button type="button" class="biz-logopres-thumb${design.logoPresentation === id ? ' selected' : ''}" data-pres-choice="${id}">
+    const presThumb = (id, label, descKey, descFallback) => `<button type="button" class="biz-logopres-thumb${design.logoPresentation === id ? ' selected' : ''}" data-pres-choice="${id}">
         <div class="biz-pv-card biz-logopres-preview" data-theme="${design.theme}">${renderLogoBlockHtml(logoForPreview, { ...design, logoPresentation: id }, { scale: 0.5 })}</div>
         <div class="biz-logopres-label">${escapeHtml(label)}</div>
+        <div class="biz-logopres-desc" data-i18n="${descKey}">${escapeHtml(tf(descKey, descFallback))}</div>
       </button>`;
 
     return `<div class="biz-section">
@@ -463,9 +467,9 @@
 
       <div class="biz-field"><label data-i18n="index.business.field_logo_presentation">${tf('index.business.field_logo_presentation', 'Presentación del logo')}</label></div>
       <div class="biz-logopres-grid" id="biz-logopres-grid">
-        ${presThumb('direct', tf('index.business.pres_direct', 'Directo'))}
-        ${presThumb('framed', tf('index.business.pres_framed', 'Con soporte'))}
-        ${presThumb('integrated', tf('index.business.pres_integrated', 'Integrado'))}
+        ${presThumb('direct', tf('index.business.pres_direct', 'Directo'), 'index.business.pres_direct_desc', 'Tu logo sobre el fondo de la tarjeta.')}
+        ${presThumb('framed', tf('index.business.pres_framed', 'Con soporte'), 'index.business.pres_framed_desc', 'Una base suave para destacar tu logo.')}
+        ${presThumb('integrated', tf('index.business.pres_integrated', 'Integrado'), 'index.business.pres_integrated_desc', 'Un contorno degradado que suaviza la transición.')}
       </div>
 
       <div class="biz-slider-row">
@@ -721,6 +725,15 @@
     if (pd.phoneNumber && !workingDraft.phone) candidates.push(['phone', ((pd.phoneCountryCode ? pd.phoneCountryCode + ' ' : '') + pd.phoneNumber), tf('index.business.copy_field_phone', 'Teléfono')]);
     if (pd.email && !workingDraft.email) candidates.push(['email', pd.email, tf('index.business.copy_field_email', 'Correo')]);
     if (pd.web && !workingDraft.web) candidates.push(['web', pd.web, tf('index.business.copy_field_web', 'Web')]);
+    // Redes: mismo conjunto que SOCIAL_KEYS (ver ese comentario) — se
+    // ofrecen igual que el resto de campos, uno por uno y solo si el
+    // borrador todavía no tiene ese enlace, para no perder enlaces que
+    // el usuario ya tenga en su perfil personal al copiar.
+    SOCIAL_KEYS.forEach((k) => {
+      if (pd[k] && !(workingDraft.social && workingDraft.social[k])) {
+        candidates.push(['social:' + k, pd[k], SOCIAL_LABELS[k]]);
+      }
+    });
 
     if (!candidates.length) {
       box.style.display = 'block';
@@ -734,7 +747,14 @@
         <button type="button" class="cancel" id="biz-copy-cancel" data-i18n="index.business.copy_cancel_button">${tf('index.business.copy_cancel_button', 'Cancelar')}</button>
       </div>`;
     box.querySelector('#biz-copy-confirm').addEventListener('click', () => {
-      candidates.forEach(([key, val]) => { workingDraft[key] = val; });
+      candidates.forEach(([key, val]) => {
+        if (key.startsWith('social:')) {
+          workingDraft.social = workingDraft.social || {};
+          workingDraft.social[key.slice('social:'.length)] = val;
+        } else {
+          workingDraft[key] = val;
+        }
+      });
       renderEditorForm();
       toast(tf('index.business.copy_done_toast', 'Datos copiados al borrador. Recuerda que copiar no publica nada.'));
     });

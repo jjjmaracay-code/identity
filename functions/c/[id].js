@@ -47,9 +47,11 @@ function paginaNoDisponible(status) {
   return new Response(html, { status, headers: { 'Content-Type': 'text/html; charset=UTF-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
 }
 
+// Mismo conjunto que SOCIAL_KEYS (functions/_shared/business.js) — ver
+// ese archivo para el porqué de esta lista.
 const SOCIAL_LABELS = {
-  instagram: 'Instagram', facebook: 'Facebook', linkedin: 'LinkedIn',
-  twitter: 'X / Twitter', youtube: 'YouTube', tiktok: 'TikTok', whatsapp: 'WhatsApp',
+  linkedin: 'LinkedIn', github: 'GitHub', instagram: 'Instagram',
+  twitter: 'X / Twitter', youtube: 'YouTube', tiktok: 'TikTok',
 };
 
 const ACTION_LABELS = {

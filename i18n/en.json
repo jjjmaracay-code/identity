@@ -270,7 +270,7 @@
 
   "index.myqr.open_button": "QR SELECT",
   "index.myqr.panel_title": "QR SELECT",
-  "index.myqr.panel_subtitle": "Your social links and website",
+  "index.myqr.panel_subtitle": "Share your social links and website separately.",
   "index.myqr.empty_text": "You don't have any social or web links saved yet. Add them in your card editor to generate their own QR code here.",
   "index.myqr.empty_editor_button": "Go to editor",
   "index.myqr.offline_hint": "The code is generated on your device, offline. Opening the link will require an internet connection.",
@@ -521,18 +521,18 @@
   "index.install_banner.text": "Install IDENTIFLY on your home screen for quick access",
   "index.install_banner.install_button": "Install",
 
-  "index.business.open_subtitle": "Your business, your public card",
-  "index.business.hub_subtitle": "Your business, your public card",
+  "index.business.open_subtitle": "Create and share your public professional card.",
+  "index.business.hub_subtitle": "Create and share your public professional card.",
   "index.business.paid_feature_badge": "Paid feature",
   "index.business.paid_feature_desc": "Publishing a Business card requires a paid plan. You can see how it works; to edit and publish, upgrade your plan.",
   "index.business.upgrade_button": "Upgrade plan",
   "index.business.paid_feature_toast": "IDENTIFLY BUSINESS is a paid feature. Upgrade your plan to edit and publish.",
   "index.business.mode_professional_name": "Professional",
-  "index.business.mode_professional_desc": "For anyone offering services personally: specialty, short bio and projects.",
+  "index.business.mode_professional_desc": "Showcase your specialty and your projects.",
   "index.business.mode_freelance_name": "Freelancer",
-  "index.business.mode_freelance_desc": "For self-employed service providers: activity, service area, hours and quote requests.",
+  "index.business.mode_freelance_desc": "Show your services and how to hire you.",
   "index.business.mode_company_name": "Company",
-  "index.business.mode_company_desc": "For a business: brand, catalog or services, business address and general contact.",
+  "index.business.mode_company_desc": "Present your business, catalog and contact.",
   "index.business.status_access_inactive": "Paid access inactive — your data is kept",
   "index.business.status_unpublished": "Unpublished",
   "index.business.status_pending": "Published — changes pending publication",
@@ -636,5 +636,8 @@
   "index.business.pres_integrated": "Integrated",
   "index.business.field_logo_size": "Logo size",
   "index.business.field_logo_padding": "Space around",
-  "index.business.field_gradient_intensity": "Fade intensity"
+  "index.business.field_gradient_intensity": "Fade intensity",
+  "index.business.pres_direct_desc": "Your logo directly on the card background.",
+  "index.business.pres_framed_desc": "A soft backing to make your logo stand out.",
+  "index.business.pres_integrated_desc": "A gradient outline that softens the transition."
 }

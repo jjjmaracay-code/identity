@@ -15,7 +15,13 @@ import { TRIAL_DAYS, PAID_PLANS, getPlanStatus } from './plan-access.js';
 export { TRIAL_DAYS, PAID_PLANS };
 
 export const MODALITIES = ['professional', 'freelance', 'company'];
-export const SOCIAL_KEYS = ['instagram', 'facebook', 'linkedin', 'twitter', 'youtube', 'tiktok', 'whatsapp'];
+// Mismo conjunto de redes que ya modela el resto de IDENTIFLY (perfil
+// personal / QR SELECT, ver MYQR_PLATFORMS en index.html), sin 'web'
+// porque Business ya tiene su propio campo `web` dedicado. Una revisión
+// anterior de este archivo incluía 'facebook'/'whatsapp' (inventadas,
+// sin base en el resto de la app) y omitía 'github' (una red real que sí
+// existe) — corregido: ver informe de entrega.
+export const SOCIAL_KEYS = ['linkedin', 'github', 'instagram', 'twitter', 'youtube', 'tiktok'];
 export const PRIMARY_ACTIONS = ['contact', 'quote', 'booking', 'catalog'];
 
 // =====================================================================
@@ -46,13 +52,18 @@ export const THEME_TOKENS = {
     mainActionColor: '#AAFF00', mainActionBorder: '1px solid rgba(170,255,0,0.5)',
     mainActionShadow: 'inset 0 1px 0 rgba(170,255,0,0.5), 0 8px 20px -8px rgba(0,0,0,0.6)',
   },
+  // Claro: fondo blanco y tipografía NEGRA también en títulos y
+  // controles (ver instrucción) — a propósito sin ningún verde de
+  // acento. El único de los dos temas con neón/color de marca es el
+  // oscuro; el claro se apoya solo en sombras suaves para dar
+  // profundidad.
   light: {
     bg: '#ffffff', text: '#1a1a1a', muted: 'rgba(0,0,0,0.5)',
-    accent: '#2f6600', accentGlow: 'none',
+    accent: '#1a1a1a', accentGlow: 'none',
     surface: '#f2f2f2', surfaceBorder: 'rgba(0,0,0,0.08)',
     shadow: '0 4px 14px -4px rgba(0,0,0,0.18)', hairline: 'rgba(0,0,0,0.08)',
-    accentSoftBg: 'rgba(47,102,0,0.06)', accentBorder: 'rgba(47,102,0,0.35)',
-    mainActionBg: '#2f6600',
+    accentSoftBg: 'rgba(0,0,0,0.04)', accentBorder: 'rgba(0,0,0,0.18)',
+    mainActionBg: '#1a1a1a',
     mainActionColor: '#ffffff', mainActionBorder: 'none',
     mainActionShadow: '0 4px 14px -4px rgba(0,0,0,0.25)',
   },

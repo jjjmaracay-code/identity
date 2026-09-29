@@ -270,7 +270,7 @@
 
   "index.myqr.open_button": "QR SELECT",
   "index.myqr.panel_title": "QR SELECT",
-  "index.myqr.panel_subtitle": "Deine Netzwerke und deine Website",
+  "index.myqr.panel_subtitle": "Teile deine Netzwerke und deine Website einzeln.",
   "index.myqr.empty_text": "Du hast noch keine Social-Media- oder Web-Links gespeichert. Füge sie im Karteneditor hinzu, um hier ihren eigenen QR-Code zu erzeugen.",
   "index.myqr.empty_editor_button": "Zum Editor",
   "index.myqr.offline_hint": "Der Code wird offline auf deinem Gerät erzeugt. Zum Öffnen des Links ist eine Internetverbindung nötig.",
@@ -521,18 +521,18 @@
   "index.install_banner.text": "Installieren Sie IDENTIFLY auf Ihrem Startbildschirm für schnellen Zugriff",
   "index.install_banner.install_button": "Installieren",
 
-  "index.business.open_subtitle": "Ihre Tätigkeit, Ihre öffentliche Karte",
-  "index.business.hub_subtitle": "Ihre Tätigkeit, Ihre öffentliche Karte",
+  "index.business.open_subtitle": "Erstellen und teilen Sie Ihre öffentliche berufliche Karte.",
+  "index.business.hub_subtitle": "Erstellen und teilen Sie Ihre öffentliche berufliche Karte.",
   "index.business.paid_feature_badge": "Kostenpflichtige Funktion",
   "index.business.paid_feature_desc": "Das Veröffentlichen einer Business-Karte erfordert einen kostenpflichtigen Plan. Sie können sehen, wie es funktioniert; zum Bearbeiten und Veröffentlichen müssen Sie Ihren Plan upgraden.",
   "index.business.upgrade_button": "Plan upgraden",
   "index.business.paid_feature_toast": "IDENTIFLY BUSINESS ist eine kostenpflichtige Funktion. Upgraden Sie Ihren Plan, um zu bearbeiten und zu veröffentlichen.",
   "index.business.mode_professional_name": "Freiberufler",
-  "index.business.mode_professional_desc": "Für alle, die persönlich Dienstleistungen anbieten: Spezialisierung, kurze Vorstellung und Projekte.",
+  "index.business.mode_professional_desc": "Zeigen Sie Ihre Spezialisierung und Ihre Projekte.",
   "index.business.mode_freelance_name": "Selbstständig",
-  "index.business.mode_freelance_desc": "Für Selbstständige: Tätigkeit, Einsatzgebiet, Öffnungszeiten und Angebotsanfragen.",
+  "index.business.mode_freelance_desc": "Zeigen Sie Ihre Dienstleistungen und wie man Sie beauftragt.",
   "index.business.mode_company_name": "Unternehmen",
-  "index.business.mode_company_desc": "Für ein Unternehmen: Marke, Katalog oder Dienstleistungen, Geschäftsadresse und allgemeiner Kontakt.",
+  "index.business.mode_company_desc": "Präsentieren Sie Ihr Unternehmen, Ihren Katalog und Ihren Kontakt.",
   "index.business.status_access_inactive": "Kostenpflichtiger Zugang inaktiv — Ihre Daten bleiben erhalten",
   "index.business.status_unpublished": "Nicht veröffentlicht",
   "index.business.status_pending": "Veröffentlicht — Änderungen ausstehend",
@@ -636,5 +636,8 @@
   "index.business.pres_integrated": "Integriert",
   "index.business.field_logo_size": "Logogröße",
   "index.business.field_logo_padding": "Abstand ringsum",
-  "index.business.field_gradient_intensity": "Übergangsintensität"
+  "index.business.field_gradient_intensity": "Übergangsintensität",
+  "index.business.pres_direct_desc": "Ihr Logo direkt auf dem Kartenhintergrund.",
+  "index.business.pres_framed_desc": "Ein weicher Untergrund, der Ihr Logo hervorhebt.",
+  "index.business.pres_integrated_desc": "Ein Farbverlauf-Rand, der den Übergang weicher macht."
 }

@@ -270,7 +270,7 @@
 
   "index.myqr.open_button": "QR SELECT",
   "index.myqr.panel_title": "QR SELECT",
-  "index.myqr.panel_subtitle": "Vos réseaux et votre site web",
+  "index.myqr.panel_subtitle": "Partagez vos réseaux et votre site web séparément.",
   "index.myqr.empty_text": "Vous n'avez pas encore de liens de réseaux ou de site web enregistrés. Ajoutez-les dans l'éditeur de votre carte pour générer ici leur propre QR code.",
   "index.myqr.empty_editor_button": "Aller à l'éditeur",
   "index.myqr.offline_hint": "Le code est généré sur votre appareil, sans connexion. Ouvrir le lien nécessitera une connexion internet.",
@@ -521,18 +521,18 @@
   "index.install_banner.text": "Installez IDENTIFLY sur votre écran d'accueil pour un accès rapide",
   "index.install_banner.install_button": "Installer",
 
-  "index.business.open_subtitle": "Votre activité, votre carte publique",
-  "index.business.hub_subtitle": "Votre activité, votre carte publique",
+  "index.business.open_subtitle": "Créez et partagez votre carte professionnelle publique.",
+  "index.business.hub_subtitle": "Créez et partagez votre carte professionnelle publique.",
   "index.business.paid_feature_badge": "Fonction payante",
   "index.business.paid_feature_desc": "Publier une carte Business nécessite un abonnement payant. Vous pouvez voir comment ça fonctionne ; pour éditer et publier, passez à un plan supérieur.",
   "index.business.upgrade_button": "Changer de plan",
   "index.business.paid_feature_toast": "IDENTIFLY BUSINESS est une fonction payante. Changez de plan pour éditer et publier.",
   "index.business.mode_professional_name": "Professionnel",
-  "index.business.mode_professional_desc": "Pour qui propose des services à titre personnel : spécialité, présentation brève et projets.",
+  "index.business.mode_professional_desc": "Présentez votre spécialité et vos projets.",
   "index.business.mode_freelance_name": "Indépendant",
-  "index.business.mode_freelance_desc": "Pour qui exerce à son compte : activité, zone d'intervention, horaires et demandes de devis.",
+  "index.business.mode_freelance_desc": "Montrez vos services et comment vous engager.",
   "index.business.mode_company_name": "Entreprise",
-  "index.business.mode_company_desc": "Pour une entreprise : marque, catalogue ou services, adresse commerciale et contact général.",
+  "index.business.mode_company_desc": "Présentez votre entreprise, votre catalogue et vos coordonnées.",
   "index.business.status_access_inactive": "Accès payant inactif — vos données sont conservées",
   "index.business.status_unpublished": "Non publiée",
   "index.business.status_pending": "Publiée — modifications en attente de publication",
@@ -636,5 +636,8 @@
   "index.business.pres_integrated": "Intégré",
   "index.business.field_logo_size": "Taille du logo",
   "index.business.field_logo_padding": "Espace autour",
-  "index.business.field_gradient_intensity": "Intensité du fondu"
+  "index.business.field_gradient_intensity": "Intensité du fondu",
+  "index.business.pres_direct_desc": "Votre logo directement sur le fond de la carte.",
+  "index.business.pres_framed_desc": "Un support doux pour mettre votre logo en valeur.",
+  "index.business.pres_integrated_desc": "Un contour dégradé qui adoucit la transition."
 }

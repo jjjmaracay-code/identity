@@ -270,7 +270,7 @@
 
   "index.myqr.open_button": "QR SELECT",
   "index.myqr.panel_title": "QR SELECT",
-  "index.myqr.panel_subtitle": "Tus redes y tu web",
+  "index.myqr.panel_subtitle": "Comparte tus redes y tu web por separado.",
   "index.myqr.empty_text": "Todavía no tienes enlaces de redes o web guardados. Añádelos en el editor de tu tarjeta para generar aquí su propio QR.",
   "index.myqr.empty_editor_button": "Ir al editor",
   "index.myqr.offline_hint": "El código se genera en tu dispositivo, sin conexión. Para abrir el enlace hará falta conexión a internet.",
@@ -521,18 +521,18 @@
   "index.install_banner.text": "Instala IDENTIFLY en tu pantalla de inicio para acceso rápido",
   "index.install_banner.install_button": "Instalar",
 
-  "index.business.open_subtitle": "Tu actividad, tu tarjeta pública",
-  "index.business.hub_subtitle": "Tu actividad, tu tarjeta pública",
+  "index.business.open_subtitle": "Crea y comparte tu tarjeta profesional pública.",
+  "index.business.hub_subtitle": "Crea y comparte tu tarjeta profesional pública.",
   "index.business.paid_feature_badge": "Función de pago",
   "index.business.paid_feature_desc": "Publicar una tarjeta Business requiere un plan de pago. Puedes ver cómo funciona; para editar y publicar, mejora tu plan.",
   "index.business.upgrade_button": "Mejorar plan",
   "index.business.paid_feature_toast": "IDENTIFLY BUSINESS es una función de pago. Mejora tu plan para editar y publicar.",
   "index.business.mode_professional_name": "Profesional",
-  "index.business.mode_professional_desc": "Para quien ofrece servicios a título personal: especialidad, presentación breve y proyectos.",
+  "index.business.mode_professional_desc": "Presenta tu especialidad y tus proyectos.",
   "index.business.mode_freelance_name": "Autónomo",
-  "index.business.mode_freelance_desc": "Para quien presta servicios por su cuenta: actividad, zona, horarios y solicitud de presupuesto.",
+  "index.business.mode_freelance_desc": "Muestra tus servicios y cómo contratarte.",
   "index.business.mode_company_name": "Empresa",
-  "index.business.mode_company_desc": "Para un negocio: marca, catálogo o servicios, dirección comercial y contacto general.",
+  "index.business.mode_company_desc": "Presenta tu negocio, catálogo y contacto.",
   "index.business.status_access_inactive": "Acceso de pago inactivo — tus datos se conservan",
   "index.business.status_unpublished": "No publicada",
   "index.business.status_pending": "Publicada — cambios pendientes de publicar",
@@ -636,5 +636,8 @@
   "index.business.pres_integrated": "Integrado",
   "index.business.field_logo_size": "Tamaño del logo",
   "index.business.field_logo_padding": "Espacio alrededor",
-  "index.business.field_gradient_intensity": "Intensidad de la transición"
+  "index.business.field_gradient_intensity": "Intensidad de la transición",
+  "index.business.pres_direct_desc": "Tu logo sobre el fondo de la tarjeta.",
+  "index.business.pres_framed_desc": "Una base suave para destacar tu logo.",
+  "index.business.pres_integrated_desc": "Un contorno degradado que suaviza la transición."
 }
