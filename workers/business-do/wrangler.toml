@@ -1,0 +1,42 @@
+# Worker COMPAÑERO del proyecto Pages de IDENTIFLY. Aloja el único
+# Durable Object de Business (BusinessCardDO): un coordinador por
+# propietario que serializa publicar/actualizar/despublicar/reactivar
+# para esa cuenta, resolviendo la carrera que KV por sí solo no puede
+# resolver de verdad.
+#
+# NO DESPLEGADO. Preparado para revisión y despliegue manual cuando se
+# decida activar Business en Preview/Producción. Antes de desplegar:
+#   1. Verificar contra la documentación vigente de Cloudflare (Durable
+#      Objects + Workers) que `new_sqlite_classes` sigue siendo la vía
+#      recomendada para una clase NUEVA (backend de almacenamiento
+#      SQLite por instancia) frente a la alternativa `new_classes`
+#      (backend clásico). Esta pieza puede cambiar entre versiones de
+#      wrangler/plataforma y no se ha podido confirmar en vivo en este
+#      entorno.
+#   2. Sustituir los `id`/`preview_id` de abajo por los IDs reales del
+#      namespace KV `BUSINESS_KV` ya usado por el proyecto Pages
+#      (Production y Preview respectivamente) -- deben ser LOS MISMOS
+#      namespaces que el proyecto Pages, no unos nuevos: este worker solo
+#      necesita escribir el índice público id->propietario, que la
+#      tarjeta pública (functions/c/[id].js, dentro del proyecto Pages)
+#      lee del mismo sitio.
+#   3. Desplegar con `wrangler deploy` (un Worker normal, NO
+#      `wrangler pages deploy`) DESDE ESTA CARPETA.
+#   4. En el proyecto Pages, enlazar el binding cruzado hacia este
+#      Worker -- ver el wrangler.toml preparado en la raíz del repo.
+name = "identifly-business-do"
+main = "src/business-card-do.js"
+compatibility_date = "2024-01-01"
+
+[[durable_objects.bindings]]
+name = "BUSINESS_DO"
+class_name = "BusinessCardDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BusinessCardDO"]
+
+[[kv_namespaces]]
+binding = "BUSINESS_KV"
+id = "PENDIENTE: id del namespace BUSINESS_KV de Production"
+preview_id = "PENDIENTE: id del namespace BUSINESS_KV de Preview"

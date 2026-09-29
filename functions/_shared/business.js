@@ -181,27 +181,28 @@ export async function authenticateOwner(env, email, token) {
 
 // Identificador público opaco: aleatorio (crypto.randomUUID, 122 bits de
 // entropía, no adivinable), PERMANENTE una vez creado, sin depender de
-// ningún secreto de servidor. La propiedad se resuelve buscando este id
-// a través de 'bizowner:'+emailKey — una clave KV interna (nunca
-// expuesta al visitante, nunca parte de la URL pública) que tampoco
-// depende de ningún secreto.
+// ningún secreto de servidor.
 //
-// Una revisión anterior derivaba el id con HMAC-SHA256(email) usando un
-// secreto de servidor (BUSINESS_ID_SECRET) precisamente para evitar la
-// ventana de carrera en la primera publicación (ver
-// business-publish.js). Eso tenía un defecto real y más grave: si ese
-// secreto se rotaba alguna vez, el id calculado para cada cuenta
-// cambiaba, dejando TODAS las tarjetas ya publicadas huérfanas para la
-// aplicación (el propietario ya no podría recuperarlas/actualizarlas/
-// despublicarlas, aunque el registro siguiera existiendo en KV bajo su
-// id antiguo). Un id aleatorio + índice estable nunca tiene ese
-// problema: no hay ningún secreto del que depender ni que rotar. La
-// carrera de la primera publicación se resuelve ahora en
-// business-publish.js con una reconciliación de lectura-tras-escritura
-// (ver ese archivo) en vez de eliminarla por construcción — ver el
-// INFORME de entrega para el análisis de esa alternativa y sus límites
-// reales con solo KV disponible.
-export const OWNER_INDEX_PREFIX = 'bizowner:';
+// COORDINACIÓN: cada cuenta tiene exactamente un Durable Object propio
+// (BusinessCardDO, ver workers/business-do/src/business-card-do.js),
+// direccionado siempre por env.BUSINESS_DO.idFromName(emailKey) — un
+// mecanismo de la propia plataforma, no un secreto que gestionemos ni
+// podamos rotar. Cloudflare garantiza que como mucho una invocación de
+// fetch() de ESA instancia concreta se ejecuta a la vez: dos peticiones
+// para el mismo propietario (publicar/despublicar/reactivar, incluida
+// la primera publicación) quedan serializadas por la plataforma, no por
+// un patrón de lectura/relectura/borrado sobre KV. Ese registro vive en
+// el almacenamiento propio del Durable Object (this.state.storage),
+// nunca duplicado en una clave KV aparte — una sola copia autoritativa.
+//
+// La única pieza que SÍ vive en KV es PUBLIC_ID_INDEX_PREFIX+id ->
+// emailKey: un índice de solo lectura para que la tarjeta pública
+// (functions/c/[id].js, que solo conoce el id de la URL, nunca el
+// email) sepa a qué Durable Object dirigirse. Lo escribe el propio
+// Durable Object, una única vez, la primera vez que genera su id — sin
+// ninguna ventana de carrera posible (esa escritura ya está serializada
+// por ser parte de la misma invocación coordinada).
+export const PUBLIC_ID_INDEX_PREFIX = 'bizid:';
 
 export function generateBusinessId() {
   return crypto.randomUUID().replace(/-/g, '');

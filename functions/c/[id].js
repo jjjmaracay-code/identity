@@ -7,7 +7,7 @@
 // no lleva datos personales ni credenciales de gestión — nunca depende
 // del email ni de ningún secreto de servidor, así que sigue siendo
 // permanente aunque cambie cualquier secreto de la app.
-import { SOCIAL_KEYS, THEME_TOKENS, sanitizeDesign, computeLogoLayout } from '../_shared/business.js';
+import { SOCIAL_KEYS, THEME_TOKENS, sanitizeDesign, computeLogoLayout, PUBLIC_ID_INDEX_PREFIX } from '../_shared/business.js';
 import { getPlanStatus } from '../_shared/plan-access.js';
 
 function escapeHtml(str) {
@@ -121,14 +121,24 @@ export async function onRequestGet(context) {
   const id = String(params.id || '').replace(/[^a-f0-9]/gi, '');
   if (!id) return paginaNoDisponible(404);
 
-  const raw = await env.BUSINESS_KV.get('biz:' + id);
-  if (!raw) return paginaNoDisponible(404);
+  // El id de la URL no revela por sí solo a qué Durable Object dirigirse
+  // (BusinessCardDO se direcciona por email, no por id) — este índice de
+  // solo lectura, escrito una única vez por el propio Durable Object al
+  // generar el id (ver business-card-do.js), resuelve esa correspondencia.
+  const ownerEmailKey = await env.BUSINESS_KV.get(PUBLIC_ID_INDEX_PREFIX + id);
+  if (!ownerEmailKey) return paginaNoDisponible(404);
 
-  let r;
-  try { r = JSON.parse(raw); } catch (_) { return paginaNoDisponible(500); }
+  const doId = env.BUSINESS_DO.idFromName(ownerEmailKey);
+  const stub = env.BUSINESS_DO.get(doId);
+  const doRes = await stub.fetch('https://business-do/get');
+  const doData = await doRes.json().catch(() => null);
+  if (!doData?.ok || !doData.exists) return paginaNoDisponible(404);
+
+  const r = doData.record;
+  if (!r || r.id !== id) return paginaNoDisponible(404); // defensa: el DO de esta cuenta ya no corresponde a este id (no debería ocurrir)
 
   if (!r.published) return paginaNoDisponible(404);
-  const vigente = await accesoVigente(env, r.ownerEmailKey);
+  const vigente = await accesoVigente(env, ownerEmailKey);
   if (!vigente) return paginaNoDisponible(404);
 
   // sanitizeDesign() aplica los predeterminados a un registro que

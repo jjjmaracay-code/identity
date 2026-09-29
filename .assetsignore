@@ -1,0 +1,13 @@
+# Excluye del despliegue de activos estáticos de Cloudflare Pages el
+# Worker COMPAÑERO del Durable Object de Business (workers/business-do/)
+# -- es un Worker aparte, desplegado por separado con `wrangler deploy`
+# desde su propia carpeta, nunca parte de los archivos públicos de este
+# proyecto Pages. No contiene secretos (solo código y un wrangler.toml
+# con IDs de ejemplo pendientes de rellenar), pero no tiene sentido que
+# quede servido como si fuera un recurso público de la app.
+#
+# NOTA: `.assetsignore` es la convención documentada de Cloudflare Pages/
+# Workers Assets para esto (sintaxis tipo .gitignore) -- verificar que
+# sigue vigente contra la documentación actual antes de desplegar, ver
+# INFORME de entrega.
+workers/

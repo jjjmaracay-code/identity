@@ -5,3 +5,4 @@ package-lock.json
 .dev.vars
 .dev.vars.*
 .wrangler/
+.wrangler-state/
