@@ -639,5 +639,6 @@
   "index.business.field_gradient_intensity": "Übergangsintensität",
   "index.business.pres_direct_desc": "Ihr Logo direkt auf dem Kartenhintergrund.",
   "index.business.pres_framed_desc": "Ein weicher Untergrund, der Ihr Logo hervorhebt.",
-  "index.business.pres_integrated_desc": "Ein Farbverlauf-Rand, der den Übergang weicher macht."
+  "index.business.pres_integrated_desc": "Ein Farbverlauf-Rand, der den Übergang weicher macht.",
+  "index.business.version_conflict_toast": "Diese Karte hat sich zwischenzeitlich auf einem anderen Gerät oder Tab geändert. Bitte versuchen Sie es erneut."
 }

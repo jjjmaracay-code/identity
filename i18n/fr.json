@@ -639,5 +639,6 @@
   "index.business.field_gradient_intensity": "Intensité du fondu",
   "index.business.pres_direct_desc": "Votre logo directement sur le fond de la carte.",
   "index.business.pres_framed_desc": "Un support doux pour mettre votre logo en valeur.",
-  "index.business.pres_integrated_desc": "Un contour dégradé qui adoucit la transition."
+  "index.business.pres_integrated_desc": "Un contour dégradé qui adoucit la transition.",
+  "index.business.version_conflict_toast": "Cette carte a changé entre-temps sur un autre appareil ou onglet. Veuillez réessayer."
 }

@@ -890,16 +890,27 @@
     const btn = document.getElementById('btn-biz-publish');
     if (btn) { btn.disabled = true; }
     try {
+      // baseVersion: el token opaco `version` que este cliente conocía
+      // antes de editar (si ninguno, se manda null y el servidor no exige
+      // nada -- compatibilidad con la primera publicación o con no tener
+      // meta local, ver business-publish.js). Protege contra reintentos
+      // desincronizados: si la tarjeta cambió en el servidor mientras esta
+      // petición seguía en vuelo (por ejemplo, se despublicó desde otra
+      // pestaña), el servidor rechaza en vez de resucitarla a ciegas. Se
+      // usa un token opaco y no `updatedAt`: dos escrituras dentro del
+      // mismo milisegundo de reloj (real bajo reintentos rápidos)
+      // producirían el mismo `updatedAt` y el chequeo se saltaría en falso.
+      const metaPrevia = loadMeta();
       const res = await fetch('/api/business-publish', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cred.email, token: cred.token, ...payload }),
+        body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null, ...payload }),
       });
       if (_locked) return; // la app se bloqueó mientras la petición estaba en curso
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
         saveDraftToStorage(workingDraft);
         savedSnapshotJson = JSON.stringify(workingDraft);
-        saveMeta({ id: data.id, url: data.url, publishedAt: data.publishedAt, updatedAt: data.updatedAt, published: true, payload });
+        saveMeta({ id: data.id, url: data.url, publishedAt: data.publishedAt, updatedAt: data.updatedAt, version: data.version, published: true, payload });
         toast(tf('index.business.publish_success_toast', 'Tarjeta publicada.'));
         renderEditorForm();
       } else if (res.status === 402) {
@@ -908,6 +919,14 @@
         toast(tf('index.business.rate_limited_toast', 'Espera unos segundos antes de volver a intentarlo.'));
       } else if (res.status === 401) {
         toast(tf('index.business.reauth_toast', 'No se pudo verificar tu cuenta. Vuelve a intentarlo tras reabrir la app.'));
+      } else if (res.status === 409) {
+        // La tarjeta cambió en el servidor desde la última vez que este
+        // dispositivo la conoció (otra pestaña/dispositivo la tocó
+        // mientras tanto) -- se refresca el estado local conocido para
+        // que el próximo intento ya parta del real, en vez de reintentar
+        // a ciegas sobre datos obsoletos.
+        if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
+        toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
       } else {
         toast(tf('index.business.publish_error_toast', 'No se pudo publicar. Se conserva tu borrador para reintentarlo.'));
       }
@@ -932,18 +951,23 @@
     const ok = window.confirm(tf('index.business.unpublish_confirm', '¿Despublicar tu tarjeta? Dejará de estar disponible en su enlace. Tus datos y la URL se conservan.'));
     if (!ok) return;
     try {
+      const metaPrevia = loadMeta();
       const res = await fetch('/api/business-unpublish', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cred.email, token: cred.token }),
+        body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null }),
       });
       if (_locked) return; // bloqueada mientras esperábamos la respuesta
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
-        const meta = loadMeta();
-        if (meta) { meta.published = false; saveMeta(meta); }
+        const meta = loadMeta() || {};
+        meta.published = false; meta.updatedAt = data.updatedAt; meta.version = data.version; if (data.id) meta.id = data.id;
+        saveMeta(meta);
         toast(tf('index.business.unpublish_success_toast', 'Tarjeta despublicada.'));
       } else if (res.status === 404) {
         toast(tf('index.business.nothing_published_toast', 'Todavía no hay ninguna tarjeta publicada para esta cuenta.'));
+      } else if (res.status === 409) {
+        if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
+        toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
       } else {
         toast(tf('index.business.unpublish_error_toast', 'No se pudo despublicar. Inténtalo de nuevo.'));
       }
@@ -956,20 +980,24 @@
     const cred = getRegAndToken();
     if (!cred) return;
     try {
+      const metaPrevia = loadMeta();
       const res = await fetch('/api/business-reactivate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cred.email, token: cred.token }),
+        body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null }),
       });
       if (_locked) return;
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
         const meta = loadMeta() || {};
-        meta.published = true; meta.id = data.id; meta.url = data.url;
+        meta.published = true; meta.id = data.id; meta.url = data.url; meta.updatedAt = data.updatedAt; meta.version = data.version;
         saveMeta(meta);
         toast(tf('index.business.reactivate_success_toast', 'Tarjeta reactivada en su misma dirección.'));
         renderPublishFooter();
       } else if (res.status === 402) {
         toast(tf('index.business.plan_inactive_toast', 'Tu plan de pago no está activo — no se puede reactivar.'));
+      } else if (res.status === 409) {
+        if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
+        toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
       } else {
         toast(tf('index.business.reactivate_error_toast', 'No se pudo reactivar.'));
       }
@@ -1003,7 +1031,7 @@
       };
       saveDraftToStorage(workingDraft);
       savedSnapshotJson = JSON.stringify(workingDraft);
-      saveMeta({ id: r.id, url: data.url, publishedAt: r.publishedAt, updatedAt: r.updatedAt, published: r.published, payload: buildPublicPayloadFromDraft(workingDraft) });
+      saveMeta({ id: r.id, url: data.url, publishedAt: r.publishedAt, updatedAt: r.updatedAt, version: r.version, published: r.published, payload: buildPublicPayloadFromDraft(workingDraft) });
       toast(tf('index.business.pull_success_toast', 'Borrador actualizado desde el servidor.'));
       renderEditorForm();
     } catch (_) { toast(tf('index.business.network_error_toast', 'Sin conexión.')); }

@@ -11,14 +11,43 @@
 // envíe el cliente: así una cuenta no puede publicar ni pisar la tarjeta
 // de otra.
 //
-// El id de la tarjeta es DETERMINISTA (deriveBusinessId, ver
-// functions/_shared/business.js) en vez de aleatorio: dos publicaciones
-// "primera vez" concurrentes de la misma cuenta calculan siempre el
-// mismo id y escriben el mismo registro KV — nunca pueden crear dos
-// tarjetas ni dejar una huérfana. Esto sustituye al índice 'bizowner:'
-// que usaba la versión anterior (ver deriveBusinessId para el porqué).
+// LÍMITE REAL DE ESTA IMPLEMENTACIÓN (documentado, no oculto): Cloudflare
+// KV no ofrece ninguna operación "escribe solo si no existe" ni
+// transacciones — no hay forma de obtener una garantía de coordinación
+// distribuida real con solo KV. Lo que sigue es la alternativa mínima
+// posible sin contratar Durable Objects/D1: para la PRIMERA publicación
+// de una cuenta se escribe primero el registro y LUEGO se intenta
+// reclamar el índice 'bizowner:'+emailKey; inmediatamente después se
+// vuelve a leer ese índice. Si otra petición concurrente lo reclamó
+// entre medias, esta petición pierde la carrera, borra el registro que
+// acababa de crear (nunca queda una tarjeta huérfana) y responde con el
+// id/URL de la que ganó — el cliente nunca ve dos tarjetas ni un id
+// inválido. Esto cierra el caso de dos peticiones simultáneas de verdad
+// (probado con Promise.all, ver INFORME de entrega), pero sigue
+// existiendo una ventana en teoría bajo un número arbitrario de
+// peticiones concurrentes exactamente en el mismo instante: no se
+// presenta como una garantía formal de exclusión mutua, solo como una
+// reducción práctica y verificada del riesgo. Cerrarla del todo
+// requeriría un Durable Object (una sola instancia con ejecución
+// serializada por cuenta) — no incluido aquí por instrucción expresa de
+// no contratar/configurar recursos de producción en esta fase.
+//
+// ACTUALIZACIONES (cuenta que ya tiene tarjeta): se exige que el cliente
+// mande `baseVersion` con el `version` que conocía antes de editar. Si
+// el registro ya cambió en el servidor desde entonces (por ejemplo, el
+// propietario lo despublicó en otra pestaña mientras esta petición
+// seguía en vuelo), se rechaza con 409 en vez de resucitar a ciegas una
+// tarjeta que el usuario acaba de despublicar. `version` es un token
+// opaco (crypto.randomUUID, regenerado en cada escritura) en vez de
+// comparar por `updatedAt`: dos escrituras que caen en el mismo
+// milisegundo de reloj (perfectamente real bajo reintentos rápidos o
+// pruebas automatizadas) producirían el mismo `updatedAt` y el chequeo
+// se saltaría en falso — `version` nunca colisiona por esta vía. Un
+// cliente que no mande `baseVersion` (compatibilidad con llamadas
+// antiguas, o la primerísima publicación) no se bloquea por esto — ver
+// instrucción de compatibilidad sin reescrituras automáticas.
 import {
-  authenticateOwner, validateBusinessPayload, jsonResponse, deriveBusinessId,
+  authenticateOwner, validateBusinessPayload, jsonResponse, generateBusinessId, OWNER_INDEX_PREFIX,
 } from '../_shared/business.js';
 
 export async function onRequestPost(context) {
@@ -35,9 +64,9 @@ export async function onRequestPost(context) {
   // Guarda mínimo entre publicaciones de la MISMA cuenta — no es un
   // limitador de tráfico general (este proyecto no tiene Durable Objects
   // ni reglas de rate limiting a nivel de borde configuradas; ver INFORME
-  // de entrega). Con el id determinista ya NO hace falta para evitar
-  // duplicados (eso lo garantiza deriveBusinessId): se conserva solo
-  // como freno anti-abuso ante pulsaciones repetidas.
+  // de entrega). Reduce la probabilidad de la carrera de "primera
+  // publicación" descrita arriba, pero no es lo que la evita — eso lo
+  // hace la reconciliación tras escribir.
   const rateKey = 'bizrate:' + auth.emailKey;
   if (await env.BUSINESS_KV.get(rateKey)) {
     return jsonResponse({ ok: false, error: 'demasiadas_solicitudes' }, 429);
@@ -47,35 +76,75 @@ export async function onRequestPost(context) {
   const validated = validateBusinessPayload(body);
   if (!validated.ok) return jsonResponse({ ok: false, error: validated.error }, 400);
 
-  let id;
-  try { id = await deriveBusinessId(env, auth.emailKey); }
-  catch (_) { return jsonResponse({ ok: false, error: 'configuracion_incompleta' }, 500); }
-
-  const existingRaw = await env.BUSINESS_KV.get('biz:' + id);
-  let existingRecord = null;
-  if (existingRaw) { try { existingRecord = JSON.parse(existingRaw); } catch (_) {} }
-
+  const ownerKey = OWNER_INDEX_PREFIX + auth.emailKey;
+  const existingId = await env.BUSINESS_KV.get(ownerKey);
   const nowIso = new Date().toISOString();
+
+  if (existingId) {
+    // Camino normal: actualizar la tarjeta ya existente de esta cuenta.
+    const existingRaw = await env.BUSINESS_KV.get('biz:' + existingId);
+    let existingRecord = null;
+    if (existingRaw) { try { existingRecord = JSON.parse(existingRaw); } catch (_) {} }
+
+    if (existingRecord && body.baseVersion && body.baseVersion !== existingRecord.version) {
+      return jsonResponse({
+        ok: false, error: 'conflicto_de_version',
+        id: existingId, published: existingRecord.published, updatedAt: existingRecord.updatedAt, version: existingRecord.version,
+      }, 409);
+    }
+
+    const record = {
+      ...validated.data,
+      id: existingId,
+      ownerEmailKey: auth.emailKey,
+      published: true,
+      createdAt: existingRecord?.createdAt || nowIso,
+      publishedAt: existingRecord?.publishedAt || nowIso,
+      updatedAt: nowIso,
+      version: crypto.randomUUID(),
+    };
+    // Única escritura de la operación: si falla, el registro anterior
+    // queda exactamente como estaba (KV no hace escrituras parciales de
+    // un mismo valor) y no se toca el índice de propietario.
+    await env.BUSINESS_KV.put('biz:' + existingId, JSON.stringify(record));
+
+    const origin = new URL(request.url).origin;
+    return jsonResponse({ ok: true, id: existingId, url: `${origin}/c/${existingId}`, publishedAt: record.publishedAt, updatedAt: record.updatedAt, version: record.version });
+  }
+
+  // Primera publicación de esta cuenta — ver el límite documentado arriba.
+  const candidateId = generateBusinessId();
   const record = {
     ...validated.data,
-    id,
+    id: candidateId,
     ownerEmailKey: auth.emailKey,
     published: true,
-    createdAt: existingRecord?.createdAt || nowIso,
-    publishedAt: existingRecord?.publishedAt || nowIso,
+    createdAt: nowIso,
+    publishedAt: nowIso,
     updatedAt: nowIso,
+    version: crypto.randomUUID(),
   };
+  await env.BUSINESS_KV.put('biz:' + candidateId, JSON.stringify(record));
+  await env.BUSINESS_KV.put(ownerKey, candidateId);
 
-  // Única escritura de la operación: si falla (red, cuota, lo que sea),
-  // la promesa rechaza, Pages Functions responde con un error y el
-  // registro anterior en 'biz:'+id queda exactamente como estaba — KV no
-  // hace escrituras parciales de un mismo valor. No hay un segundo paso
-  // (como el índice 'bizowner:' de antes) que pudiera quedar
-  // desincronizado si este `put` falla.
-  await env.BUSINESS_KV.put('biz:' + id, JSON.stringify(record));
+  // Reconciliación: relee el índice para detectar si otra petición
+  // concurrente lo reclamó también. Si el índice ya no coincide con nuestro
+  // propio id, perdimos la carrera frente a esa otra petición — se borra
+  // el registro que acabamos de crear (nunca queda huérfano) y se
+  // responde con los datos reales de la tarjeta ganadora, para que este
+  // cliente nunca reciba un id que luego no pueda gestionar.
+  const confirmedId = await env.BUSINESS_KV.get(ownerKey);
+  let finalId = candidateId;
+  let finalRecord = record;
+  if (confirmedId && confirmedId !== candidateId) {
+    await env.BUSINESS_KV.delete('biz:' + candidateId);
+    finalId = confirmedId;
+    const winnerRaw = await env.BUSINESS_KV.get('biz:' + confirmedId);
+    if (winnerRaw) { try { finalRecord = JSON.parse(winnerRaw); } catch (_) {} }
+  }
 
   const origin = new URL(request.url).origin;
-  return jsonResponse({ ok: true, id, url: `${origin}/c/${id}`, publishedAt: record.publishedAt, updatedAt: record.updatedAt });
+  return jsonResponse({ ok: true, id: finalId, url: `${origin}/c/${finalId}`, publishedAt: finalRecord.publishedAt, updatedAt: finalRecord.updatedAt, version: finalRecord.version });
 }
 
 export async function onRequestGet() {

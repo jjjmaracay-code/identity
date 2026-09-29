@@ -3,9 +3,10 @@
 // el HTML. Debe funcionar para visitantes sin cuenta y sin depender del
 // localStorage del propietario (ver instrucción).
 //
-// El id es opaco y no lleva datos personales ni credenciales de gestión
-// (ver functions/_shared/business.js: deriveBusinessId, HMAC-SHA256 sin
-// email en claro).
+// El id es opaco (crypto.randomUUID, generado en business-publish.js) y
+// no lleva datos personales ni credenciales de gestión — nunca depende
+// del email ni de ningún secreto de servidor, así que sigue siendo
+// permanente aunque cambie cualquier secreto de la app.
 import { SOCIAL_KEYS, THEME_TOKENS, sanitizeDesign, computeLogoLayout } from '../_shared/business.js';
 import { getPlanStatus } from '../_shared/plan-access.js';
 

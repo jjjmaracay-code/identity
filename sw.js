@@ -1,3 +1,13 @@
+// v18: corrige que rotar BUSINESS_ID_SECRET dejara huérfanas las
+// tarjetas ya publicadas (ese secreto se elimina por completo — el id
+// vuelve a ser aleatorio, permanente, localizado vía un índice interno
+// 'bizowner:'+email que no depende de ningún secreto). Añade control de
+// concurrencia optimista (`version`, token opaco) para que una
+// actualización/despublicación/reactivación en vuelo desde una pestaña
+// no pise a ciegas lo que el usuario acaba de hacer en otra. Sube la
+// versión por el cambio de contenido real en business.js y una clave
+// nueva (index.business.version_conflict_toast) en los 5 diccionarios.
+//
 // v17: corrige tres detalles de la fase anterior sin cambiar
 // funcionalidad: (1) el tema claro ya no lleva ningún verde de acento
 // (era un resto sin querer, ver instrucción "fondo blanco y tipografía
@@ -95,7 +105,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v17';
+const CACHE_NAME = 'identity-v18';
 const CACHE_URLS = [
   './index.html',
   './register.html',

@@ -179,38 +179,32 @@ export async function authenticateOwner(env, email, token) {
   return { ok: true, emailKey, plan: status.plan, bloqueado: status.bloqueado, esPago: status.paidActive };
 }
 
-// Identificador público opaco, DETERMINISTA a partir del email de la
-// cuenta (HMAC-SHA256 con un secreto que solo conoce el servidor,
-// env.BUSINESS_ID_SECRET — ver INFORME de entrega para cómo generarlo y
-// configurarlo). No es reversible: nadie puede recuperar el email a
-// partir del id sin el secreto, así que sigue sin llevar datos
-// personales (ver instrucción).
+// Identificador público opaco: aleatorio (crypto.randomUUID, 122 bits de
+// entropía, no adivinable), PERMANENTE una vez creado, sin depender de
+// ningún secreto de servidor. La propiedad se resuelve buscando este id
+// a través de 'bizowner:'+emailKey — una clave KV interna (nunca
+// expuesta al visitante, nunca parte de la URL pública) que tampoco
+// depende de ningún secreto.
 //
-// El diseño anterior generaba un id ALEATORIO en el primer publish y lo
-// indexaba en 'bizowner:'+emailKey. Bajo dos publicaciones "primera vez"
-// verdaderamente simultáneas de la misma cuenta (doble toque en mala
-// conexión, dos pestañas, un reintento que llega a la vez que el
-// original) existía una ventana de carrera real: ambas podían leer
-// 'bizowner:'+emailKey como inexistente antes de que ninguna lo hubiera
-// escrito, generar dos ids distintos y dejar una tarjeta huérfana
-// publicada para siempre, inalcanzable desde business-unpublish/
-// -reactivate/-fetch (que solo conocen el id "ganador"). Derivar el id
-// sin ningún paso de lectura-antes-de-escribir elimina esa ventana por
-// construcción: dos peticiones concurrentes calculan siempre el MISMO
-// id y acaban escribiendo el mismo registro (última escritura gana,
-// nunca dos registros). Esto también hace innecesario el índice
-// 'bizowner:' — ver business-publish.js/-unpublish.js/-reactivate.js/
-// -fetch.js.
-export async function deriveBusinessId(env, emailKey) {
-  const secret = env.BUSINESS_ID_SECRET;
-  if (!secret) throw new Error('falta_configurar_BUSINESS_ID_SECRET');
-  const key = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('identifly-business:' + emailKey));
-  const hex = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, '0')).join('');
-  return hex.slice(0, 32); // 128 bits — misma longitud que el UUID-sin-guiones anterior
+// Una revisión anterior derivaba el id con HMAC-SHA256(email) usando un
+// secreto de servidor (BUSINESS_ID_SECRET) precisamente para evitar la
+// ventana de carrera en la primera publicación (ver
+// business-publish.js). Eso tenía un defecto real y más grave: si ese
+// secreto se rotaba alguna vez, el id calculado para cada cuenta
+// cambiaba, dejando TODAS las tarjetas ya publicadas huérfanas para la
+// aplicación (el propietario ya no podría recuperarlas/actualizarlas/
+// despublicarlas, aunque el registro siguiera existiendo en KV bajo su
+// id antiguo). Un id aleatorio + índice estable nunca tiene ese
+// problema: no hay ningún secreto del que depender ni que rotar. La
+// carrera de la primera publicación se resuelve ahora en
+// business-publish.js con una reconciliación de lectura-tras-escritura
+// (ver ese archivo) en vez de eliminarla por construcción — ver el
+// INFORME de entrega para el análisis de esa alternativa y sus límites
+// reales con solo KV disponible.
+export const OWNER_INDEX_PREFIX = 'bizowner:';
+
+export function generateBusinessId() {
+  return crypto.randomUUID().replace(/-/g, '');
 }
 
 export function isHttpUrl(str, maxLen) {

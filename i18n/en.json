@@ -639,5 +639,6 @@
   "index.business.field_gradient_intensity": "Fade intensity",
   "index.business.pres_direct_desc": "Your logo directly on the card background.",
   "index.business.pres_framed_desc": "A soft backing to make your logo stand out.",
-  "index.business.pres_integrated_desc": "A gradient outline that softens the transition."
+  "index.business.pres_integrated_desc": "A gradient outline that softens the transition.",
+  "index.business.version_conflict_toast": "This card changed on another device or tab in the meantime. Please try again."
 }

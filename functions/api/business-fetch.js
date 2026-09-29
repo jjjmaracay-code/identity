@@ -5,7 +5,7 @@
 // "Acceso de pago inactivo" sin otra llamada). No requiere plan de pago
 // vigente: leer el propio estado siempre debe ser posible, incluso con el
 // acceso caducado.
-import { authenticateOwner, deriveBusinessId, jsonResponse } from '../_shared/business.js';
+import { authenticateOwner, jsonResponse, OWNER_INDEX_PREFIX } from '../_shared/business.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -18,9 +18,8 @@ export async function onRequestPost(context) {
 
   const access = { plan: auth.plan, bloqueado: auth.bloqueado, esPago: auth.esPago };
 
-  let id;
-  try { id = await deriveBusinessId(env, auth.emailKey); }
-  catch (_) { return jsonResponse({ ok: false, error: 'configuracion_incompleta' }, 500); }
+  const id = await env.BUSINESS_KV.get(OWNER_INDEX_PREFIX + auth.emailKey);
+  if (!id) return jsonResponse({ ok: true, exists: false, access });
 
   const raw = await env.BUSINESS_KV.get('biz:' + id);
   if (!raw) return jsonResponse({ ok: true, exists: false, access });

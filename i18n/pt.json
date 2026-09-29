@@ -639,5 +639,6 @@
   "index.business.field_gradient_intensity": "Intensidade da transição",
   "index.business.pres_direct_desc": "Seu logo diretamente sobre o fundo do cartão.",
   "index.business.pres_framed_desc": "Uma base suave para destacar seu logo.",
-  "index.business.pres_integrated_desc": "Um contorno degradê que suaviza a transição."
+  "index.business.pres_integrated_desc": "Um contorno degradê que suaviza a transição.",
+  "index.business.version_conflict_toast": "Este cartão mudou em outro dispositivo ou aba nesse meio tempo. Tente novamente."
 }
