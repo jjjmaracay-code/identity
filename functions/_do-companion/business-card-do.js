@@ -5,6 +5,21 @@
 // binding entre scripts (ver wrangler.toml de este worker y el INFORME
 // de entrega para los pasos de configuración de Preview/Producción).
 //
+// POR QUÉ VIVE DENTRO DE functions/ (functions/_do-companion/) Y NO EN
+// UNA CARPETA APARTE DEL REPO: Cloudflare Pages nunca sirve el contenido
+// de functions/ como archivo estático -- es la propia razón de ser de esa
+// carpeta (de lo contrario, cualquier función de este proyecto,
+// incluidas las que leen secretos, sería descargable como texto plano
+// por cualquier visitante). Es una garantía estructural del producto,
+// no una función opcional que haya que activar ni verificar aparte.
+// Además, el prefijo `_` en `_do-companion` excluye también esta
+// subcarpeta del ENRUTADO de Functions (no se convierte en una ruta
+// pública tipo /_do-companion/...), igual que ya hace functions/_shared/.
+// Este Worker se despliega POR SEPARADO con `wrangler deploy` desde
+// dentro de esta carpeta (nunca como parte del build de Pages) -- ver el
+// wrangler.toml de aquí al lado y el INFORME de entrega para el orden
+// exacto de despliegue.
+//
 // QUÉ PROTEGE REALMENTE LA PLATAFORMA (y qué no):
 // Dentro de una MISMA instancia de Durable Object, las operaciones sobre
 // this.state.storage están protegidas por las "input gates" de
@@ -30,7 +45,7 @@
 // nuestro propio KV -- una llamada rápida y acotada, no una operación
 // externa de duración impredecible -- para no bloquear la instancia de
 // forma indiscriminada.
-import { generateBusinessId, PUBLIC_ID_INDEX_PREFIX } from '../../../functions/_shared/business.js';
+import { generateBusinessId, PUBLIC_ID_INDEX_PREFIX } from '../_shared/business.js';
 
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });

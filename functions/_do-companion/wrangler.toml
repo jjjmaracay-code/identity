@@ -14,8 +14,14 @@
 # `workers_dev = false`: este Worker no necesita ni debe tener una URL
 # pública propia (*.workers.dev) -- todo el tráfico real llega a través
 # del binding desde el proyecto Pages, nunca por una petición HTTP
-# directa a este Worker (ver src/business-card-do.js, cuyo export
-# default ya responde 404 a cualquier tráfico directo como segunda capa).
+# directa a este Worker (ver business-card-do.js, cuyo export default ya
+# responde 404 a cualquier tráfico directo como segunda capa).
+#
+# Este archivo vive dentro de functions/_do-companion/ (excluido del
+# contenido estático y del enrutado de Pages por construcción, ver la
+# cabecera de business-card-do.js) pero se DESPLIEGA por separado, nunca
+# como parte del build de Pages: `wrangler deploy` ejecutado DESDE esta
+# carpeta empaqueta únicamente este directorio como su propio Worker.
 #
 # Antes de desplegar, sustituir el `id` de BUSINESS_KV de cada entorno
 # por el id real del namespace KV correspondiente (Production/Preview)
@@ -24,7 +30,7 @@
 # id->propietario ('bizid:'), que la tarjeta pública (dentro del
 # proyecto Pages) consulta del mismo sitio.
 name = "identifly-business-do"
-main = "src/business-card-do.js"
+main = "business-card-do.js"
 compatibility_date = "2024-01-01"
 workers_dev = false
 

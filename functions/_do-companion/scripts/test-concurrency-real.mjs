@@ -17,7 +17,7 @@
 // relativas a la raíz del repo (C:\Users\N6506\Desktop\IA\IDENTIFLY).
 //
 // Ventana 1 — arranca el Worker que aloja el Durable Object:
-//   cd workers/business-do
+//   cd functions/_do-companion
 //   npx wrangler@4.143.0 dev --port 8793
 //   (deja esta ventana abierta; no hace falta ver nada especial aquí)
 //
@@ -30,7 +30,7 @@
 //     env.BUSINESS_DO (BusinessCardDO, defined in identifly-business-do)   Durable Object   local [connected]
 //   Si dice [not connected], la Ventana 1 no está corriendo o el nombre
 //   "identifly-business-do" no coincide con el `name` de
-//   workers/business-do/wrangler.toml -- no continúes hasta ver [connected].
+//   functions/_do-companion/wrangler.toml -- no continúes hasta ver [connected].
 //
 // Ventana 3 — siembra una cuenta de prueba en el MISMO KV local que ve
 // la Ventana 2 (comando verificado: escribe y relee correctamente contra
@@ -49,7 +49,7 @@
 //   npx wrangler@4.143.0 kv key put --config __tmp-seed.toml --binding PLANS_KV --local `
 //     "concurrencia@example.com" '{"plan":"lifetime"}'
 //
-//   node workers/business-do/scripts/test-concurrency-real.mjs `
+//   node functions/_do-companion/scripts/test-concurrency-real.mjs `
 //     http://127.0.0.1:8794 concurrencia@example.com testtoken123
 //
 //   # Limpieza al terminar (no dejar datos de prueba ni el toml temporal):
