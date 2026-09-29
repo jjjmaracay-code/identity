@@ -624,5 +624,17 @@
   "index.business.validation_nombre_invalido": "Enter a display name before publishing.",
   "index.business.validation_url_invalida": "Check your links: one of them isn't a valid URL (http:// or https://).",
   "index.business.validation_email_invalido": "The contact email isn't valid.",
-  "index.business.validation_accion_sin_destino": "The primary action needs its destination configured (phone/email, or the matching link)."
+  "index.business.validation_accion_sin_destino": "The primary action needs its destination configured (phone/email, or the matching link).",
+
+  "index.business.section_design": "Card design",
+  "index.business.design_help": "Two themes and three ways to show your logo. No custom colors or fonts — the public preview uses exactly this.",
+  "index.business.theme_dark": "Dark IDENTIFLY",
+  "index.business.theme_light": "Light",
+  "index.business.field_logo_presentation": "Logo presentation",
+  "index.business.pres_direct": "Direct",
+  "index.business.pres_framed": "With backing",
+  "index.business.pres_integrated": "Integrated",
+  "index.business.field_logo_size": "Logo size",
+  "index.business.field_logo_padding": "Space around",
+  "index.business.field_gradient_intensity": "Fade intensity"
 }

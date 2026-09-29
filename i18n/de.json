@@ -624,5 +624,17 @@
   "index.business.validation_nombre_invalido": "Geben Sie vor der Veröffentlichung einen Anzeigenamen ein.",
   "index.business.validation_url_invalida": "Überprüfen Sie Ihre Links: Einer davon ist keine gültige URL (http:// oder https://).",
   "index.business.validation_email_invalido": "Die Kontakt-E-Mail ist ungültig.",
-  "index.business.validation_accion_sin_destino": "Für die Hauptaktion muss ein Ziel konfiguriert sein (Telefon/E-Mail oder der entsprechende Link)."
+  "index.business.validation_accion_sin_destino": "Für die Hauptaktion muss ein Ziel konfiguriert sein (Telefon/E-Mail oder der entsprechende Link).",
+
+  "index.business.section_design": "Kartendesign",
+  "index.business.design_help": "Zwei Designs und drei Arten, Ihr Logo zu zeigen. Keine eigenen Farben oder Schriftarten — die öffentliche Vorschau verwendet genau das.",
+  "index.business.theme_dark": "Dunkel IDENTIFLY",
+  "index.business.theme_light": "Hell",
+  "index.business.field_logo_presentation": "Logo-Darstellung",
+  "index.business.pres_direct": "Direkt",
+  "index.business.pres_framed": "Mit Untergrund",
+  "index.business.pres_integrated": "Integriert",
+  "index.business.field_logo_size": "Logogröße",
+  "index.business.field_logo_padding": "Abstand ringsum",
+  "index.business.field_gradient_intensity": "Übergangsintensität"
 }

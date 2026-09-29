@@ -18,6 +18,103 @@ export const MODALITIES = ['professional', 'freelance', 'company'];
 export const SOCIAL_KEYS = ['instagram', 'facebook', 'linkedin', 'twitter', 'youtube', 'tiktok', 'whatsapp'];
 export const PRIMARY_ACTIONS = ['contact', 'quote', 'booking', 'catalog'];
 
+// =====================================================================
+// TEMAS Y PRESENTACIÓN DEL LOGO — dos temas exclusivos y tres
+// presentaciones de logo, sin personalización libre de color/tipografía
+// (ver instrucción). Estos tokens y fórmulas los importa DIRECTAMENTE
+// functions/c/[id].js (misma runtime de servidor — comparten código de
+// verdad). El cliente (business.js) no puede importar módulos de
+// functions/ al ser un <script> clásico de navegador, así que duplica
+// estos mismos valores con un comentario cruzado a este archivo — igual
+// patrón que ya usa LIMITS.
+export const CARD_THEMES = ['dark', 'light'];
+export const LOGO_PRESENTATIONS = ['direct', 'framed', 'integrated'];
+
+// "Oscuro IDENTIFLY": fondo negro, texto claro, acento verde de la app
+// con neón SUAVE reservado a títulos/controles (nunca en párrafos
+// largos). "Claro": fondo blanco, texto negro, profundidad con sombras
+// suaves en vez de neón (el verde de acento se oscurece para mantener
+// contraste legible sobre blanco).
+export const THEME_TOKENS = {
+  dark: {
+    bg: '#0a0a0a', text: '#e8e8e8', muted: 'rgba(255,255,255,0.45)',
+    accent: '#AAFF00', accentGlow: '0 0 6px rgba(170,255,0,0.45)',
+    surface: 'rgba(255,255,255,0.07)', surfaceBorder: 'rgba(255,255,255,0.14)',
+    shadow: '0 6px 16px -6px rgba(0,0,0,0.55)', hairline: 'rgba(255,255,255,0.08)',
+    accentSoftBg: 'rgba(170,255,0,0.05)', accentBorder: 'rgba(170,255,0,0.3)',
+    mainActionBg: 'linear-gradient(180deg, rgba(170,255,0,0.16), rgba(8,8,8,0.5) 65%, rgba(0,0,0,0.55))',
+    mainActionColor: '#AAFF00', mainActionBorder: '1px solid rgba(170,255,0,0.5)',
+    mainActionShadow: 'inset 0 1px 0 rgba(170,255,0,0.5), 0 8px 20px -8px rgba(0,0,0,0.6)',
+  },
+  light: {
+    bg: '#ffffff', text: '#1a1a1a', muted: 'rgba(0,0,0,0.5)',
+    accent: '#2f6600', accentGlow: 'none',
+    surface: '#f2f2f2', surfaceBorder: 'rgba(0,0,0,0.08)',
+    shadow: '0 4px 14px -4px rgba(0,0,0,0.18)', hairline: 'rgba(0,0,0,0.08)',
+    accentSoftBg: 'rgba(47,102,0,0.06)', accentBorder: 'rgba(47,102,0,0.35)',
+    mainActionBg: '#2f6600',
+    mainActionColor: '#ffffff', mainActionBorder: 'none',
+    mainActionShadow: '0 4px 14px -4px rgba(0,0,0,0.25)',
+  },
+};
+
+// Límites de los tres únicos ajustes permitidos (tamaño, espacio,
+// intensidad de la transición) — evitan desbordamientos o que el logo
+// desplace excesivamente el resto del contenido.
+export const DESIGN_LIMITS = {
+  logoSizeMin: 60, logoSizeMax: 140, logoSizeDefault: 100,
+  logoPaddingMin: 0, logoPaddingMax: 100, logoPaddingDefault: 40,
+  gradientIntensityMin: 0, gradientIntensityMax: 100, gradientIntensityDefault: 60,
+};
+
+export const DEFAULT_DESIGN = {
+  theme: 'dark', // predeterminado cuando no hay elección guardada (ver instrucción)
+  logoPresentation: 'direct',
+  logoSize: DESIGN_LIMITS.logoSizeDefault,
+  logoPadding: DESIGN_LIMITS.logoPaddingDefault,
+  gradientIntensity: DESIGN_LIMITS.gradientIntensityDefault,
+};
+
+function clampDesignNum(v, min, max, def) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return def;
+  return Math.min(max, Math.max(min, Math.round(n)));
+}
+
+// Nunca acepta CSS/HTML ni valores fuera de la lista cerrada — cualquier
+// valor no reconocido o fuera de rango se sustituye por el predeterminado
+// (nunca se rechaza toda la publicación por esto: son preferencias
+// cosméticas, no datos de contacto). Un registro/borrador SIN `design`
+// (creado antes de esta función) recibe DEFAULT_DESIGN completo aquí
+// mismo, en el momento de leer/validar — nunca se reescribe nada en el
+// almacenamiento hasta que el propio usuario cambie algo y publique.
+export function sanitizeDesign(raw) {
+  const d = raw && typeof raw === 'object' ? raw : {};
+  return {
+    theme: CARD_THEMES.includes(d.theme) ? d.theme : DEFAULT_DESIGN.theme,
+    logoPresentation: LOGO_PRESENTATIONS.includes(d.logoPresentation) ? d.logoPresentation : DEFAULT_DESIGN.logoPresentation,
+    logoSize: clampDesignNum(d.logoSize, DESIGN_LIMITS.logoSizeMin, DESIGN_LIMITS.logoSizeMax, DESIGN_LIMITS.logoSizeDefault),
+    logoPadding: clampDesignNum(d.logoPadding, DESIGN_LIMITS.logoPaddingMin, DESIGN_LIMITS.logoPaddingMax, DESIGN_LIMITS.logoPaddingDefault),
+    gradientIntensity: clampDesignNum(d.gradientIntensity, DESIGN_LIMITS.gradientIntensityMin, DESIGN_LIMITS.gradientIntensityMax, DESIGN_LIMITS.gradientIntensityDefault),
+  };
+}
+
+// Geometría del bloque de logo a partir de las preferencias ya
+// saneadas. blockSize es el tamaño del propio logo; outerSize (solo
+// relevante en 'integrated') es el área donde respira el degradado
+// alrededor — SIEMPRE mayor o igual que blockSize, nunca al revés, así
+// el degradado nunca puede recortar ni tapar el logo. innerStopPct
+// controla cuánto de ese área extra es "sólido" antes de empezar a
+// desvanecer (más intensidad = transición más amplia y gradual).
+export function computeLogoLayout(design) {
+  const blockBase = 96; // px, tamaño de referencia al 100%
+  const blockSize = Math.round(blockBase * design.logoSize / 100); // 58..134
+  const paddingPx = Math.round(4 + (design.logoPadding / 100) * 20); // 4..24
+  const outerSize = design.logoPresentation === 'integrated' ? Math.round(blockSize * 1.6) : blockSize;
+  const innerStopPct = Math.round(45 - (design.gradientIntensity / 100) * 35); // 10..45
+  return { blockSize, paddingPx, outerSize, innerStopPct };
+}
+
 // Límites de texto/imagen — se aplican EXACTAMENTE igual en cliente
 // (business.js) y aquí en servidor. El límite de imagen es bajo a
 // propósito: hoy no existe binding de almacenamiento de objetos (R2) en
@@ -247,6 +344,7 @@ export function validateBusinessPayload(raw) {
     social,
     gallery,
     primaryAction,
+    design: sanitizeDesign(raw.design),
   };
 
   const size = new TextEncoder().encode(JSON.stringify(data)).length;

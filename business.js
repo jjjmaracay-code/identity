@@ -33,6 +33,75 @@
     imageBytesMax: 260 * 1024,
   };
 
+  // Temas y presentación del logo — MISMOS valores y fórmulas que
+  // functions/_shared/business.js (CARD_THEMES/LOGO_PRESENTATIONS/
+  // THEME_TOKENS/DESIGN_LIMITS/computeLogoLayout). business.js es un
+  // <script> clásico de navegador y no puede importar ese módulo, así
+  // que se duplican aquí — si se cambian allí, cambiar también aquí.
+  const CARD_THEMES = ['dark', 'light'];
+  const LOGO_PRESENTATIONS = ['direct', 'framed', 'integrated'];
+  const DESIGN_LIMITS = {
+    logoSizeMin: 60, logoSizeMax: 140, logoSizeDefault: 100,
+    logoPaddingMin: 0, logoPaddingMax: 100, logoPaddingDefault: 40,
+    gradientIntensityMin: 0, gradientIntensityMax: 100, gradientIntensityDefault: 60,
+  };
+  const DEFAULT_DESIGN = {
+    theme: 'dark', logoPresentation: 'direct',
+    logoSize: DESIGN_LIMITS.logoSizeDefault, logoPadding: DESIGN_LIMITS.logoPaddingDefault,
+    gradientIntensity: DESIGN_LIMITS.gradientIntensityDefault,
+  };
+
+  function clampDesignNum(v, min, max, def) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return def;
+    return Math.min(max, Math.max(min, Math.round(n)));
+  }
+  // Nunca acepta CSS/HTML: cualquier valor desconocido/fuera de rango cae
+  // al predeterminado — un borrador/registro sin `design` (creado antes de
+  // esta función) recibe DEFAULT_DESIGN completo aquí mismo, sin reescribir
+  // nada hasta que el usuario cambie algo y guarde/publique.
+  function sanitizeDesignClient(raw) {
+    const d = raw && typeof raw === 'object' ? raw : {};
+    return {
+      theme: CARD_THEMES.includes(d.theme) ? d.theme : DEFAULT_DESIGN.theme,
+      logoPresentation: LOGO_PRESENTATIONS.includes(d.logoPresentation) ? d.logoPresentation : DEFAULT_DESIGN.logoPresentation,
+      logoSize: clampDesignNum(d.logoSize, DESIGN_LIMITS.logoSizeMin, DESIGN_LIMITS.logoSizeMax, DESIGN_LIMITS.logoSizeDefault),
+      logoPadding: clampDesignNum(d.logoPadding, DESIGN_LIMITS.logoPaddingMin, DESIGN_LIMITS.logoPaddingMax, DESIGN_LIMITS.logoPaddingDefault),
+      gradientIntensity: clampDesignNum(d.gradientIntensity, DESIGN_LIMITS.gradientIntensityMin, DESIGN_LIMITS.gradientIntensityMax, DESIGN_LIMITS.gradientIntensityDefault),
+    };
+  }
+  function computeLogoLayoutClient(design) {
+    const blockBase = 96;
+    const blockSize = Math.round(blockBase * design.logoSize / 100);
+    const paddingPx = Math.round(4 + (design.logoPadding / 100) * 20);
+    const outerSize = design.logoPresentation === 'integrated' ? Math.round(blockSize * 1.6) : blockSize;
+    const innerStopPct = Math.round(45 - (design.gradientIntensity / 100) * 35);
+    return { blockSize, paddingPx, outerSize, innerStopPct };
+  }
+  // Construye el bloque del logo (misma lógica de las tres presentaciones
+  // que functions/c/[id].js renderLogoBlock — implementación independiente
+  // pero con las mismas reglas, ver esa función). `small` reduce todo a
+  // escala para las miniaturas del selector, sin cambiar las proporciones
+  // relativas entre bloque/degradado/padding. Sin logo -> cadena vacía
+  // (ningún bloque, ver instrucción "oculta su bloque sin dejar un hueco").
+  function renderLogoBlockHtml(logoSrc, design, opts) {
+    if (!logoSrc) return '';
+    const scale = (opts && opts.scale) || 1;
+    const { blockSize: bs, paddingPx: pp, outerSize: os, innerStopPct } = computeLogoLayoutClient(design);
+    const blockSize = Math.round(bs * scale), paddingPx = Math.round(pp * scale), outerSize = Math.round(os * scale);
+    const imgTag = `<img src="${escapeHtml(logoSrc)}" alt="" style="width:100%;height:100%;object-fit:contain;display:block;">`;
+    if (design.logoPresentation === 'framed') {
+      const radius = Math.round(blockSize * 0.2);
+      return `<div class="biz-pv-logo-wrap" style="width:${blockSize}px;height:${blockSize}px;padding:${paddingPx}px;box-sizing:border-box;background:var(--pv-surface);border:1px solid var(--pv-surface-border);border-radius:${radius}px;box-shadow:var(--pv-shadow);">${imgTag}</div>`;
+    }
+    if (design.logoPresentation === 'integrated') {
+      return `<div class="biz-pv-logo-wrap" style="width:${outerSize}px;height:${outerSize}px;background:radial-gradient(circle, var(--pv-surface) ${innerStopPct}%, transparent 100%);">
+        <div style="width:${blockSize}px;height:${blockSize}px;">${imgTag}</div>
+      </div>`;
+    }
+    return `<div class="biz-pv-logo-wrap" style="width:${blockSize}px;height:${blockSize}px;">${imgTag}</div>`;
+  }
+
   function tf(key, fallback) {
     if (typeof window.tOrFallback === 'function') return window.tOrFallback(key, fallback);
     if (typeof window.t === 'function') { const v = window.t(key); return v === key ? fallback : v; }
@@ -67,6 +136,7 @@
       services: [], serviceArea: '', address: '', hours: '', phone: '', email: '',
       contactPerson: '', contactRole: '', web: '', catalogUrl: '', bookingUrl: '', quoteUrl: '',
       social: {}, gallery: [], primaryAction: 'contact',
+      design: { ...DEFAULT_DESIGN },
     };
   }
 
@@ -256,6 +326,11 @@
     // Cambiar de modalidad adapta la presentación y conserva el borrador
     // (instrucción) — nunca se crea un segundo borrador.
     draft.modality = modality;
+    // Compatibilidad con borradores guardados antes de que existiera
+    // `design` (tema/presentación del logo): se aplican los
+    // predeterminados aquí mismo, en memoria, sin reescribir el borrador
+    // guardado hasta que el usuario cambie algo y pulse Guardar/Publicar.
+    draft.design = sanitizeDesignClient(draft.design);
     workingDraft = JSON.parse(JSON.stringify(draft));
     savedSnapshotJson = JSON.stringify(loadDraft() ? { ...loadDraft(), modality } : draft);
     openBusinessEditor();
@@ -289,9 +364,9 @@
   }
 
   const MODALITY_SECTION_ORDER = {
-    professional: ['identity', 'presentation', 'services', 'contact', 'links', 'gallery', 'action'],
-    freelance: ['identity', 'presentation', 'services', 'area', 'contact', 'links', 'gallery', 'action'],
-    company: ['identity', 'presentation', 'services', 'address', 'contact', 'links', 'gallery', 'action'],
+    professional: ['identity', 'design', 'presentation', 'services', 'contact', 'links', 'gallery', 'action'],
+    freelance: ['identity', 'design', 'presentation', 'services', 'area', 'contact', 'links', 'gallery', 'action'],
+    company: ['identity', 'design', 'presentation', 'services', 'address', 'contact', 'links', 'gallery', 'action'],
   };
 
   function renderEditorForm() {
@@ -309,6 +384,7 @@
 
     const sections = {
       identity: sectionIdentity(),
+      design: sectionDesign(),
       presentation: sectionPresentation(),
       services: sectionServices(),
       area: sectionAreaHours(),
@@ -343,6 +419,67 @@
         <input type="file" id="biz-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none">
       </div>
       ${field('index.business.field_display_name', 'Nombre visible o comercial', `<input type="text" id="biz-displayName" maxlength="${LIMITS.displayName}" value="${escapeHtml(d.displayName)}">`)}
+    </div>`;
+  }
+
+  // SVG neutro (cuadrado con una "L" discreta) usado solo en las
+  // miniaturas de presentación cuando todavía no hay logo subido — así el
+  // usuario puede comparar las tres presentaciones desde el principio,
+  // sin depender de subir antes una imagen. En cuanto hay logo, las
+  // miniaturas usan el logo real (más fiel, ver instrucción).
+  const LOGO_PLACEHOLDER_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%23888'/><text x='50' y='66' font-family='sans-serif' font-size='46' font-weight='700' text-anchor='middle' fill='white'>L</text></svg>";
+
+  // Dos temas EXCLUSIVOS y tres presentaciones del logo, con miniaturas
+  // reales (usan el propio logo del usuario cuando existe, ver
+  // instrucción "prioriza que el usuario pueda comparar las tres
+  // opciones visualmente"). Sin selector de color libre: el color del
+  // soporte lo decide el tema (var(--pv-surface)), nunca un valor
+  // arbitrario del usuario.
+  function sectionDesign() {
+    const d = workingDraft;
+    const design = d.design;
+    const logoForPreview = d.logo || LOGO_PLACEHOLDER_SVG;
+
+    const themeThumb = (id, label) => `<button type="button" class="biz-theme-thumb${id === 'light' ? ' light-sample' : ''}${design.theme === id ? ' selected' : ''}" data-theme-choice="${id}">
+        <div class="biz-theme-thumb-title">Aa</div>
+        <div class="biz-theme-thumb-line"></div>
+        <div class="biz-theme-thumb-line" style="width:45%"></div>
+        <div class="biz-theme-thumb-label">${escapeHtml(label)}</div>
+      </button>`;
+
+    const presThumb = (id, label) => `<button type="button" class="biz-logopres-thumb${design.logoPresentation === id ? ' selected' : ''}" data-pres-choice="${id}">
+        <div class="biz-pv-card biz-logopres-preview" data-theme="${design.theme}">${renderLogoBlockHtml(logoForPreview, { ...design, logoPresentation: id }, { scale: 0.5 })}</div>
+        <div class="biz-logopres-label">${escapeHtml(label)}</div>
+      </button>`;
+
+    return `<div class="biz-section">
+      <div class="biz-section-title" data-i18n="index.business.section_design">${tf('index.business.section_design', 'Diseño de la tarjeta')}</div>
+      <div class="biz-help" style="margin-bottom:10px;" data-i18n="index.business.design_help">${tf('index.business.design_help', 'Dos temas y tres formas de mostrar tu logo. Sin colores ni tipografías personalizadas — la vista previa pública usa exactamente esto.')}</div>
+
+      <div class="biz-theme-grid" id="biz-theme-grid">
+        ${themeThumb('dark', tf('index.business.theme_dark', 'Oscuro IDENTIFLY'))}
+        ${themeThumb('light', tf('index.business.theme_light', 'Claro'))}
+      </div>
+
+      <div class="biz-field"><label data-i18n="index.business.field_logo_presentation">${tf('index.business.field_logo_presentation', 'Presentación del logo')}</label></div>
+      <div class="biz-logopres-grid" id="biz-logopres-grid">
+        ${presThumb('direct', tf('index.business.pres_direct', 'Directo'))}
+        ${presThumb('framed', tf('index.business.pres_framed', 'Con soporte'))}
+        ${presThumb('integrated', tf('index.business.pres_integrated', 'Integrado'))}
+      </div>
+
+      <div class="biz-slider-row">
+        <label><span data-i18n="index.business.field_logo_size">${tf('index.business.field_logo_size', 'Tamaño del logo')}</span><span>${design.logoSize}%</span></label>
+        <input type="range" id="biz-logoSize" min="${DESIGN_LIMITS.logoSizeMin}" max="${DESIGN_LIMITS.logoSizeMax}" value="${design.logoSize}">
+      </div>
+      <div class="biz-slider-row">
+        <label><span data-i18n="index.business.field_logo_padding">${tf('index.business.field_logo_padding', 'Espacio alrededor')}</span><span>${design.logoPadding}%</span></label>
+        <input type="range" id="biz-logoPadding" min="${DESIGN_LIMITS.logoPaddingMin}" max="${DESIGN_LIMITS.logoPaddingMax}" value="${design.logoPadding}">
+      </div>
+      <div class="biz-slider-row${design.logoPresentation === 'integrated' ? '' : ' disabled'}" id="biz-gradient-row">
+        <label><span data-i18n="index.business.field_gradient_intensity">${tf('index.business.field_gradient_intensity', 'Intensidad de la transición')}</span><span>${design.gradientIntensity}%</span></label>
+        <input type="range" id="biz-gradientIntensity" min="${DESIGN_LIMITS.gradientIntensityMin}" max="${DESIGN_LIMITS.gradientIntensityMax}" value="${design.gradientIntensity}" ${design.logoPresentation === 'integrated' ? '' : 'disabled'}>
+      </div>
     </div>`;
   }
 
@@ -464,6 +601,45 @@
     container.querySelector('#biz-primaryAction')?.addEventListener('change', (e) => {
       workingDraft.primaryAction = e.target.value; renderPublishFooter();
     });
+
+    // Diseño: tema, presentación del logo y los tres únicos ajustes
+    // numéricos. Cualquier cambio aquí re-renderiza el formulario entero
+    // (mismo patrón que servicios/galería) para que las miniaturas y el
+    // slider de intensidad (solo activo en "Integrado") se actualicen de
+    // inmediato, sin ninguna petición al servidor.
+    container.querySelectorAll('[data-theme-choice]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        workingDraft.design.theme = btn.dataset.themeChoice;
+        renderEditorForm();
+      });
+    });
+    container.querySelectorAll('[data-pres-choice]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        workingDraft.design.logoPresentation = btn.dataset.presChoice;
+        renderEditorForm();
+      });
+    });
+    // 'input' (mientras se arrastra): solo actualiza el número visible,
+    // sin re-renderizar -- reconstruir el formulario entero en cada
+    // fotograma del arrastre destruiría el propio <input type="range">
+    // a medio gesto (pierde el "agarre" del pulgar). 'change' (al soltar):
+    // ahí sí se aplica de verdad y se refresca la miniatura -- sigue
+    // siendo inmediato (sin red) y evita el parpadeo/salto del slider.
+    const wireSlider = (id, key, limits) => {
+      const el = container.querySelector('#' + id);
+      if (!el) return;
+      el.addEventListener('input', (e) => {
+        const label = el.closest('.biz-slider-row')?.querySelector('label span:last-child');
+        if (label) label.textContent = e.target.value + '%';
+      });
+      el.addEventListener('change', (e) => {
+        workingDraft.design[key] = clampDesignNum(e.target.value, limits.min, limits.max, limits.def);
+        renderEditorForm();
+      });
+    };
+    wireSlider('biz-logoSize', 'logoSize', { min: DESIGN_LIMITS.logoSizeMin, max: DESIGN_LIMITS.logoSizeMax, def: DESIGN_LIMITS.logoSizeDefault });
+    wireSlider('biz-logoPadding', 'logoPadding', { min: DESIGN_LIMITS.logoPaddingMin, max: DESIGN_LIMITS.logoPaddingMax, def: DESIGN_LIMITS.logoPaddingDefault });
+    wireSlider('biz-gradientIntensity', 'gradientIntensity', { min: DESIGN_LIMITS.gradientIntensityMin, max: DESIGN_LIMITS.gradientIntensityMax, def: DESIGN_LIMITS.gradientIntensityDefault });
 
     container.querySelectorAll('.biz-social-input').forEach((inp) => {
       inp.addEventListener('input', () => {
@@ -628,6 +804,7 @@
       social,
       gallery: d.gallery || [],
       primaryAction: d.primaryAction,
+      design: sanitizeDesignClient(d.design),
     };
   }
 
@@ -802,6 +979,7 @@
         contactPerson: r.contactPerson, contactRole: r.contactRole, web: r.web,
         catalogUrl: r.catalogUrl, bookingUrl: r.bookingUrl, quoteUrl: r.quoteUrl,
         social: r.social || {}, gallery: r.gallery || [], primaryAction: r.primaryAction,
+        design: sanitizeDesignClient(r.design), // recupera también la presentación (ver instrucción)
       };
       saveDraftToStorage(workingDraft);
       savedSnapshotJson = JSON.stringify(workingDraft);
@@ -873,9 +1051,10 @@
     const body = document.getElementById('business-preview-body');
     if (!body) return;
 
-    const logoHtml = payload.logo
-      ? `<img class="biz-pv-logo" src="${payload.logo}" alt="">`
-      : `<div class="biz-pv-logo biz-pv-logo-placeholder">${escapeHtml((payload.displayName || '?').charAt(0).toUpperCase())}</div>`;
+    // Sin logo: ningún bloque (ni marcador de posición) — ver instrucción
+    // "oculta su bloque sin dejar un hueco vacío".
+    const logoHtml = renderLogoBlockHtml(payload.logo, payload.design);
+    body.setAttribute('data-theme', payload.design.theme);
 
     const servicesHtml = payload.services.length
       ? `<div class="biz-pv-sec"><h3>${tf('index.business.section_services', 'Servicios')}</h3><ul class="biz-pv-services">${payload.services.map((s) => `<li>${escapeHtml(s)}</li>`).join('')}</ul></div>` : '';

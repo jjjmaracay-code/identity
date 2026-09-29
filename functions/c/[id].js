@@ -6,7 +6,7 @@
 // El id es opaco y no lleva datos personales ni credenciales de gestión
 // (ver functions/_shared/business.js: deriveBusinessId, HMAC-SHA256 sin
 // email en claro).
-import { SOCIAL_KEYS } from '../_shared/business.js';
+import { SOCIAL_KEYS, THEME_TOKENS, sanitizeDesign, computeLogoLayout } from '../_shared/business.js';
 import { getPlanStatus } from '../_shared/plan-access.js';
 
 function escapeHtml(str) {
@@ -80,6 +80,39 @@ function buildVCardPublic(r) {
   return vc;
 }
 
+// Tres presentaciones (ver instrucción, sección de temas y logo):
+//   - direct: la imagen tal cual sobre el fondo de la tarjeta, conserva
+//     su transparencia si la tiene. Nunca se le aplica ningún fondo
+//     propio, así que una imagen con transparencia real la muestra.
+//   - framed: superficie discreta (color del tema, no libre) con
+//     relieve suave (box-shadow) y bordes redondeados.
+//   - integrated: superficie cuyo borde exterior se desvanece con un
+//     degradado radial amplio hacia el fondo — el degradado vive
+//     ÚNICAMENTE en el contenedor exterior; la imagen se dibuja encima
+//     sin ningún filtro/blur/recorte, con su tamaño de siempre (nunca
+//     crece con el radio del degradado). Nunca se simula un halo de
+//     "fondo eliminado": una imagen con fondo opaco conserva ese fondo
+//     tal cual, sin blending ni máscaras.
+// Sin logo: no se renderiza ningún bloque (ni marcador de posición) —
+// no debe quedar un hueco reservado vacío (ver instrucción).
+function renderLogoBlock(r, design, theme) {
+  if (!r.logo) return '';
+  const { blockSize, paddingPx, outerSize, innerStopPct } = computeLogoLayout(design);
+  const imgTag = `<img src="${escapeAttr(r.logo)}" alt="${escapeAttr(r.displayName)}" style="width:100%;height:100%;object-fit:contain;display:block;">`;
+
+  if (design.logoPresentation === 'framed') {
+    const radius = Math.round(blockSize * 0.2);
+    return `<div class="logo-wrap" style="width:${blockSize}px;height:${blockSize}px;margin:0 auto ${paddingPx}px;padding:${paddingPx}px;box-sizing:border-box;background:${theme.surface};border:1px solid ${theme.surfaceBorder};border-radius:${radius}px;box-shadow:${theme.shadow};display:flex;align-items:center;justify-content:center;">${imgTag}</div>`;
+  }
+  if (design.logoPresentation === 'integrated') {
+    return `<div class="logo-wrap" style="width:${outerSize}px;height:${outerSize}px;margin:0 auto ${paddingPx}px;background:radial-gradient(circle, ${theme.surface} ${innerStopPct}%, transparent 100%);display:flex;align-items:center;justify-content:center;">
+      <div style="width:${blockSize}px;height:${blockSize}px;">${imgTag}</div>
+    </div>`;
+  }
+  // 'direct'
+  return `<div class="logo-wrap" style="width:${blockSize}px;height:${blockSize}px;margin:0 auto ${paddingPx}px;">${imgTag}</div>`;
+}
+
 export async function onRequestGet(context) {
   const { params, env } = context;
   const id = String(params.id || '').replace(/[^a-f0-9]/gi, '');
@@ -94,6 +127,12 @@ export async function onRequestGet(context) {
   if (!r.published) return paginaNoDisponible(404);
   const vigente = await accesoVigente(env, r.ownerEmailKey);
   if (!vigente) return paginaNoDisponible(404);
+
+  // sanitizeDesign() aplica los predeterminados a un registro que
+  // todavía no tuviera `design` (publicado antes de esta revisión) —
+  // nunca se reescribe el registro en KV solo por leerlo.
+  const design = sanitizeDesign(r.design);
+  const theme = THEME_TOKENS[design.theme];
 
   const vcardB64 = btoa(unescape(encodeURIComponent(buildVCardPublic(r))));
 
@@ -130,9 +169,7 @@ export async function onRequestGet(context) {
     ? `<a class="main-action" href="${escapeAttr(href)}" ${/^https?:/i.test(href) ? 'target="_blank" rel="noopener nofollow"' : ''}>${escapeHtml(ACTION_LABELS[r.primaryAction] || 'Contactar')}</a>`
     : '';
 
-  const logoHtml = r.logo
-    ? `<img class="logo" src="${escapeAttr(r.logo)}" alt="${escapeAttr(r.displayName)}">`
-    : `<div class="logo logo-placeholder" aria-hidden="true">${escapeHtml((r.displayName || '?').trim().charAt(0).toUpperCase())}</div>`;
+  const logoHtml = renderLogoBlock(r, design, theme);
 
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -142,28 +179,26 @@ export async function onRequestGet(context) {
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   @media (prefers-reduced-motion: reduce){*{animation-duration:0.001ms !important;transition-duration:0.001ms !important}}
-  body{background:#080808;color:#e8e8e8;font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh;padding:24px 16px 48px;display:flex;flex-direction:column;align-items:center}
+  body{background:${theme.bg};color:${theme.text};font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh;padding:24px 16px 48px;display:flex;flex-direction:column;align-items:center}
   a{color:inherit}
   .wrap{width:100%;max-width:420px}
-  .logo{width:88px;height:88px;border-radius:20px;object-fit:cover;display:block;margin:0 auto 16px;border:1px solid rgba(170,255,0,0.25);box-shadow:0 8px 20px -8px rgba(0,0,0,0.6)}
-  .logo-placeholder{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(170,255,0,0.16), rgba(0,0,0,0.4));color:#AAFF00;font-size:34px;font-weight:900}
-  .name{text-align:center;font-size:19px;font-weight:800;color:#fff;letter-spacing:0.3px}
-  .tagline{text-align:center;font-size:12px;color:#AAFF00;letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;text-shadow:0 0 8px rgba(170,255,0,0.35)}
-  .desc{margin-top:16px;font-size:13.5px;line-height:1.7;color:rgba(255,255,255,0.65);text-align:center}
-  .main-action{display:block;text-align:center;margin:22px 0;padding:15px;border-radius:14px;border:1px solid rgba(170,255,0,0.5);background:linear-gradient(180deg, rgba(170,255,0,0.16), rgba(8,8,8,0.5) 65%, rgba(0,0,0,0.55));box-shadow:inset 0 1px 0 rgba(170,255,0,0.5),0 8px 20px -8px rgba(0,0,0,0.6);color:#AAFF00;font-weight:800;font-size:12.5px;letter-spacing:2px;text-transform:uppercase;text-decoration:none}
+  .name{text-align:center;font-size:19px;font-weight:800;color:${theme.text};letter-spacing:0.3px}
+  .tagline{text-align:center;font-size:12px;color:${theme.accent};letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;text-shadow:${theme.accentGlow}}
+  .desc{margin-top:16px;font-size:13.5px;line-height:1.7;color:${theme.muted};text-align:center}
+  .main-action{display:block;text-align:center;margin:22px 0;padding:15px;border-radius:14px;border:${theme.mainActionBorder};background:${theme.mainActionBg};box-shadow:${theme.mainActionShadow};color:${theme.mainActionColor};font-weight:800;font-size:12.5px;letter-spacing:2px;text-transform:uppercase;text-decoration:none}
   .main-action:active{transform:translateY(1px)}
   .sec{margin-top:22px}
-  .sec h2{font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(170,255,0,0.75);margin-bottom:10px}
+  .sec h2{font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:${theme.accent};margin-bottom:10px}
   .services{list-style:none}
-  .services li{font-size:13px;color:rgba(255,255,255,0.7);padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
-  .muted{font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7}
+  .services li{font-size:13px;color:${theme.text};opacity:0.85;padding:8px 0;border-bottom:1px solid ${theme.hairline}}
+  .muted{font-size:12px;color:${theme.muted};line-height:1.7}
   .links{display:flex;flex-wrap:wrap;gap:8px}
-  .link-btn{padding:9px 14px;border-radius:10px;border:1px solid rgba(170,255,0,0.3);background:rgba(170,255,0,0.05);color:#AAFF00;font-size:11.5px;font-weight:600;letter-spacing:0.5px;text-decoration:none}
+  .link-btn{padding:9px 14px;border-radius:10px;border:1px solid ${theme.accentBorder};background:${theme.accentSoftBg};color:${theme.accent};font-size:11.5px;font-weight:600;letter-spacing:0.5px;text-decoration:none}
   .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-  .gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.08)}
-  .save-contact{display:block;width:100%;text-align:center;margin-top:28px;padding:13px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
-  .foot{margin-top:24px;text-align:center;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:1px}
-  :focus-visible{outline:2px solid #AAFF00;outline-offset:2px}
+  .gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid ${theme.hairline}}
+  .save-contact{display:block;width:100%;text-align:center;margin-top:28px;padding:13px;border-radius:12px;border:1px solid ${theme.hairline};background:transparent;color:${theme.muted};font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
+  .foot{margin-top:24px;text-align:center;font-size:10px;color:${theme.muted};opacity:0.6;letter-spacing:1px}
+  :focus-visible{outline:2px solid ${theme.accent};outline-offset:2px}
 </style></head>
 <body>
   <div class="wrap">

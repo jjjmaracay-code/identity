@@ -624,5 +624,17 @@
   "index.business.validation_nombre_invalido": "Saisissez un nom visible avant de publier.",
   "index.business.validation_url_invalida": "Vérifiez vos liens : l'un d'eux n'est pas une URL valide (http:// ou https://).",
   "index.business.validation_email_invalido": "L'e-mail de contact n'est pas valide.",
-  "index.business.validation_accion_sin_destino": "L'action principale nécessite sa destination configurée (téléphone/e-mail, ou le lien correspondant)."
+  "index.business.validation_accion_sin_destino": "L'action principale nécessite sa destination configurée (téléphone/e-mail, ou le lien correspondant).",
+
+  "index.business.section_design": "Design de la carte",
+  "index.business.design_help": "Deux thèmes et trois façons d'afficher votre logo. Aucune couleur ni police personnalisée — l'aperçu public utilise exactement cela.",
+  "index.business.theme_dark": "Sombre IDENTIFLY",
+  "index.business.theme_light": "Clair",
+  "index.business.field_logo_presentation": "Présentation du logo",
+  "index.business.pres_direct": "Direct",
+  "index.business.pres_framed": "Avec support",
+  "index.business.pres_integrated": "Intégré",
+  "index.business.field_logo_size": "Taille du logo",
+  "index.business.field_logo_padding": "Espace autour",
+  "index.business.field_gradient_intensity": "Intensité du fondu"
 }

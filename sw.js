@@ -1,3 +1,14 @@
+// v16: añade los dos temas exclusivos ("Oscuro IDENTIFLY"/"Claro") y las
+// tres presentaciones del logo (directo/con soporte/integrado) de
+// IDENTIFLY BUSINESS. Sube la versión porque cambia el contenido real de
+// business.js/business.css (ya en el precache desde v14) y se añaden 11
+// claves nuevas (index.business.section_design y siguientes) a los 5
+// diccionarios — sin esto, un dispositivo que ya tuviera esos dos
+// archivos o un idioma cacheados desde antes de esta fase seguiría
+// sirviendo las versiones viejas. No se toca la tarjeta personal, el QR
+// vCard, QR SELECT ni el diseñador matriz — ninguno de esos recursos
+// cambió.
+//
 // v15: corrige una brecha de privacidad real en IDENTIFLY BUSINESS: el
 // handler de 'fetch' de v14 seguía cacheando genéricamente CUALQUIER
 // respuesta GET exitosa que no terminara en .html, incluida
@@ -72,7 +83,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v15';
+const CACHE_NAME = 'identity-v16';
 const CACHE_URLS = [
   './index.html',
   './register.html',

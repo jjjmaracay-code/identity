@@ -624,5 +624,17 @@
   "index.business.validation_nombre_invalido": "Escreva um nome visível antes de publicar.",
   "index.business.validation_url_invalida": "Verifique seus links: um deles não é uma URL válida (http:// ou https://).",
   "index.business.validation_email_invalido": "O e-mail de contato não é válido.",
-  "index.business.validation_accion_sin_destino": "A ação principal precisa do destino configurado (telefone/e-mail, ou o link correspondente)."
+  "index.business.validation_accion_sin_destino": "A ação principal precisa do destino configurado (telefone/e-mail, ou o link correspondente).",
+
+  "index.business.section_design": "Design do cartão",
+  "index.business.design_help": "Dois temas e três formas de mostrar seu logo. Sem cores ou fontes personalizadas — a pré-visualização pública usa exatamente isso.",
+  "index.business.theme_dark": "Escuro IDENTIFLY",
+  "index.business.theme_light": "Claro",
+  "index.business.field_logo_presentation": "Apresentação do logo",
+  "index.business.pres_direct": "Direto",
+  "index.business.pres_framed": "Com suporte",
+  "index.business.pres_integrated": "Integrado",
+  "index.business.field_logo_size": "Tamanho do logo",
+  "index.business.field_logo_padding": "Espaço ao redor",
+  "index.business.field_gradient_intensity": "Intensidade da transição"
 }
