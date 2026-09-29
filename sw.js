@@ -1,3 +1,11 @@
+// v13: misma razón que v12/v11/v10 -- corrige el botón "Ampliar QR" de QR
+// SELECT (antes fallaba en silencio cuando el QR individual aún no había
+// terminado de renderizar) y añade el aviso correspondiente
+// (index.myqr.qr_loading_toast) a los 5 diccionarios. Sin subir la
+// versión, un dispositivo con un idioma ya cacheado seguiría sin ese
+// aviso (mostraría la key cruda si algo llegara a necesitarlo) hasta que
+// algo purgue esa caché.
+//
 // v12: misma razón que v11/v10 -- esta fase ("Mis QR · Redes y web") añade
 // 15 claves nuevas a los 5 diccionarios (index.myqr.*). Sin subir la
 // versión, un dispositivo que ya tuviera un idioma cacheado desde antes
@@ -32,7 +40,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v12';
+const CACHE_NAME = 'identity-v13';
 const CACHE_URLS = [
   './index.html',
   './register.html',

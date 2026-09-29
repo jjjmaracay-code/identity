@@ -277,6 +277,7 @@
   "index.myqr.back_to_list_button": "Volver a QR SELECT",
   "index.myqr.back_home_button": "Volver al inicio",
   "index.myqr.link_unavailable_toast": "Este enlace ya no está disponible",
+  "index.myqr.qr_loading_toast": "El código aún se está generando. Espera un momento e inténtalo de nuevo.",
   "index.myqr.title_linkedin": "QR LinkedIn",
   "index.myqr.title_github": "QR GitHub",
   "index.myqr.title_instagram": "QR Instagram",

@@ -3159,14 +3159,6 @@
     </div>
   </div>
 
-  <!-- Vista ampliada del QR de contacto (ver CSS .qr-zoom-* y el bloque
-       de JS "VISTA AMPLIADA DEL QR" más abajo). No es descendiente de
-       #card-container a propósito, para no interferir con su giro. -->
-  <div class="qr-zoom-overlay" id="qr-zoom-overlay" aria-hidden="true">
-    <button class="qr-zoom-close" id="qr-zoom-close" type="button" aria-label="Cerrar">✕</button>
-    <div class="qr-zoom-stage" id="qr-zoom-stage"></div>
-  </div>
-
   <div class="main-bottom">
     <div class="card-hint" id="flip-hint" data-i18n="index.main.flip_hint">↺ Toca la tarjeta para mostrar el QR</div>
     <div class="main-actions">
@@ -3313,6 +3305,23 @@
     <!-- ===== FIN UBICACIÓN DE EMERGENCIA ===== -->
 
   </div>
+</div>
+
+<!-- Vista ampliada del QR (tarjeta principal y QR SELECT, ver openQrZoom
+     en el script). Hermana de #screen-main/#screen-edit/#screen-my-qr/etc,
+     NUNCA descendiente de ninguna de ellas: #screen-main fija su propio
+     z-index:50 (crea su propio contexto de apilamiento al ser
+     position:fixed con z-index), así que si esta vista viviera dentro de
+     #screen-main, su z-index:10600 solo competiría con el resto de
+     #screen-main -- frente a un hermano posicionado con z-index más alto,
+     como #screen-my-qr (z-index:260), #screen-main entero (y por tanto
+     esta vista, atrapada dentro) perdería y quedaría oculta detrás, con
+     la ampliación técnicamente abierta (sin ningún error) pero invisible.
+     Al vivir aquí, al mismo nivel que todas las pantallas, su z-index
+     compite de verdad contra cualquiera de ellas. -->
+<div class="qr-zoom-overlay" id="qr-zoom-overlay" aria-hidden="true">
+  <button class="qr-zoom-close" id="qr-zoom-close" type="button" aria-label="Cerrar">✕</button>
+  <div class="qr-zoom-stage" id="qr-zoom-stage"></div>
 </div>
 
 <!-- =================== PANTALLA EDITAR =================== -->
@@ -7251,7 +7260,12 @@ document.getElementById('btn-myqr-open-editor')?.addEventListener('click', () =>
 document.getElementById('btn-myqr-expand')?.addEventListener('click', (e) => {
   e.stopPropagation();
   const svg = document.getElementById('myqr-detail-qr')?.querySelector('svg');
-  if (svg) openQrZoom(svg);
+  if (svg) { openQrZoom(svg); return; }
+  // Sin <svg> todavía (el QR individual está generándose o falló al
+  // renderizar, ver renderMyQrDetailQR/showQRStylingError) -- antes esto
+  // no hacía nada en absoluto, sin ningún aviso. Nunca se recurre al QR
+  // principal aquí: sería el código equivocado, de otra plataforma.
+  showToast(tOrFallback('index.myqr.qr_loading_toast', 'El código aún se está generando. Espera un momento e inténtalo de nuevo.'));
 });
 
 // Devuelve true si guardó, false si lo bloqueó una red social inválida
