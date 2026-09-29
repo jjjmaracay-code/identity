@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /c/
 
 Sitemap: https://www.identifly.app/sitemap.xml

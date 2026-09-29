@@ -13,6 +13,7 @@
 <link rel="canonical" href="https://www.identifly.app/">
 <script src="storage-wipe.js"></script>
 <script src="/i18n/loader.js"></script>
+<link rel="stylesheet" href="business.css">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -3181,6 +3182,18 @@
       </button>
     </div>
 
+    <!-- ===== IDENTIFLY BUSINESS (ampliación de pago — no sustituye la
+         tarjeta personal ni QR SELECT) ===== -->
+    <div style="width:100%;max-width:320px;margin:12px auto 0;padding:0 2px;box-sizing:border-box;">
+      <button class="btn-myqr-open" id="btn-open-business" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.3;">
+          <span style="font-weight:800;">IDENTIFLY BUSINESS</span>
+          <span style="font-size:9px;font-weight:500;letter-spacing:0.5px;text-transform:none;opacity:0.7;" data-i18n="index.business.open_subtitle">Tu actividad, tu tarjeta pública</span>
+        </span>
+      </button>
+    </div>
+
     <!-- ===== UBICACIÓN DE EMERGENCIA ===== -->
     <div style="width:100%;max-width:320px;margin:16px auto 0;padding:0 2px;box-sizing:border-box;">
       <div style="font-size:10px;letter-spacing:3px;color:#AAFF00;text-transform:uppercase;
@@ -3979,6 +3992,82 @@
       <button class="btn-myqr-action" id="btn-myqr-back-home" type="button" data-i18n="index.myqr.back_home_button">Volver al inicio</button>
     </div>
   </div>
+</div>
+
+<!-- ===== IDENTIFLY BUSINESS · HUB (tres modalidades) =====
+     Ampliación de pago de IDENTIFLY (ver instrucción): no sustituye la
+     tarjeta personal, el QR vCard ni QR SELECT. Una única tarjeta
+     Business por cuenta en esta primera versión — cambiar de modalidad
+     adapta la presentación y conserva el borrador (ver business.js). -->
+<div id="screen-business">
+  <div class="myqr-header">
+    <div class="myqr-header-titles">
+      <div class="myqr-title">IDENTIFLY BUSINESS</div>
+      <div class="myqr-subtitle" data-i18n="index.business.hub_subtitle">Tu actividad, tu tarjeta pública</div>
+    </div>
+    <button class="btn-close" id="btn-close-business" data-i18n="index.edit.close_button">✕ Cerrar</button>
+  </div>
+  <div class="myqr-scroll" id="business-hub-scroll">
+    <div id="business-paywall-banner" class="biz-paywall-banner" style="display:none;">
+      <div class="biz-paywall-badge" data-i18n="index.business.paid_feature_badge">Función de pago</div>
+      <p data-i18n="index.business.paid_feature_desc">Publicar una tarjeta Business requiere un plan de pago. Puedes ver cómo funciona; para editar y publicar, mejora tu plan.</p>
+      <button class="btn-myqr-action" id="btn-business-upgrade" style="margin:0;" data-i18n="index.business.upgrade_button">Mejorar plan</button>
+    </div>
+
+    <div id="business-status-line" class="biz-status-line" style="display:none;"></div>
+
+    <div class="biz-modalities" id="biz-modalities">
+      <button class="biz-modality-card" id="biz-mode-professional" type="button" data-modality="professional">
+        <div class="biz-modality-name" data-i18n="index.business.mode_professional_name">Profesional</div>
+        <div class="biz-modality-desc" data-i18n="index.business.mode_professional_desc">Para quien ofrece servicios a título personal: especialidad, presentación breve y proyectos.</div>
+      </button>
+      <button class="biz-modality-card" id="biz-mode-freelance" type="button" data-modality="freelance">
+        <div class="biz-modality-name" data-i18n="index.business.mode_freelance_name">Autónomo</div>
+        <div class="biz-modality-desc" data-i18n="index.business.mode_freelance_desc">Para quien presta servicios por su cuenta: actividad, zona, horarios y solicitud de presupuesto.</div>
+      </button>
+      <button class="biz-modality-card" id="biz-mode-company" type="button" data-modality="company">
+        <div class="biz-modality-name" data-i18n="index.business.mode_company_name">Empresa</div>
+        <div class="biz-modality-desc" data-i18n="index.business.mode_company_desc">Para un negocio: marca, catálogo o servicios, dirección comercial y contacto general.</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== IDENTIFLY BUSINESS · EDITOR ===== -->
+<div id="screen-business-editor">
+  <div class="myqr-header">
+    <div class="myqr-header-titles">
+      <div class="myqr-title">IDENTIFLY BUSINESS</div>
+      <div class="myqr-subtitle" id="biz-editor-modality-label"></div>
+    </div>
+    <button class="btn-close" id="btn-close-business-editor" data-i18n="index.edit.close_button">✕ Cerrar</button>
+  </div>
+  <div class="myqr-scroll" id="business-editor-scroll">
+    <div id="biz-editor-form"></div>
+    <div id="biz-qr-holder"></div>
+    <button type="button" class="biz-secondary-link" id="btn-biz-pull-server" data-i18n="index.business.pull_server_button">Recuperar última versión publicada del servidor</button>
+  </div>
+  <div class="biz-editor-footer">
+    <button class="btn-myqr-action" id="btn-biz-save-local" style="margin:0;" data-i18n="index.business.save_local_button">Guardar en mi dispositivo</button>
+    <button class="btn-myqr-action" id="btn-biz-preview" style="margin:0;" data-i18n="index.business.preview_button">Vista previa pública</button>
+    <button class="btn-myqr-action" id="btn-biz-publish" style="margin:0;" data-i18n="index.business.publish_button">Publicar tarjeta</button>
+    <button class="btn-myqr-action" id="btn-biz-reactivate" style="margin:0;display:none;" data-i18n="index.business.reactivate_button">Reactivar publicación</button>
+    <button class="btn-myqr-action biz-danger" id="btn-biz-unpublish" style="margin:0;display:none;" data-i18n="index.business.unpublish_button">Despublicar</button>
+    <button class="btn-myqr-action" id="btn-biz-back-hub" style="margin:0;" data-i18n="index.business.back_to_hub_button">Volver a IDENTIFLY BUSINESS</button>
+    <button class="btn-myqr-action" id="btn-biz-back-home" style="margin:0;" data-i18n="index.myqr.back_home_button">Volver al inicio</button>
+  </div>
+</div>
+
+<!-- ===== IDENTIFLY BUSINESS · VISTA PREVIA PÚBLICA ===== -->
+<div id="screen-business-preview">
+  <div class="myqr-header">
+    <div class="myqr-header-titles">
+      <div class="myqr-title" data-i18n="index.business.preview_title">Vista previa pública</div>
+      <div class="myqr-subtitle" data-i18n="index.business.preview_hint">Así la verá cualquiera con el enlace</div>
+    </div>
+    <button class="btn-close" id="btn-close-business-preview" data-i18n="index.edit.close_button">✕ Cerrar</button>
+  </div>
+  <div class="myqr-scroll" id="business-preview-body"></div>
 </div>
 
 <!-- Toast -->
@@ -8468,6 +8557,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<script src="business.js"></script>
 
 <!-- =================== MODAL IMPORTADOR =================== -->
 <div id="import-modal">

@@ -1,3 +1,15 @@
+// v14: añade IDENTIFLY BUSINESS (hub + editor + vista previa, ver
+// business.js/business.css). Sube la versión por dos motivos: (1) se
+// añaden business.css y business.js al precache -- sin esto, un
+// dispositivo que instalara la PWA por primera vez sin red no tendría el
+// hub/editor disponible para trabajar en el borrador local sin conexión
+// (publicar/actualizar sí exigen red, ver instrucción); (2) se añaden
+// claves nuevas (index.business.*) a los 5 diccionarios -- un dispositivo
+// con un idioma ya cacheado desde antes de esta fase seguiría sirviendo
+// ese diccionario viejo sin ellas. A propósito NO se añade ninguna
+// tarjeta pública (/c/{id}) al precache: son páginas dinámicas por
+// propietario, nunca recursos fijos del cascarón de la app.
+//
 // v13: misma razón que v12/v11/v10 -- corrige el botón "Ampliar QR" de QR
 // SELECT (antes fallaba en silencio cuando el QR individual aún no había
 // terminado de renderizar) y añade el aviso correspondiente
@@ -40,7 +52,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v13';
+const CACHE_NAME = 'identity-v14';
 const CACHE_URLS = [
   './index.html',
   './register.html',
@@ -52,6 +64,8 @@ const CACHE_URLS = [
   './icons/icon-512.png',
   './assets/logo-wings.png',
   './vendor/qr-code-styling/qr-code-styling.js',
+  './business.css',
+  './business.js',
 ];
 
 self.addEventListener('install', event => {
