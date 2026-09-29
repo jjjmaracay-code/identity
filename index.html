@@ -1091,6 +1091,27 @@
 
   .field-input::placeholder { color: rgba(255,255,255,0.4); font-weight: 300; }
 
+  /* Ayuda de prefijo/ejemplo para campos de redes sociales -- una línea
+     de texto aparte, no un prefijo pegado dentro del input, para que en
+     móvil no le quite ancho de escritura al campo (un prefijo largo como
+     "linkedin.com/in/" dentro del input dejaría muy poco sitio para
+     teclear en pantallas estrechas). */
+  .field-hint {
+    font-size: 10px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.35);
+    font-family: 'Inter', sans-serif;
+    margin-top: 2px;
+  }
+
+  /* Mismo elemento .field-hint, reutilizado para avisar cuando el texto
+     de una red social no se reconoce como usuario ni enlace válido (ver
+     activarNormalizacionRedSocial) -- el campo en sí no se toca. */
+  .field-hint.field-hint-error {
+    color: #ff8080;
+    font-weight: 500;
+  }
+
   /* Upload foto */
   .photo-upload-area {
     width: 100%;
@@ -3298,11 +3319,13 @@
     <div class="field-group">
       <div class="field-wrap">
         <div class="field-label">LinkedIn</div>
-        <input class="field-input" id="f-linkedin" type="url" placeholder="linkedin.com/in/tu-perfil" data-i18n-placeholder="index.edit.linkedin_placeholder">
+        <input class="field-input" id="f-linkedin" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="linkedin.com/in/tu-perfil" data-i18n-placeholder="index.edit.linkedin_placeholder">
+        <div class="field-hint" data-i18n="index.edit.linkedin_hint">linkedin.com/in/usuario · empresas: pega el enlace completo</div>
       </div>
       <div class="field-wrap">
         <div class="field-label">GitHub</div>
-        <input class="field-input" id="f-github" type="url" placeholder="github.com/tu-usuario" data-i18n-placeholder="index.edit.github_placeholder">
+        <input class="field-input" id="f-github" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="github.com/tu-usuario" data-i18n-placeholder="index.edit.github_placeholder">
+        <div class="field-hint" data-i18n="index.edit.github_hint">github.com/usuario</div>
       </div>
       <div class="field-wrap">
         <div class="field-label" data-i18n="index.edit.web_label">Web personal</div>
@@ -3310,19 +3333,23 @@
       </div>
       <div class="field-wrap">
         <div class="field-label">Twitter / X</div>
-        <input class="field-input" id="f-twitter" type="text" placeholder="@tu_usuario" data-i18n-placeholder="index.edit.twitter_placeholder">
+        <input class="field-input" id="f-twitter" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="@tu_usuario" data-i18n-placeholder="index.edit.twitter_placeholder">
+        <div class="field-hint" data-i18n="index.edit.twitter_hint">x.com/usuario · con o sin @</div>
       </div>
       <div class="field-wrap">
         <div class="field-label">Instagram</div>
-        <input class="field-input" id="f-instagram" type="text" placeholder="instagram.com/tu_usuario" data-i18n-placeholder="index.edit.instagram_placeholder">
+        <input class="field-input" id="f-instagram" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="instagram.com/tu_usuario" data-i18n-placeholder="index.edit.instagram_placeholder">
+        <div class="field-hint" data-i18n="index.edit.instagram_hint">instagram.com/usuario · con o sin @</div>
       </div>
       <div class="field-wrap">
         <div class="field-label">YouTube</div>
-        <input class="field-input" id="f-youtube" type="text" placeholder="youtube.com/@tu_canal" data-i18n-placeholder="index.edit.youtube_placeholder">
+        <input class="field-input" id="f-youtube" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="youtube.com/@tu_canal" data-i18n-placeholder="index.edit.youtube_placeholder">
+        <div class="field-hint" data-i18n="index.edit.youtube_hint">youtube.com/@canal</div>
       </div>
       <div class="field-wrap">
         <div class="field-label">TikTok</div>
-        <input class="field-input" id="f-tiktok" type="text" placeholder="tiktok.com/@tu_usuario" data-i18n-placeholder="index.edit.tiktok_placeholder">
+        <input class="field-input" id="f-tiktok" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="tiktok.com/@tu_usuario" data-i18n-placeholder="index.edit.tiktok_placeholder">
+        <div class="field-hint" data-i18n="index.edit.tiktok_hint">tiktok.com/@usuario</div>
       </div>
     </div>
   </div>
@@ -6104,7 +6131,9 @@ document.getElementById('btn-lock').addEventListener('click', () => {
 
 // =================== PANTALLA EDITAR ===================
 document.getElementById('btn-open-edit').addEventListener('click', openEdit);
-document.getElementById('btn-close-edit').addEventListener('click', closeEdit);
+document.getElementById('btn-close-edit').addEventListener('click', () => {
+  if (!closeEdit()) showToast(t('index.edit.social_invalid_save_toast'));
+});
 
 // Decide si mostrar la insignia compacta de plan pagado o la tarjeta de
 // trial, a partir del último veredicto verificado por el servidor
@@ -6299,9 +6328,16 @@ function openEdit() {
   actualizarIndicadoresScrollEdit();
 }
 
+// Devuelve true si guardó y cerró; false si saveProfile() lo bloqueó (una
+// red social inválida) -- en ese caso la pantalla se queda abierta, con
+// el aviso ya visible en el campo correspondiente, para poder corregirlo
+// o vaciarlo sin perder el resto de lo ya escrito.
 function closeEdit() {
-  saveProfile();
-  document.getElementById('screen-edit').classList.remove('open');
+  const guardado = saveProfile();
+  if (guardado) {
+    document.getElementById('screen-edit').classList.remove('open');
+  }
+  return guardado;
 }
 
 // =================== TABS DE NAVEGACIÓN INTERNA (Mi Perfil) ===================
@@ -6362,7 +6398,225 @@ document.getElementById('btn-save-tabbar').addEventListener('click', () => {
 });
 
 // Guardado real del perfil — usado por btn-save y por closeEdit (autoguardado al cerrar)
+// =================== REDES SOCIALES: prerrelleno de enlaces ===================
+// Convierte lo que el usuario escriba (un identificador suelto o una URL
+// ya completa) en la dirección completa que necesita la vCard. Se aplica
+// SOLO al leer el valor (al perder el foco el campo y al guardar, ver más
+// abajo) -- nunca mientras se escribe, así el cursor no salta ni el texto
+// se reescribe a media pulsación.
+const REDES_SOCIALES = {
+  linkedin: {
+    dominio: 'linkedin.com',
+    dominiosDeteccion: ['linkedin.com'],
+    quitarArroba: true,
+    prefijoPorDefecto: 'in/',
+    // Si el usuario ya escribe "company/acme" o "school/algo" (sin
+    // dominio) se respeta tal cual -- no todo enlace de LinkedIn es un
+    // perfil personal /in/.
+    prefijosConocidos: ['in/', 'company/', 'school/'],
+  },
+  github: {
+    dominio: 'github.com',
+    dominiosDeteccion: ['github.com'],
+    quitarArroba: true,
+    prefijoPorDefecto: '',
+    prefijosConocidos: [],
+  },
+  twitter: {
+    dominio: 'x.com',
+    dominiosDeteccion: ['twitter.com', 'x.com'],
+    quitarArroba: true,
+    prefijoPorDefecto: '',
+    prefijosConocidos: [],
+  },
+  instagram: {
+    dominio: 'instagram.com',
+    dominiosDeteccion: ['instagram.com', 'instagr.am'],
+    quitarArroba: true,
+    prefijoPorDefecto: '',
+    prefijosConocidos: [],
+  },
+  youtube: {
+    dominio: 'youtube.com',
+    dominiosDeteccion: ['youtube.com', 'youtu.be'],
+    // La @ de YouTube es parte de la ruta (youtube.com/@canal), no un
+    // adorno que se quita: si ya viene con @, se trata como prefijo
+    // conocido (se deja tal cual); si no, se le añade.
+    quitarArroba: false,
+    prefijoPorDefecto: '@',
+    prefijosConocidos: ['@', 'channel/', 'c/', 'user/'],
+  },
+  tiktok: {
+    dominio: 'tiktok.com',
+    dominiosDeteccion: ['tiktok.com'],
+    quitarArroba: false,
+    prefijoPorDefecto: '@',
+    prefijosConocidos: ['@'],
+  },
+};
+
+// hostname exacto o subdominio válido (www., m., etc.) -- nunca un simple
+// "el texto contiene la palabra", que confundiría por ejemplo "box.com"
+// con "x.com" por ser subcadena.
+function coincideDominioSocial(hostname, cfg) {
+  const h = String(hostname || '').toLowerCase();
+  return cfg.dominiosDeteccion.some((d) => h === d || h.endsWith('.' + d));
+}
+
+// Devuelve { ok, valor }: `valor` es SIEMPRE lo que hay que guardar (el
+// texto tal cual si no se pudo interpretar con confianza -- nunca se
+// borra ni se inventa nada); `ok` es false cuando el texto es ambiguo o
+// inválido para esta plataforma, para que quien llame pueda avisar sin
+// tocar el dato.
+function normalizarRedSocial(plataformaId, valorCrudo) {
+  const cfg = REDES_SOCIALES[plataformaId];
+  const valor = String(valorCrudo || '').trim();
+  if (!cfg) return { ok: true, valor };
+  if (!valor) return { ok: true, valor: '' }; // vacío se queda vacío, siempre
+
+  // Un espacio interior nunca es válido -- ni siquiera dentro de una URL
+  // con protocolo explícito: new URL() codificaría el espacio en su
+  // .href sin avisar, pero aquí se devuelve siempre el texto ORIGINAL
+  // (nunca .href), así que un espacio en el original se colaría tal cual
+  // en una vCard si no se rechazara aquí, antes de intentar nada más.
+  if (/\s/.test(valor)) return { ok: false, valor };
+
+  // Protocolo explícito al principio (http:, https:, pero también
+  // mailto:, ftp:, tel:, etc.) -- si es un esquema distinto de
+  // http/https, no se interpreta nada de lo que sigue como usuario: se
+  // marca inválido y se conserva tal cual.
+  const tieneEsquema = /^[a-z][a-z0-9+.-]*:/i.test(valor);
+  if (tieneEsquema) {
+    if (!/^https?:\/\//i.test(valor)) return { ok: false, valor };
+    try {
+      const u = new URL(valor);
+      if (!coincideDominioSocial(u.hostname, cfg)) return { ok: false, valor };
+      // Válida: se devuelve EXACTAMENTE el texto original (recortado),
+      // nunca u.href -- evita cualquier normalización no pedida (host en
+      // minúsculas, barra final añadida, etc.) sobre rutas y parámetros.
+      return { ok: true, valor };
+    } catch (e) {
+      return { ok: false, valor }; // URL mal formada -- no se inventa nada
+    }
+  }
+
+  // Sin protocolo: ¿es el dominio de la plataforma (con o sin "www."),
+  // con o sin ruta? Se prueba aparte de la validación de arriba porque
+  // aquí SÍ hace falta anteponer "https://" antes de poder usar URL().
+  try {
+    const u = new URL('https://' + valor);
+    if (coincideDominioSocial(u.hostname, cfg)) {
+      return { ok: true, valor: 'https://' + valor };
+    }
+  } catch (e) {
+    // Ni siquiera tiene forma de dominio -- sigue abajo como posible
+    // identificador suelto.
+  }
+
+  // Identificador suelto: como mucho se quita una única @ inicial (solo
+  // en las plataformas donde la @ no forma parte de la ruta real).
+  let identificador = valor;
+  if (cfg.quitarArroba && identificador.startsWith('@')) {
+    identificador = identificador.slice(1);
+  }
+  // Vacío tras quitar la @ significa que el valor original era
+  // exactamente "@" -- no es lo mismo que un campo vacío (el usuario
+  // escribió algo): se conserva y se avisa, igual en las 6 plataformas
+  // (antes esto solo se detectaba en las que NO quitan la @).
+  if (!identificador) return { ok: false, valor };
+
+  // ¿Empieza por una de las rutas relativas YA reconocidas de esta
+  // plataforma ("in/", "company/", "school/" en LinkedIn; "@", "channel/",
+  // "c/", "user/" en YouTube)? No se usa ninguna lista de dominios/TLD
+  // para decidir esto -- solo los prefijos que la propia plataforma ya
+  // declara en REDES_SOCIALES.
+  const prefijoUsado = cfg.prefijosConocidos.find((p) => identificador.startsWith(p));
+  if (prefijoUsado !== undefined) {
+    if (identificador === prefijoUsado) return { ok: false, valor }; // el prefijo solo, sin nada detrás
+    // Ya viene con su propio prefijo reconocido -- se usa tal cual como
+    // ruta completa (puede incluir más segmentos detrás, p. ej.
+    // "in/juan/detail/contact-info/").
+    return { ok: true, valor: `https://${cfg.dominio}/${identificador}` };
+  }
+
+  if (identificador.includes('/')) {
+    // Tiene forma de ruta pero no empieza por ninguna reconocida de esta
+    // plataforma -- incluida la de un dominio ajeno como
+    // "otro.dev/persona" o "notlinkedin.com/persona": se pide el enlace
+    // completo en vez de adivinar. No hace falta ninguna lista de
+    // dominios/TLD para esto: basta con que no coincida con un prefijo ya
+    // declarado.
+    return { ok: false, valor };
+  }
+
+  // Un solo segmento, sin ningún prefijo reconocido delante -- puede
+  // llevar puntos (p. ej. "ana.ruiz" en Instagram): se conserva tal cual
+  // y se le antepone el prefijo por defecto de la plataforma.
+  return { ok: true, valor: `https://${cfg.dominio}/${cfg.prefijoPorDefecto}${identificador}` };
+}
+
+const NOMBRES_REDES_SOCIALES = {
+  linkedin: 'LinkedIn', github: 'GitHub', twitter: 'Twitter/X',
+  instagram: 'Instagram', youtube: 'YouTube', tiktok: 'TikTok',
+};
+
+// Ayuda visual de error: reutiliza la misma línea de .field-hint que ya
+// muestra el ejemplo -- si el texto no se reconoce como usuario ni enlace
+// válido, cambia esa línea a un aviso traducido en vez de añadir un
+// elemento nuevo por campo. El campo en sí NUNCA se toca cuando es
+// inválido (se conserva tal cual lo escribió el usuario). Compartida
+// entre el blur (abajo) y saveProfile() (más abajo, ver punto 2), para no
+// duplicar la lógica de mostrar/quitar el aviso.
+function actualizarAyudaRedSocial(plataformaId, ok) {
+  const input = document.getElementById('f-' + plataformaId);
+  const hint = input?.parentElement?.querySelector('.field-hint');
+  if (!hint) return;
+  if (hint.dataset.textoOriginal === undefined) hint.dataset.textoOriginal = hint.textContent;
+  if (ok) {
+    hint.textContent = hint.dataset.textoOriginal;
+    hint.classList.remove('field-hint-error');
+  } else {
+    hint.textContent = tOrFallback('index.edit.social_invalid_hint', 'No se reconoce como usuario ni enlace válido de {plataforma}. Revisa el texto o pega la URL completa.')
+      .replace('{plataforma}', NOMBRES_REDES_SOCIALES[plataformaId] || plataformaId);
+    hint.classList.add('field-hint-error');
+  }
+}
+
+function activarNormalizacionRedSocial(plataformaId) {
+  const input = document.getElementById('f-' + plataformaId);
+  if (!input) return;
+  input.addEventListener('blur', () => {
+    const resultado = normalizarRedSocial(plataformaId, input.value);
+    // No se toca input.value cuando es inválido: se conserva exactamente
+    // lo escrito.
+    if (resultado.ok && resultado.valor !== input.value) input.value = resultado.valor;
+    actualizarAyudaRedSocial(plataformaId, resultado.ok);
+  });
+}
+Object.keys(NOMBRES_REDES_SOCIALES).forEach(activarNormalizacionRedSocial);
+
+// Devuelve true si guardó, false si lo bloqueó una red social inválida
+// (ver más abajo). Los llamadores (closeEdit, btn-save, autoguardado
+// debounced) deben comprobar este resultado antes de cerrar la pantalla o
+// dar por hecho que se guardó.
 function saveProfile() {
+  // Se valida ANTES de tocar profileData o localStorage: si alguna red
+  // social es ambigua o inválida, no se guarda nada -- ni siquiera el
+  // resto de campos -- y se avisa en el propio formulario. Así nunca se
+  // graba un enlace inventado, y tampoco se pierde silenciosamente lo que
+  // ya hubiera guardado antes (localStorage no se toca en absoluto en
+  // este caso). No hace falta tocar buildVCard: como no se guarda nada
+  // nuevo, no hay ningún enlace nuevo que pudiera llegar a la vCard.
+  const resultadosSociales = {};
+  let hayEntradaInvalida = false;
+  Object.keys(NOMBRES_REDES_SOCIALES).forEach((plataformaId) => {
+    const r = normalizarRedSocial(plataformaId, document.getElementById('f-' + plataformaId).value);
+    resultadosSociales[plataformaId] = r;
+    actualizarAyudaRedSocial(plataformaId, r.ok);
+    if (!r.ok) hayEntradaInvalida = true;
+  });
+  if (hayEntradaInvalida) return false;
+
   // Guardar media — los objectUrl de video no se persisten (se pierden al cerrar)
   const mediaToSave = profileData.media && !profileData.media.isObjectUrl
     ? profileData.media
@@ -6382,13 +6636,16 @@ function saveProfile() {
     emailWork: document.getElementById('f-email-work').value.trim(),
     company:   document.getElementById('f-company').value.trim(),
     address:  document.getElementById('f-address').value.trim(),
-    linkedin: document.getElementById('f-linkedin').value.trim(),
-    github:   document.getElementById('f-github').value.trim(),
+    // Ya validadas arriba -- se reutiliza el mismo resultado en vez de
+    // volver a llamar a normalizarRedSocial() (evita una segunda pasada
+    // y una posible divergencia si el DOM cambiase entre medias).
+    linkedin: resultadosSociales.linkedin.valor,
+    github:   resultadosSociales.github.valor,
     web:      document.getElementById('f-web').value.trim(),
-    twitter:   document.getElementById('f-twitter').value.trim(),
-    instagram: document.getElementById('f-instagram').value.trim(),
-    youtube:   document.getElementById('f-youtube').value.trim(),
-    tiktok:    document.getElementById('f-tiktok').value.trim(),
+    twitter:   resultadosSociales.twitter.valor,
+    instagram: resultadosSociales.instagram.valor,
+    youtube:   resultadosSociales.youtube.valor,
+    tiktok:    resultadosSociales.tiktok.valor,
     media:    mediaToSave,
     toggles: {
       job:     document.getElementById('t-job').checked,
@@ -6427,11 +6684,15 @@ function saveProfile() {
 
   renderCard();
   generateQR();
+  return true;
 }
 
 document.getElementById('btn-save').addEventListener('click', () => {
-  closeEdit();
-  showToast(t('index.edit.saved_toast'));
+  if (closeEdit()) {
+    showToast(t('index.edit.saved_toast'));
+  } else {
+    showToast(t('index.edit.social_invalid_save_toast'));
+  }
 });
 
 // =================== AUTOGUARDADO RESILIENTE ===================

@@ -1,3 +1,10 @@
+// v11: mismo motivo que v10 -- esta fase añadió claves nuevas a los 5
+// diccionarios (ayudas de prerrellenado de redes sociales, aviso de
+// enlace inválido). Sin subir la versión, un dispositivo que ya tuviera
+// un idioma cacheado desde antes de esta fase seguiría sin esas claves
+// (se le mostraría la key cruda en vez del texto) hasta que algo purgue
+// esa caché.
+//
 // v10: los diccionarios /i18n/*.json son recursos no-HTML -- caen en la
 // misma estrategia "cache primero" que qr-code-styling.js (ver el
 // handler de fetch mas abajo) y no estan en CACHE_URLS, pero se cachean
@@ -17,7 +24,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v10';
+const CACHE_NAME = 'identity-v11';
 const CACHE_URLS = [
   './index.html',
   './register.html',
