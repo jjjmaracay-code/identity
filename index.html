@@ -878,23 +878,37 @@
   .btn-myqr-open {
     width: 100%;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 14px 8px;
+    padding: 15px 8px;
     border-radius: 14px;
-    border: 1px solid rgba(170,255,0,0.25);
-    background: linear-gradient(180deg, rgba(170,255,0,0.10), rgba(170,255,0,0.03));
-    box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.10);
-    color: var(--text);
+    border: 1px solid rgba(170,255,0,0.5);
+    /* Luz superior (borde iluminado) + fondo oscuro con gradiente + sombra
+       inferior de profundidad -- relieve reforzado a propósito, ver
+       instrucción. El resplandor neón es el box-shadow difuso hacia
+       afuera; se mantiene estático (sin animación) para que sea nítido y
+       no dependa de prefers-reduced-motion. */
+    background: linear-gradient(180deg, rgba(170,255,0,0.16), rgba(8,8,8,0.5) 65%, rgba(0,0,0,0.55));
+    box-shadow:
+      inset 0 1px 0 rgba(170,255,0,0.55),
+      0 8px 20px -8px rgba(0,0,0,0.6),
+      0 1px 0 rgba(0,0,0,0.4),
+      0 0 18px rgba(170,255,0,0.2);
+    color: var(--green);
     font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
+    text-shadow: 0 0 6px rgba(170,255,0,0.7), 0 0 16px rgba(170,255,0,0.4);
     cursor: pointer;
     transition: transform 0.12s, box-shadow 0.12s;
   }
+  .btn-myqr-open svg { filter: drop-shadow(0 0 4px rgba(170,255,0,0.6)); }
   .btn-myqr-open:active {
     transform: translateY(1px) scale(0.98);
-    box-shadow: var(--shadow-sm), inset 0 1px 4px rgba(0,0,0,0.35);
+    box-shadow:
+      inset 0 1px 4px rgba(0,0,0,0.4),
+      0 2px 6px rgba(0,0,0,0.5),
+      0 0 10px rgba(170,255,0,0.15);
   }
 
   #screen-my-qr {
@@ -988,16 +1002,20 @@
   .myqr-card-icon {
     width: 28px; height: 28px;
     display: flex; align-items: center; justify-content: center;
-    color: #AAFF00;
+    /* Los SVG de MYQR_ICONS usan fill/stroke="currentColor" -- este color
+       es lo único que los pinta del verde de acento de la app. */
+    color: var(--green);
   }
   .myqr-card-icon svg { width: 100%; height: 100%; }
   .myqr-card-label {
     font-family: 'Inter', sans-serif;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     text-align: center;
+    color: var(--green);
+    text-shadow: 0 0 4px rgba(170,255,0,0.55), 0 0 10px rgba(170,255,0,0.25);
   }
 
   .myqr-detail-platform {
@@ -1009,16 +1027,17 @@
   .myqr-detail-icon {
     width: 26px; height: 26px;
     display: flex; align-items: center; justify-content: center;
-    color: #AAFF00;
+    color: var(--green);
     flex-shrink: 0;
   }
   .myqr-detail-icon svg { width: 100%; height: 100%; }
   .myqr-detail-title {
     font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--green);
     letter-spacing: 1px;
+    text-shadow: 0 0 4px rgba(170,255,0,0.55), 0 0 10px rgba(170,255,0,0.25);
   }
 
   /* El QR se mantiene deliberadamente plano: sin perspectiva, sombras
@@ -1066,22 +1085,46 @@
     margin: 0 auto 10px;
     padding: 13px 8px;
     border-radius: 14px;
-    border: 1px solid rgba(170,255,0,0.25);
-    border-top-color: rgba(255,255,255,0.18);
-    background: linear-gradient(180deg, rgba(170,255,0,0.08), rgba(170,255,0,0.02));
-    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.08);
-    color: var(--text);
+    border: 1px solid rgba(170,255,0,0.4);
+    background: linear-gradient(180deg, rgba(170,255,0,0.12), rgba(8,8,8,0.4) 65%, rgba(0,0,0,0.5));
+    box-shadow:
+      inset 0 1px 0 rgba(170,255,0,0.45),
+      0 6px 14px -6px rgba(0,0,0,0.55),
+      0 0 10px rgba(170,255,0,0.12);
+    color: var(--green);
     font-family: 'Inter', sans-serif;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
+    text-shadow: 0 0 4px rgba(170,255,0,0.55), 0 0 10px rgba(170,255,0,0.25);
     cursor: pointer;
     transition: transform 0.12s, box-shadow 0.12s;
   }
   .btn-myqr-action:active {
     transform: translateY(1px) scale(0.98);
-    box-shadow: inset 0 1px 4px rgba(0,0,0,0.35);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.5);
+  }
+
+  /* Botón "Cerrar" de la cabecera: reutiliza la clase compartida .btn-close
+     (también usada por el diseñador de QR), así que el acabado neón se
+     limita a esta instancia concreta mediante el selector descendiente --
+     #btn-close-qr-designer y cualquier otro .btn-close fuera de este panel
+     no se ven afectados. */
+  #screen-my-qr .btn-close {
+    border-color: rgba(170,255,0,0.5);
+    background: linear-gradient(180deg, rgba(170,255,0,0.14), rgba(8,8,8,0.4) 65%, rgba(0,0,0,0.5));
+    box-shadow:
+      inset 0 1px 0 rgba(170,255,0,0.5),
+      0 6px 14px -6px rgba(0,0,0,0.55),
+      0 0 10px rgba(170,255,0,0.15);
+    color: var(--green);
+    text-shadow: 0 0 4px rgba(170,255,0,0.55), 0 0 10px rgba(170,255,0,0.25);
+    transition: transform 0.12s, box-shadow 0.12s, background 0.15s, border-color 0.15s;
+  }
+  #screen-my-qr .btn-close:active {
+    transform: scale(0.96);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.4);
   }
 
   /* =================== PANTALLA EDITAR =================== */
@@ -6922,29 +6965,29 @@ function validarWebPersonal(valorCrudo) {
   }
 }
 
-// Logos reconocibles de cada plataforma (glifo oficial simplificado, con
-// sus colores de marca), no símbolos genéricos -- a propósito, para que
-// LinkedIn/GitHub/Instagram/X/YouTube/TikTok se identifiquen a simple
-// vista junto al título. Web personal es la única excepción: mantiene el
-// símbolo neutro (globo) porque no representa ninguna marca. Todo es SVG
-// fijo e inline, sin peticiones remotas de ningún tipo -- las cadenas son
-// de solo lectura y nunca se construyen con datos del usuario, así que son
-// seguras para insertar con innerHTML. Verificado por render real
-// (resvg) antes de integrarlas: ver informe.
+// Siluetas reconocibles de cada plataforma, pero en versión MONOCROMA con
+// el verde de acento de la app (currentColor) -- sin colores ni gradientes
+// de marca, según instrucción explícita del usuario. Los huecos propios de
+// cada glifo (las letras "in" de LinkedIn, el aro de la cámara de
+// Instagram, el triángulo de reproducción de YouTube, el ojal de la nota
+// de TikTok) se conservan tal cual, verificado por render real (resvg)
+// antes de integrarlas: ver informe. Web personal sigue con su símbolo
+// neutro (globo), sin marca que monocromar. Todo SVG fijo e inline, sin
+// peticiones remotas -- cadenas de solo lectura, nunca construidas con
+// datos del usuario, seguras para insertar con innerHTML.
 const MYQR_ICONS = {
-  linkedin: '<svg viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>',
-  // Octocat (no el símbolo genérico "</>"), en blanco para que se recorte
-  // bien sobre el fondo oscuro de la app -- GitHub muestra su propio
-  // logotipo así en tema oscuro.
-  github: '<svg viewBox="0 0 16 16" fill="#ffffff"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>',
-  x: '<svg viewBox="0 0 24 24" fill="#ffffff"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
-  instagram: '<svg viewBox="0 0 24 24"><defs><linearGradient id="myqr-ig-grad" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#FEDA75"/><stop offset="40%" stop-color="#D62976"/><stop offset="75%" stop-color="#962FBF"/><stop offset="100%" stop-color="#4F5BD5"/></linearGradient></defs><path fill="url(#myqr-ig-grad)" d="M12 0C8.74 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.014 8.333 0 8.74 0 12s.014 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.986 8.74 24 12 24s3.667-.014 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.058-1.28.072-1.687.072-4.947s-.014-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.014 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/></svg>',
-  youtube: '<svg viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
-  // Tres copias del mismo trazo desplazadas y coloreadas (cian/magenta/negro)
-  // para reproducir el efecto de capas característico del logo de TikTok.
-  tiktok: '<svg viewBox="0 0 24 24"><path fill="#25F4EE" transform="translate(-0.9,-0.6)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="#FE2C55" transform="translate(0.9,0.6)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/><path fill="#000000" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
-  // Único icono que se queda neutro/monolínea a propósito: Web personal no
-  // representa ninguna marca ajena.
+  linkedin: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>',
+  // Octocat (no el símbolo genérico "</>").
+  github: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C8.74 0 8.333.014 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.014 8.333 0 8.74 0 12s.014 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.986 8.74 24 12 24s3.667-.014 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.058-1.28.072-1.687.072-4.947s-.014-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.014 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/></svg>',
+  // Contorno del marco (trazo, no relleno) + triángulo sólido: así el
+  // triángulo queda "hueco" en el marco sin depender de un path compuesto
+  // con reglas de relleno -- verificado por render.
+  youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="19" height="12" rx="4"/><path d="M10.3 9.3v5.4l4.9-2.7z" fill="currentColor" stroke="none"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
+  // Único icono que se queda neutro a propósito: Web personal no representa
+  // ninguna marca ajena.
   web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>',
 };
 
@@ -6953,14 +6996,29 @@ const MYQR_ICONS = {
 // (p.ej. Instagram) sigue disponible y funcional en este panel -- ambas
 // cosas son intencionalmente independientes (ver instrucción del usuario).
 const MYQR_PLATFORMS = [
-  { id: 'linkedin',  field: 'linkedin',  icon: 'linkedin', nameKey: 'index.myqr.title_linkedin' },
-  { id: 'github',    field: 'github',    icon: 'github',   nameKey: 'index.myqr.title_github' },
-  { id: 'instagram', field: 'instagram', icon: 'instagram',nameKey: 'index.myqr.title_instagram' },
-  { id: 'twitter',   field: 'twitter',   icon: 'x',        nameKey: 'index.myqr.title_x' },
-  { id: 'youtube',   field: 'youtube',   icon: 'youtube',  nameKey: 'index.myqr.title_youtube' },
-  { id: 'tiktok',    field: 'tiktok',    icon: 'tiktok',   nameKey: 'index.myqr.title_tiktok' },
-  { id: 'web',       field: 'web',       icon: 'web',      nameKey: 'index.myqr.title_web' },
+  { id: 'linkedin',  field: 'linkedin',  icon: 'linkedin', nameKey: 'index.myqr.title_linkedin',  fallbackTitle: 'QR LinkedIn' },
+  { id: 'github',    field: 'github',    icon: 'github',   nameKey: 'index.myqr.title_github',    fallbackTitle: 'QR GitHub' },
+  { id: 'instagram', field: 'instagram', icon: 'instagram',nameKey: 'index.myqr.title_instagram', fallbackTitle: 'QR Instagram' },
+  { id: 'twitter',   field: 'twitter',   icon: 'x',        nameKey: 'index.myqr.title_x',         fallbackTitle: 'QR X (Twitter)' },
+  { id: 'youtube',   field: 'youtube',   icon: 'youtube',  nameKey: 'index.myqr.title_youtube',   fallbackTitle: 'QR YouTube' },
+  { id: 'tiktok',    field: 'tiktok',    icon: 'tiktok',   nameKey: 'index.myqr.title_tiktok',    fallbackTitle: 'QR TikTok' },
+  { id: 'web',       field: 'web',       icon: 'web',      nameKey: 'index.myqr.title_web',       fallbackTitle: 'QR Web personal' },
 ];
+
+// Título traducido de una plataforma, con fallback legible si el
+// diccionario de i18n todavía no cargó (window.t devuelve la propia key
+// cruda mientras tanto -- ver tOrFallback más arriba). Antes de esto,
+// t(p.nameKey) se llamaba directo: si el usuario abría QR SELECT antes de
+// que resolviera window.i18nReady (típico en el primer arranque, con el
+// diccionario aún en camino por red), el listado y el detalle se quedaban
+// mostrando la key cruda ("index.myqr.title_linkedin") para siempre, ya
+// que nada volvía a regenerar ese texto -- a diferencia del resto del
+// panel, que usa data-i18n y SÍ se reaplica solo cuando resuelve
+// window.i18nReady (ver applyI18n en i18n/loader.js). myQrRefreshTexts()
+// de más abajo cierra ese hueco para el texto generado dinámicamente.
+function myQrPlatformLabel(p) {
+  return tOrFallback(p.nameKey, p.fallbackTitle);
+}
 
 // Solo valida (nunca reescribe profileData ni localStorage) -- misma idea
 // que activarNormalizacionRedSocial/saveProfile, pero de solo lectura.
@@ -7071,7 +7129,7 @@ function renderMyQrList() {
 
     const label = document.createElement('span');
     label.className = 'myqr-card-label';
-    label.textContent = t(p.nameKey); // texto, nunca HTML
+    label.textContent = myQrPlatformLabel(p); // texto, nunca HTML
 
     card.appendChild(iconSpan);
     card.appendChild(label);
@@ -7095,19 +7153,41 @@ function openMyQrDetail(platformId) {
   // un QR desactualizado.
   const r = myQrValidarEnlace(p.id, profileData[p.field] || '');
   if (!r.ok || !r.valor) {
-    showToast(t('index.myqr.link_unavailable_toast'));
+    showToast(tOrFallback('index.myqr.link_unavailable_toast', 'Este enlace ya no está disponible'));
     showMyQrList();
     return;
   }
 
   myQrCurrentPlatform = p.id;
   document.getElementById('myqr-detail-icon').innerHTML = MYQR_ICONS[p.icon] || '';
-  document.getElementById('myqr-detail-title').textContent = t(p.nameKey);
+  document.getElementById('myqr-detail-title').textContent = myQrPlatformLabel(p);
   document.getElementById('myqr-detail-url').textContent = r.valor; // texto plano, nunca HTML
   document.getElementById('myqr-list-view').style.display = 'none';
   document.getElementById('myqr-detail-view').style.display = 'block';
   renderMyQrDetailQR(r.valor);
 }
+
+// Si window.i18nReady resuelve DESPUÉS de que el usuario ya abrió QR
+// SELECT (diccionario aún en camino en el primer arranque), esto
+// actualiza los títulos ya pintados sin volver a generar ningún QR:
+// - en el listado no hace falta ningún cuidado especial -- nunca contiene
+//   QR, así que reconstruirlo entero (renderMyQrList) es barato y seguro;
+// - en el detalle se evita a propósito llamar a openMyQrDetail()/
+//   renderMyQrDetailQR() de nuevo -- se toca solo el nodo de texto del
+//   título, dejando el QR ya renderizado intacto.
+function myQrRefreshTexts() {
+  const screen = document.getElementById('screen-my-qr');
+  if (!screen || !screen.classList.contains('open')) return;
+  const detailView = document.getElementById('myqr-detail-view');
+  if (detailView && detailView.style.display !== 'none' && myQrCurrentPlatform) {
+    const p = MYQR_PLATFORMS.find((x) => x.id === myQrCurrentPlatform);
+    if (p) document.getElementById('myqr-detail-title').textContent = myQrPlatformLabel(p);
+    return;
+  }
+  const listView = document.getElementById('myqr-list-view');
+  if (listView && listView.style.display !== 'none') renderMyQrList();
+}
+window.i18nReady.finally(myQrRefreshTexts);
 
 // Cierra el panel entero (y cualquier ampliación abierta encima) y deja la
 // vista lista para la próxima apertura. La llama tanto el botón "Volver al
