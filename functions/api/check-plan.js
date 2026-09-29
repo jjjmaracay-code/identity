@@ -8,8 +8,14 @@
 // usar para averiguar si un email está registrado. Es precisamente la
 // vulnerabilidad de enumeración que tenía la versión anterior de este
 // archivo (que por eso se había retirado dejándolo en 404 fijo).
-const TRIAL_DAYS = 30;
-const PAID_PLANS = ['pro', 'lifetime'];
+//
+// El cálculo de "¿sigue vigente el acceso de pago?" vive en
+// functions/_shared/plan-access.js (getPlanStatus/computePaidActive) —
+// antes vivía aquí duplicado, y asumía que cualquier plan 'pro' seguía
+// vigente para siempre porque stripe-webhook.js no escuchaba la
+// cancelación/impago de la suscripción. Ver ese archivo compartido y
+// stripe-webhook.js para el detalle del ciclo de vida real.
+import { TRIAL_DAYS, getPlanStatus } from '../_shared/plan-access.js';
 
 function genericReject() {
   return new Response(JSON.stringify({ ok: false }), {
@@ -46,29 +52,19 @@ export async function onRequestPost(context) {
   try { reg = JSON.parse(regRaw); } catch (_) { return genericReject(); }
   if (!reg.token || !timingSafeEqual(reg.token, token)) return genericReject();
 
-  // Token válido — a partir de aquí se calcula el estado del trial
-  // enteramente con datos del servidor. Nunca se usa una fecha que venga
-  // del cliente.
-  const registeredAt = reg.registeredAt;
-  const diasTranscurridos = Math.floor((Date.now() - new Date(registeredAt).getTime()) / (1000 * 60 * 60 * 24));
-  const diasRestantes = Math.max(0, TRIAL_DAYS - diasTranscurridos);
+  // Token válido — a partir de aquí se calcula el estado del trial/plan
+  // enteramente con datos del servidor (getPlanStatus vuelve a leer
+  // PLANS_KV, es una segunda lectura barata que evita duplicar aquí su
+  // lógica). Nunca se usa una fecha que venga del cliente.
+  const status = await getPlanStatus(env, emailKey);
+  if (!status) return genericReject(); // no debería pasar (ya comprobamos reg arriba), blindaje
 
-  // El plan pagado vive en una clave sin prefijo (la escribe
-  // stripe-webhook.js tras un pago confirmado). Si no hay registro ahí,
-  // el usuario sigue en 'free' — una elección legítima que ya no lo
-  // exime de la expiración del trial (ver goFree() en paywall.html).
-  let plan = 'free';
-  const paidRaw = await env.PLANS_KV.get(emailKey);
-  if (paidRaw) {
-    try {
-      const paid = JSON.parse(paidRaw);
-      if (paid?.plan) plan = paid.plan;
-    } catch (_) {}
-  }
+  const diasRestantes = Math.max(0, TRIAL_DAYS - status.diasTranscurridos);
 
-  const bloqueado = diasTranscurridos >= TRIAL_DAYS && !PAID_PLANS.includes(plan);
-
-  return new Response(JSON.stringify({ ok: true, plan, registeredAt, diasRestantes, bloqueado }), {
+  return new Response(JSON.stringify({
+    ok: true, plan: status.plan, registeredAt: status.registeredAt,
+    diasRestantes, bloqueado: status.bloqueado,
+  }), {
     status: 200, headers: { 'Content-Type': 'application/json' }
   });
 }

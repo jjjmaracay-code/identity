@@ -126,7 +126,20 @@
     return pin && !pin.classList.contains('hidden');
   }
 
+  // Se pone a true al bloquear y a false al volver a abrir el hub/editor.
+  // No basta con quitar la clase 'open' (eso ya oculta las pantallas vía
+  // transform, ver business.css): una operación asíncrona en curso en el
+  // momento del bloqueo (una verificación de plan, una publicación, una
+  // recuperación desde el servidor) seguiría resolviendo DESPUÉS del
+  // bloqueo y podría mutar el DOM de esas pantallas o disparar un toast
+  // con datos de la tarjeta — invisible mientras el overlay siga oculto,
+  // pero writes "vale, tu tarjeta se publicó" es información real que no
+  // debería aparecer tras un bloqueo. Cada callback asíncrono relevante
+  // comprueba este flag antes de tocar nada.
+  let _locked = false;
+
   function closeAllBusinessScreens() {
+    _locked = true;
     ['screen-business', 'screen-business-editor', 'screen-business-preview'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.classList.remove('open');
@@ -136,6 +149,14 @@
     if (_keydownPreview) { document.removeEventListener('keydown', _keydownPreview); _keydownPreview = null; }
     _bizQrToken++; // invalida cualquier render de QR pendiente
   }
+  // Expuesta en window para que otros mecanismos de bloqueo del script
+  // principal (ver index.html, confirmación de "Baja voluntaria" —
+  // storage-wipe.js borra los datos, pero el DOM ya renderizado del
+  // editor Business podría seguir mostrando el borrador de la cuenta
+  // recién eliminada si esta pantalla estuviera abierta detrás) puedan
+  // cerrar las vistas privadas de Business sin depender de que btn-lock
+  // sea el único camino hacia screen-pin.
+  window.closeAllBusinessScreens = closeAllBusinessScreens;
   // business.js se carga como <script> clásico cerca del final del body
   // (después de #btn-lock, ver index.html), así que el elemento ya existe
   // en el DOM en este punto — no hace falta esperar a DOMContentLoaded.
@@ -145,9 +166,11 @@
     if (pinScreenVisible()) return;
     const screen = document.getElementById('screen-business');
     if (!screen) return;
+    _locked = false;
     _prevFocusHub = document.activeElement;
     screen.classList.add('open');
     await renderHub();
+    if (_locked) return; // se bloqueó mientras renderHub() esperaba la red
     _keydownHub = (e) => { if (e.key === 'Escape' && !isQrZoomSafe()) closeBusinessHub(); };
     document.addEventListener('keydown', _keydownHub);
     document.getElementById('btn-close-business')?.focus();
@@ -164,12 +187,23 @@
 
   async function renderHub() {
     const access = await getAccessStatus();
+    if (_locked) return; // se bloqueó la app mientras se esperaba la verificación de plan
     const banner = document.getElementById('business-paywall-banner');
     const statusLine = document.getElementById('business-status-line');
     const cards = document.querySelectorAll('.biz-modality-card');
+    const unpublishFromHub = document.getElementById('btn-business-unpublish-hub');
 
     if (banner) banner.style.display = access.esPago ? 'none' : 'block';
     cards.forEach((c) => { c.disabled = !access.esPago; });
+    // Despublicar debe poder alcanzarse aunque el editor de pago esté
+    // bloqueado -- el endpoint ya lo permite sin plan vigente (ver
+    // business-unpublish.js), pero antes el ÚNICO botón "Despublicar"
+    // vivía dentro del editor, inalcanzable precisamente cuando más hace
+    // falta. Se muestra siempre que el acceso no esté activo, incluso sin
+    // ningún dato local de que exista una tarjeta (recuperación entre
+    // dispositivos): unpublish() ya informa con claridad si no hay nada
+    // que despublicar en el servidor.
+    if (unpublishFromHub) unpublishFromHub.style.display = access.esPago ? 'none' : 'block';
 
     const meta = loadMeta();
     if (statusLine) {
@@ -213,6 +247,7 @@
   // =================== EDITOR ===================
   async function tryOpenEditor(modality) {
     const access = await getAccessStatus();
+    if (_locked || pinScreenVisible()) return; // se bloqueó mientras se verificaba el plan
     if (!access.esPago) {
       toast(tf('index.business.paid_feature_toast', 'IDENTIFLY BUSINESS es una función de pago. Mejora tu plan para editar y publicar.'));
       return;
@@ -230,6 +265,7 @@
     closeBusinessHub();
     const screen = document.getElementById('screen-business-editor');
     if (!screen) return;
+    _locked = false;
     _prevFocusEditor = document.activeElement;
     screen.classList.add('open');
     renderEditorForm();
@@ -661,6 +697,7 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cred.email, token: cred.token, ...payload }),
       });
+      if (_locked) return; // la app se bloqueó mientras la petición estaba en curso
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
         saveDraftToStorage(workingDraft);
@@ -685,9 +722,16 @@
     }
   }
 
+  // Alcanzable desde dos sitios: el pie del editor (cuando el acceso de
+  // pago está activo) y el hub directamente (cuando NO lo está, ver
+  // renderHub) -- el servidor ya permitía despublicar sin plan vigente,
+  // pero antes el único botón vivía dentro del editor, que se bloqueaba
+  // precisamente en ese caso. No depende de datos locales (meta): si no
+  // hay ninguna tarjeta en el servidor para esta cuenta, se informa con
+  // claridad en vez de un error genérico.
   async function unpublish() {
     const cred = getRegAndToken();
-    if (!cred) return;
+    if (!cred) { toast(tf('index.business.no_account_toast', 'Necesitas una cuenta registrada para publicar.')); return; }
     const ok = window.confirm(tf('index.business.unpublish_confirm', '¿Despublicar tu tarjeta? Dejará de estar disponible en su enlace. Tus datos y la URL se conservan.'));
     if (!ok) return;
     try {
@@ -695,15 +739,19 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cred.email, token: cred.token }),
       });
+      if (_locked) return; // bloqueada mientras esperábamos la respuesta
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
         const meta = loadMeta();
         if (meta) { meta.published = false; saveMeta(meta); }
         toast(tf('index.business.unpublish_success_toast', 'Tarjeta despublicada.'));
-        renderPublishFooter();
+      } else if (res.status === 404) {
+        toast(tf('index.business.nothing_published_toast', 'Todavía no hay ninguna tarjeta publicada para esta cuenta.'));
       } else {
         toast(tf('index.business.unpublish_error_toast', 'No se pudo despublicar. Inténtalo de nuevo.'));
       }
+      if (document.getElementById('screen-business-editor')?.classList.contains('open')) renderPublishFooter();
+      if (document.getElementById('screen-business')?.classList.contains('open')) renderHub();
     } catch (_) { toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo despublicar.')); }
   }
 
@@ -715,6 +763,7 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cred.email, token: cred.token }),
       });
+      if (_locked) return;
       const data = await res.json().catch(() => ({}));
       if (data.ok) {
         const meta = loadMeta() || {};
@@ -738,11 +787,13 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cred.email, token: cred.token }),
       });
+      if (_locked) return;
       const data = await res.json().catch(() => ({}));
       if (!data.ok) { toast(tf('index.business.network_error_toast', 'No se pudo consultar el servidor.')); return; }
       if (!data.exists) { toast(tf('index.business.nothing_published_toast', 'Todavía no hay ninguna tarjeta publicada para esta cuenta.')); return; }
       const ok = window.confirm(tf('index.business.pull_confirm', 'Esto reemplazará tu borrador local con la última versión publicada en el servidor. ¿Continuar?'));
       if (!ok) return;
+      if (_locked) return; // se bloqueó mientras se mostraba el confirm()
       const r = data.record;
       workingDraft = {
         modality: r.modality, displayName: r.displayName, logo: r.logo, tagline: r.tagline,
@@ -882,6 +933,7 @@
     document.getElementById('btn-open-business')?.addEventListener('click', openBusinessHub);
     document.getElementById('btn-close-business')?.addEventListener('click', closeBusinessHub);
     document.getElementById('btn-business-upgrade')?.addEventListener('click', () => { window.location.href = 'paywall.html'; });
+    document.getElementById('btn-business-unpublish-hub')?.addEventListener('click', unpublish);
 
     document.querySelectorAll('.biz-modality-card').forEach((card) => {
       card.addEventListener('click', () => tryOpenEditor(card.dataset.modality));

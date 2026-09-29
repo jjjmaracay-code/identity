@@ -4,14 +4,21 @@
 //
 // Requiere SIEMPRE, verificado en servidor:
 //   1. Identidad válida (email + token, mismo mecanismo que check-plan.js).
-//   2. Plan de pago vigente (pro/lifetime, sin bloqueo de trial) — igual
-//      que el resto de la app, nunca se confía en un plan enviado por el
-//      cliente.
+//   2. Plan de pago vigente ahora mismo (pro con periodo pagado vigente,
+//      o lifetime), calculado en functions/_shared/plan-access.js — nunca
+//      se confía en un plan enviado por el cliente.
 // La propiedad se resuelve por email autenticado, nunca por un id que
 // envíe el cliente: así una cuenta no puede publicar ni pisar la tarjeta
 // de otra.
+//
+// El id de la tarjeta es DETERMINISTA (deriveBusinessId, ver
+// functions/_shared/business.js) en vez de aleatorio: dos publicaciones
+// "primera vez" concurrentes de la misma cuenta calculan siempre el
+// mismo id y escriben el mismo registro KV — nunca pueden crear dos
+// tarjetas ni dejar una huérfana. Esto sustituye al índice 'bizowner:'
+// que usaba la versión anterior (ver deriveBusinessId para el porqué).
 import {
-  authenticateOwner, validateBusinessPayload, jsonResponse, generateBusinessId,
+  authenticateOwner, validateBusinessPayload, jsonResponse, deriveBusinessId,
 } from '../_shared/business.js';
 
 export async function onRequestPost(context) {
@@ -28,8 +35,9 @@ export async function onRequestPost(context) {
   // Guarda mínimo entre publicaciones de la MISMA cuenta — no es un
   // limitador de tráfico general (este proyecto no tiene Durable Objects
   // ni reglas de rate limiting a nivel de borde configuradas; ver INFORME
-  // de entrega), solo evita que un doble toque/reintento inmediato cree
-  // dos tarjetas distintas en la primera publicación.
+  // de entrega). Con el id determinista ya NO hace falta para evitar
+  // duplicados (eso lo garantiza deriveBusinessId): se conserva solo
+  // como freno anti-abuso ante pulsaciones repetidas.
   const rateKey = 'bizrate:' + auth.emailKey;
   if (await env.BUSINESS_KV.get(rateKey)) {
     return jsonResponse({ ok: false, error: 'demasiadas_solicitudes' }, 429);
@@ -39,17 +47,15 @@ export async function onRequestPost(context) {
   const validated = validateBusinessPayload(body);
   if (!validated.ok) return jsonResponse({ ok: false, error: validated.error }, 400);
 
-  const ownerKey = 'bizowner:' + auth.emailKey;
-  const existingId = await env.BUSINESS_KV.get(ownerKey);
+  let id;
+  try { id = await deriveBusinessId(env, auth.emailKey); }
+  catch (_) { return jsonResponse({ ok: false, error: 'configuracion_incompleta' }, 500); }
+
+  const existingRaw = await env.BUSINESS_KV.get('biz:' + id);
   let existingRecord = null;
-  if (existingId) {
-    const raw = await env.BUSINESS_KV.get('biz:' + existingId);
-    if (raw) { try { existingRecord = JSON.parse(raw); } catch (_) {} }
-  }
+  if (existingRaw) { try { existingRecord = JSON.parse(existingRaw); } catch (_) {} }
 
-  const id = existingId || generateBusinessId();
   const nowIso = new Date().toISOString();
-
   const record = {
     ...validated.data,
     id,
@@ -60,13 +66,13 @@ export async function onRequestPost(context) {
     updatedAt: nowIso,
   };
 
-  // Si falla la escritura del registro, no se toca el índice de
-  // propietario — evita dejar bizowner apuntando a un id sin datos
-  // (estado parcial). Al escribir primero el registro y solo después el
-  // índice, un fallo entre medias deja como mucho un registro huérfano
-  // (nunca uno roto referenciado desde el índice).
+  // Única escritura de la operación: si falla (red, cuota, lo que sea),
+  // la promesa rechaza, Pages Functions responde con un error y el
+  // registro anterior en 'biz:'+id queda exactamente como estaba — KV no
+  // hace escrituras parciales de un mismo valor. No hay un segundo paso
+  // (como el índice 'bizowner:' de antes) que pudiera quedar
+  // desincronizado si este `put` falla.
   await env.BUSINESS_KV.put('biz:' + id, JSON.stringify(record));
-  if (!existingId) await env.BUSINESS_KV.put(ownerKey, id);
 
   const origin = new URL(request.url).origin;
   return jsonResponse({ ok: true, id, url: `${origin}/c/${id}`, publishedAt: record.publishedAt, updatedAt: record.updatedAt });

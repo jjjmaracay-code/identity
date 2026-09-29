@@ -32,6 +32,16 @@ export async function onRequestPost(context) {
     params.append('cancel_url', `${origin}/paywall.html`);
     params.append('metadata[plan]', plan);
     params.append('metadata[email]', email);
+    // Solo relevante para 'pro' (mode:'subscription'): esta metadata se
+    // copia al objeto Subscription que Stripe crea, así que
+    // stripe-webhook.js puede resolver a qué cuenta pertenece cuando
+    // lleguen customer.subscription.updated/deleted más adelante (esos
+    // eventos no incluyen la sesión de checkout original, solo la propia
+    // suscripción). 'lifetime' es mode:'payment' y nunca crea una
+    // suscripción, así que este parámetro no tiene efecto en ese caso.
+    if (mode === 'subscription') {
+      params.append('subscription_data[metadata][email]', email);
+    }
 
     const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',

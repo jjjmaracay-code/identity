@@ -1,3 +1,23 @@
+// v15: corrige una brecha de privacidad real en IDENTIFLY BUSINESS: el
+// handler de 'fetch' de v14 seguía cacheando genéricamente CUALQUIER
+// respuesta GET exitosa que no terminara en .html, incluida
+// /c/{id} -- una tarjeta pública abierta como navegación de nivel
+// superior (event.request.mode === 'navigate', el caso normal al abrir un
+// enlace compartido) entraba en la rama "isHTML" (que cachea SIEMPRE la
+// respuesta con éxito, aunque intente red primero) simplemente por no
+// terminar en ".html". Si el propietario despublicaba la tarjeta después,
+// un visitante sin red (o el propio Service Worker sirviendo desde caché
+// ante cualquier fallo de red futuro) podía seguir viendo la versión
+// cacheada -- justo lo que la instrucción pide evitar explícitamente
+// ("gestiona explícitamente la caché... para que no mantenga accesible
+// deliberadamente una publicación retirada"). Ahora /c/* y /api/* se
+// excluyen ANTES de cualquier otra regla, sin pasar nunca por caché ni en
+// lectura ni en escritura -- ninguna regla genérica posterior puede
+// volver a atraparlos. Las respuestas de /api/* ya declaran
+// Cache-Control: no-store (ver functions/_shared/business.js
+// jsonResponse) y /c/{id} también (ver functions/c/[id].js), así que esto
+// es además una segunda capa, no la única.
+//
 // v14: añade IDENTIFLY BUSINESS (hub + editor + vista previa, ver
 // business.js/business.css). Sube la versión por dos motivos: (1) se
 // añaden business.css y business.js al precache -- sin esto, un
@@ -52,7 +72,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v14';
+const CACHE_NAME = 'identity-v15';
 const CACHE_URLS = [
   './index.html',
   './register.html',
@@ -76,8 +96,21 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const pathname = new URL(event.request.url).pathname;
+
+  // Tarjetas públicas de Business (/c/{id}) y toda la API (/api/*, incluye
+  // los endpoints de Business y los ya existentes de plan/registro/pago):
+  // siempre red, nunca caché -- ni se lee de caché ni se escribe en ella.
+  // Debe ir ANTES que cualquier otra regla (incluida la de "isHTML" más
+  // abajo, que si no se excluyera aquí capturaría /c/{id} por llegar como
+  // navegación de nivel superior). Ver nota de v15 arriba.
+  if (pathname.startsWith('/c/') || pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   const isHTML = event.request.mode === 'navigate' ||
-                 new URL(event.request.url).pathname.endsWith('.html');
+                 pathname.endsWith('.html');
 
   if (isHTML) {
     event.respondWith(

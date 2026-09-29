@@ -4,8 +4,10 @@
 // localStorage del propietario (ver instrucción).
 //
 // El id es opaco y no lleva datos personales ni credenciales de gestión
-// (ver business-publish.js: crypto.randomUUID() sin guiones).
-import { PAID_PLANS, TRIAL_DAYS, SOCIAL_KEYS } from '../_shared/business.js';
+// (ver functions/_shared/business.js: deriveBusinessId, HMAC-SHA256 sin
+// email en claro).
+import { SOCIAL_KEYS } from '../_shared/business.js';
+import { getPlanStatus } from '../_shared/plan-access.js';
 
 function escapeHtml(str) {
   return String(str ?? '')
@@ -15,25 +17,17 @@ function escapeHtml(str) {
 
 function escapeAttr(str) { return escapeHtml(str); }
 
-// Mismo cálculo de "bloqueado" que check-plan.js — la tarjeta pública deja
-// de servirse cuando el acceso de pago del propietario caduca, aunque el
-// registro siga marcado como publicado (los datos no se borran, ver
-// instrucción). No requiere el token del propietario: aquí solo se
-// consulta el estado de SU cuenta, ya fijado en el momento de publicar.
+// Mismo cálculo de acceso que check-plan.js/authenticateOwner (vía
+// plan-access.js) — la tarjeta pública deja de servirse cuando el acceso
+// de pago del propietario caduca, aunque el registro siga marcado como
+// publicado (los datos no se borran, ver instrucción). No requiere el
+// token del propietario: aquí solo se consulta el estado de SU cuenta,
+// ya fijado en el momento de publicar. 'pro' respeta el periodo YA
+// PAGADO (currentPeriodEnd) aunque la renovación esté cancelada;
+// 'lifetime' nunca caduca — ver plan-access.js.
 async function accesoVigente(env, ownerEmailKey) {
-  const regRaw = await env.PLANS_KV.get('reg:' + ownerEmailKey);
-  if (!regRaw) return false;
-  let reg;
-  try { reg = JSON.parse(regRaw); } catch (_) { return false; }
-  const dias = Math.floor((Date.now() - new Date(reg.registeredAt).getTime()) / (1000 * 60 * 60 * 24));
-
-  let plan = 'free';
-  const paidRaw = await env.PLANS_KV.get(ownerEmailKey);
-  if (paidRaw) {
-    try { const paid = JSON.parse(paidRaw); if (paid?.plan) plan = paid.plan; } catch (_) {}
-  }
-  const bloqueado = dias >= TRIAL_DAYS && !PAID_PLANS.includes(plan);
-  return !bloqueado;
+  const status = await getPlanStatus(env, ownerEmailKey);
+  return !!status && !status.bloqueado;
 }
 
 function paginaNoDisponible(status) {

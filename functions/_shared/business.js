@@ -6,9 +6,13 @@
 // verificado contra PLANS_KV 'reg:'+email — ver check-plan.js). No se
 // inventa un sistema de autenticación nuevo para Business: es el mismo
 // que ya protege el trial/plan del resto de IDENTIFLY.
-
-export const TRIAL_DAYS = 30;
-export const PAID_PLANS = ['pro', 'lifetime'];
+//
+// El veredicto de "¿tiene acceso de pago vigente ahora mismo?" vive en
+// functions/_shared/plan-access.js — antes se recalculaba aquí de forma
+// duplicada y desactualizada (ver ese archivo para el porqué: un plan
+// 'pro' cancelado no perdía el acceso hasta esta revisión).
+import { TRIAL_DAYS, PAID_PLANS, getPlanStatus } from './plan-access.js';
+export { TRIAL_DAYS, PAID_PLANS };
 
 export const MODALITIES = ['professional', 'freelance', 'company'];
 export const SOCIAL_KEYS = ['instagram', 'facebook', 'linkedin', 'twitter', 'youtube', 'tiktok', 'whatsapp'];
@@ -53,35 +57,52 @@ export function timingSafeEqual(a, b) {
 }
 
 // Verifica identidad (email+token) contra PLANS_KV y calcula el mismo
-// veredicto de plan/trial que check-plan.js — Business nunca decide esto
-// por su cuenta, para no divergir del comportamiento ya auditado del
-// resto de la app.
+// veredicto de plan/trial que check-plan.js (vía plan-access.js) —
+// Business nunca decide esto por su cuenta, para no divergir del
+// comportamiento ya auditado del resto de la app.
 export async function authenticateOwner(env, email, token) {
   if (!email || !token || typeof token !== 'string') return { ok: false, reason: 'credenciales_invalidas' };
   const emailKey = String(email).toLowerCase();
 
-  const regRaw = await env.PLANS_KV.get('reg:' + emailKey);
-  if (!regRaw) return { ok: false, reason: 'credenciales_invalidas' };
+  const status = await getPlanStatus(env, emailKey);
+  if (!status) return { ok: false, reason: 'credenciales_invalidas' };
+  if (!status.reg.token || !timingSafeEqual(status.reg.token, token)) return { ok: false, reason: 'credenciales_invalidas' };
 
-  let reg;
-  try { reg = JSON.parse(regRaw); } catch (_) { return { ok: false, reason: 'credenciales_invalidas' }; }
-  if (!reg.token || !timingSafeEqual(reg.token, token)) return { ok: false, reason: 'credenciales_invalidas' };
+  return { ok: true, emailKey, plan: status.plan, bloqueado: status.bloqueado, esPago: status.paidActive };
+}
 
-  const registeredAt = reg.registeredAt;
-  const diasTranscurridos = Math.floor((Date.now() - new Date(registeredAt).getTime()) / (1000 * 60 * 60 * 24));
-
-  let plan = 'free';
-  const paidRaw = await env.PLANS_KV.get(emailKey);
-  if (paidRaw) {
-    try {
-      const paid = JSON.parse(paidRaw);
-      if (paid?.plan) plan = paid.plan;
-    } catch (_) {}
-  }
-
-  const bloqueado = diasTranscurridos >= TRIAL_DAYS && !PAID_PLANS.includes(plan);
-
-  return { ok: true, emailKey, plan, bloqueado, esPago: PAID_PLANS.includes(plan) };
+// Identificador público opaco, DETERMINISTA a partir del email de la
+// cuenta (HMAC-SHA256 con un secreto que solo conoce el servidor,
+// env.BUSINESS_ID_SECRET — ver INFORME de entrega para cómo generarlo y
+// configurarlo). No es reversible: nadie puede recuperar el email a
+// partir del id sin el secreto, así que sigue sin llevar datos
+// personales (ver instrucción).
+//
+// El diseño anterior generaba un id ALEATORIO en el primer publish y lo
+// indexaba en 'bizowner:'+emailKey. Bajo dos publicaciones "primera vez"
+// verdaderamente simultáneas de la misma cuenta (doble toque en mala
+// conexión, dos pestañas, un reintento que llega a la vez que el
+// original) existía una ventana de carrera real: ambas podían leer
+// 'bizowner:'+emailKey como inexistente antes de que ninguna lo hubiera
+// escrito, generar dos ids distintos y dejar una tarjeta huérfana
+// publicada para siempre, inalcanzable desde business-unpublish/
+// -reactivate/-fetch (que solo conocen el id "ganador"). Derivar el id
+// sin ningún paso de lectura-antes-de-escribir elimina esa ventana por
+// construcción: dos peticiones concurrentes calculan siempre el MISMO
+// id y acaban escribiendo el mismo registro (última escritura gana,
+// nunca dos registros). Esto también hace innecesario el índice
+// 'bizowner:' — ver business-publish.js/-unpublish.js/-reactivate.js/
+// -fetch.js.
+export async function deriveBusinessId(env, emailKey) {
+  const secret = env.BUSINESS_ID_SECRET;
+  if (!secret) throw new Error('falta_configurar_BUSINESS_ID_SECRET');
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('identifly-business:' + emailKey));
+  const hex = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  return hex.slice(0, 32); // 128 bits — misma longitud que el UUID-sin-guiones anterior
 }
 
 export function isHttpUrl(str, maxLen) {
@@ -239,8 +260,4 @@ export function jsonResponse(obj, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
-}
-
-export function generateBusinessId() {
-  return crypto.randomUUID().replace(/-/g, '');
 }

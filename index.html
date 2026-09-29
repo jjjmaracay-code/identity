@@ -4012,6 +4012,11 @@
       <div class="biz-paywall-badge" data-i18n="index.business.paid_feature_badge">Función de pago</div>
       <p data-i18n="index.business.paid_feature_desc">Publicar una tarjeta Business requiere un plan de pago. Puedes ver cómo funciona; para editar y publicar, mejora tu plan.</p>
       <button class="btn-myqr-action" id="btn-business-upgrade" style="margin:0;" data-i18n="index.business.upgrade_button">Mejorar plan</button>
+      <!-- Despublicar debe seguir alcanzable aunque el acceso de pago esté
+           inactivo (el editor, donde vivía antes este botón, no lo está)
+           -- ver business.js renderHub(). Oculto por defecto: solo se
+           muestra cuando el acceso no está activo. -->
+      <button class="btn-myqr-action biz-danger" id="btn-business-unpublish-hub" style="margin:8px 0 0;display:none;" data-i18n="index.business.unpublish_button">Despublicar</button>
     </div>
 
     <div id="business-status-line" class="biz-status-line" style="display:none;"></div>
@@ -7600,6 +7605,12 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
   document.getElementById('screen-edit').classList.remove('open');
   document.getElementById('screen-main').classList.remove('visible');
   document.getElementById('screen-pin').classList.remove('hidden');
+  // storage-wipe.js ya borró identity_business_draft junto con el resto de
+  // localStorage, pero si el editor/vista previa de Business seguía
+  // "abierto" detrás de esta pantalla, su DOM ya renderizado (formulario,
+  // vista previa) podría seguir mostrando el borrador de la cuenta recién
+  // eliminada. Ver window.closeAllBusinessScreens en business.js.
+  if (typeof window.closeAllBusinessScreens === 'function') window.closeAllBusinessScreens();
 
   // Mostrar de nuevo el consentimiento
   document.getElementById('screen-consent').classList.remove('hidden');

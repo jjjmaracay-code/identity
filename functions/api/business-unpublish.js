@@ -4,7 +4,10 @@
 // aunque ya no pague — ver instrucción "permite despublicar o eliminar
 // aunque el propietario ya no pague". Conserva el registro y su id (no
 // se borra), solo dejan de servirse desde functions/c/[id].js.
-import { authenticateOwner, jsonResponse } from '../_shared/business.js';
+//
+// El id se deriva (deriveBusinessId), no se busca en un índice — ver
+// functions/_shared/business.js para el porqué.
+import { authenticateOwner, deriveBusinessId, jsonResponse } from '../_shared/business.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -15,9 +18,9 @@ export async function onRequestPost(context) {
   const auth = await authenticateOwner(env, body?.email, body?.token);
   if (!auth.ok) return jsonResponse({ ok: false, error: 'no_autorizado' }, 401);
 
-  const ownerKey = 'bizowner:' + auth.emailKey;
-  const id = await env.BUSINESS_KV.get(ownerKey);
-  if (!id) return jsonResponse({ ok: false, error: 'sin_tarjeta' }, 404);
+  let id;
+  try { id = await deriveBusinessId(env, auth.emailKey); }
+  catch (_) { return jsonResponse({ ok: false, error: 'configuracion_incompleta' }, 500); }
 
   const raw = await env.BUSINESS_KV.get('biz:' + id);
   if (!raw) return jsonResponse({ ok: false, error: 'sin_tarjeta' }, 404);
