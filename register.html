@@ -850,7 +850,7 @@
       Al continuar se enviará un código de verificación a tu email
     </div>
 
-    <a href="index.html" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;" data-i18n="register.step1.login_link">¿Ya tienes cuenta? Inicia sesión</a>
+    <a href="/index.html" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;" data-i18n="register.step1.login_link">¿Ya tienes cuenta? Inicia sesión</a>
 
   </div><!-- fin screen-1 -->
 
@@ -983,7 +983,7 @@ if (localStorage.getItem('identity_data') || localStorage.getItem(REG_KEY)) {
       <div style="max-width:360px;">
         <div style="font-size:14px;font-weight:700;color:#AAFF00;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">Ya existe una cuenta en este dispositivo</div>
         <p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.6;margin-bottom:24px;">Para crear una identidad nueva, primero elimina la cuenta actual desde Configuración → Zona de eliminación de datos.</p>
-        <a href="index.html" style="display:inline-block;padding:12px 24px;border-radius:10px;background:#AAFF00;color:#000;font-weight:700;font-size:12px;letter-spacing:1px;text-decoration:none;">Ir a mi cuenta</a>
+        <a href="/index.html" style="display:inline-block;padding:12px 24px;border-radius:10px;background:#AAFF00;color:#000;font-weight:700;font-size:12px;letter-spacing:1px;text-decoration:none;">Ir a mi cuenta</a>
       </div>
     </div>`;
   throw new Error('Registro bloqueado: ya existe un perfil');
@@ -1633,7 +1633,7 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
 
 // =================== ENTRAR A LA APP ===================
 document.getElementById('btn-enter-app').addEventListener('click', () => {
-  window.location.href = 'index.html';
+  window.location.href = '/index.html';
 });
 
 // =================== TOAST ===================

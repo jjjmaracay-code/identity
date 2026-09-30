@@ -398,7 +398,7 @@
       // check-plan.js en el servidor, mirando solo si existe un plan de
       // pago (pro/lifetime) para este email, sin mirar este valor.
       localStorage.setItem('identity_plan', 'free');
-      window.location.href = 'index.html';
+      window.location.href = '/index.html';
     }
 
     let currentPlan = null;
@@ -459,7 +459,7 @@
         if (data.paid && data.plan) {
           localStorage.setItem('identity_plan', data.plan);
           alert('¡Pago confirmado! Tu plan ' + data.plan + ' está activo.');
-          window.location.href = 'index.html';
+          window.location.href = '/index.html';
         }
       } catch (err) {
         console.error('Error verificando pago:', err);

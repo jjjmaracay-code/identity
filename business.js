@@ -1159,7 +1159,7 @@
   function init() {
     document.getElementById('btn-open-business')?.addEventListener('click', openBusinessHub);
     document.getElementById('btn-close-business')?.addEventListener('click', closeBusinessHub);
-    document.getElementById('btn-business-upgrade')?.addEventListener('click', () => { window.location.href = 'paywall.html'; });
+    document.getElementById('btn-business-upgrade')?.addEventListener('click', () => { window.location.href = '/paywall.html'; });
     document.getElementById('btn-business-unpublish-hub')?.addEventListener('click', unpublish);
 
     document.querySelectorAll('.biz-modality-card').forEach((card) => {
