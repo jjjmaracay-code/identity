@@ -7583,23 +7583,6 @@ document.getElementById('btn-install-close').addEventListener('click', () => {
   document.getElementById('install-banner').classList.remove('show');
 });
 
-// =================== SERVICE WORKER (PWA) ===================
-if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE = 'identity-v1';
-    const ASSETS = ['/'];
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-    });
-    self.addEventListener('fetch', e => {
-      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-    });
-  `;
-  const blob = new Blob([swCode], {type: 'application/javascript'});
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl).catch(() => {});
-}
-
 // =================== BAJA VOLUNTARIA ===================
 const deleteScreen = document.getElementById('screen-delete-confirm');
 
@@ -8605,8 +8588,32 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(r => console.log('SW registrado'))
+      .then((reg) => {
+        console.log('SW registrado');
+        // Comprobación activa de actualización en cada carga -- no
+        // depende únicamente del ciclo implícito del navegador (hasta
+        // 24h, y con quiebras conocidas en PWA instaladas en iOS que
+        // pueden dejarlo sin comprobarse indefinidamente). Sin esto, un
+        // Service Worker nuevo podía quedar sin detectarse durante mucho
+        // tiempo aunque el servidor ya sirviera la versión corregida.
+        reg.update().catch(() => {});
+      })
       .catch(e => console.log('SW error', e));
+
+    // Antes, activar un Service Worker nuevo (skipWaiting + clients.claim,
+    // ver sw.js) tomaba el control de futuras peticiones, pero la página
+    // YA ABIERTA seguía ejecutando el business.js/index.html cargados en
+    // memoria de la versión anterior -- solo una recarga real aplica el
+    // código nuevo. 'controllerchange' se dispara justo cuando el nuevo
+    // Service Worker empieza a controlar esta pestaña: se recarga una
+    // única vez (isReload evita un bucle si el evento se disparase más
+    // de una vez).
+    let isReload = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (isReload) return;
+      isReload = true;
+      location.reload();
+    });
   });
 }
 </script>

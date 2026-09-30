@@ -5,3 +5,11 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(self), camera=(), microphone=()
+
+# El propio archivo del Service Worker nunca debe servirse desde una
+# caché intermedia (CDN o del navegador) -- si quedara una copia vieja
+# cacheada en el camino, el mecanismo de actualización del navegador
+# (que compara bytes contra /sw.js en cada comprobación) nunca detectaría
+# una versión nueva, sin importar cuántas veces se cierre y abra la app.
+/sw.js
+  Cache-Control: no-cache

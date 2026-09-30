@@ -19,6 +19,11 @@
   const DRAFT_KEY = 'identity_business_draft';
   const META_KEY = 'identity_business_publish_meta';
 
+  // Sube junto con CACHE_NAME en sw.js en cada cambio real de este
+  // archivo -- únicamente para el diagnóstico temporal (ver
+  // diagnosticoBusinessTexto), no afecta a ninguna lógica de negocio.
+  const BUSINESS_CODE_VERSION = 'v21';
+
   const MODALITIES = ['professional', 'freelance', 'company'];
   // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
   // ese archivo para el porqué (se corrige aquí una lista anterior que
@@ -306,9 +311,28 @@
         }
       }
     }
+    asegurarBotonDiagnostico();
     if (window.applyI18n) window.applyI18n(screen_business_el());
   }
   function screen_business_el() { return document.getElementById('screen-business'); }
+
+  // Botón temporal de diagnóstico (ver DIAGNÓSTICO TEMPORAL más abajo):
+  // se crea por JS, sin tocar el HTML, e idempotente (no duplica si el
+  // hub se vuelve a renderizar). Discreto: mismo estilo que el enlace
+  // secundario ya existente (btn-biz-pull-server), al final del scroll.
+  function asegurarBotonDiagnostico() {
+    if (document.getElementById('btn-biz-diagnostico')) return;
+    const scroll = document.getElementById('business-hub-scroll');
+    if (!scroll) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'btn-biz-diagnostico';
+    btn.className = 'biz-secondary-link';
+    btn.style.marginTop = '16px';
+    btn.textContent = 'Diagnóstico';
+    btn.addEventListener('click', mostrarDiagnosticoBusiness);
+    scroll.appendChild(btn);
+  }
 
   function isPublishedDirty() {
     const meta = loadMeta();
@@ -672,6 +696,120 @@
     });
 
     return { incorporados, perfilDisponible };
+  }
+
+  // =================== DIAGNÓSTICO TEMPORAL (solo lectura) ===================
+  // Ver INFORME de entrega: el prerrelleno funciona en las pruebas locales
+  // (jsdom, 32/32 casos) pero un dispositivo real sigue reportándolo
+  // vacío tras la corrección publicada -- esto reúne, en el propio
+  // dispositivo, evidencia real en vez de otra hipótesis. Nunca escribe
+  // nada (ni siquiera para "probar" el prerrelleno: se simula sobre una
+  // COPIA, nunca sobre el borrador real) ni envía nada a ningún servidor.
+  // Se retira en cuanto deje de hacer falta.
+  const CAMPOS_PERSONALES_DIAGNOSTICO = ['name', 'job', 'company', 'phoneCountryCode', 'phoneNumber', 'email', 'web', 'address', ...SOCIAL_KEYS];
+
+  async function diagnosticoBusinessTexto() {
+    const lineas = [];
+    lineas.push('=== DIAGNÓSTICO BUSINESS (temporal, solo lectura) ===');
+    lineas.push('Código Business en ejecución: ' + BUSINESS_CODE_VERSION);
+    lineas.push('Origen: ' + location.origin);
+    lineas.push('');
+
+    // Cachés realmente instaladas en ESTE dispositivo -- si "identity-vNN"
+    // (la versión actual, ver CACHE_NAME en sw.js) no aparece aquí, el
+    // Service Worker de esta versión nunca terminó de instalarse en este
+    // dispositivo, sea cual sea el motivo (confirma o descarta la caché
+    // del dispositivo con datos, no con suposiciones).
+    try {
+      const nombres = await caches.keys();
+      lineas.push('Cachés instaladas: ' + (nombres.length ? nombres.join(', ') : '(ninguna)'));
+    } catch (e) {
+      lineas.push('Cachés instaladas: (no se pudo consultar: ' + e.message + ')');
+    }
+
+    // Service Worker que controla ESTA pestaña ahora mismo, y el estado
+    // real del registro (activo/en espera/instalando) -- "waiting" no
+    // vacío es la señal clásica de una actualización descargada que
+    // nunca llegó a activarse (típico si la pestaña/PWA nunca se cerró
+    // del todo).
+    try {
+      const controller = navigator.serviceWorker && navigator.serviceWorker.controller;
+      lineas.push('Service Worker controlando esta página: ' + (controller ? 'sí (' + controller.scriptURL + ')' : 'no'));
+      const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        lineas.push('Registro SW -> active: ' + (reg.active ? reg.active.scriptURL : '(ninguno)'));
+        lineas.push('Registro SW -> waiting: ' + (reg.waiting ? reg.waiting.scriptURL + '  <-- hay una versión nueva esperando activarse' : '(ninguno)'));
+        lineas.push('Registro SW -> installing: ' + (reg.installing ? reg.installing.scriptURL : '(ninguno)'));
+      } else {
+        lineas.push('Registro SW: (sin registro de Service Worker en este origen)');
+      }
+    } catch (e) {
+      lineas.push('Service Worker: (no se pudo consultar: ' + e.message + ')');
+    }
+    lineas.push('');
+
+    // identity_data: solo presencia de campos, nunca valores.
+    let pd = null, pdError = null;
+    try { pd = JSON.parse(localStorage.getItem('identity_data') || 'null'); } catch (e) { pdError = e.message; }
+    lineas.push('identity_data existe: ' + (localStorage.getItem('identity_data') != null ? 'sí' : 'no'));
+    lineas.push('identity_data es JSON válido: ' + (pdError ? 'NO (' + pdError + ')' : 'sí'));
+    if (pd && typeof pd === 'object') {
+      const presencia = CAMPOS_PERSONALES_DIAGNOSTICO.map((k) => k + (pd[k] ? '✓' : '✗')).join('  ');
+      lineas.push('Campos del perfil (solo presencia, nunca el valor): ' + presencia);
+    }
+    lineas.push('');
+
+    // Borrador Business real -- mismo loadDraft() que usa la app.
+    const draft = loadDraft();
+    lineas.push('Borrador Business existe: ' + (draft ? 'sí' : 'no'));
+    if (draft) {
+      lineas.push('_personalDataLinked: ' + (Object.prototype.hasOwnProperty.call(draft, '_personalDataLinked') ? String(draft._personalDataLinked) : '(no existe en este borrador)'));
+      lineas.push('_personalDataIncorporatedCount: ' + (Object.prototype.hasOwnProperty.call(draft, '_personalDataIncorporatedCount') ? String(draft._personalDataIncorporatedCount) : '(no existe en este borrador)'));
+    }
+    lineas.push('');
+
+    // Simulación con la MISMA función real (aplicarDatosPersonalesAlBorrador),
+    // sobre una COPIA -- nunca sobre el borrador real, nunca se guarda.
+    // Reproduce exactamente la condición real de tryOpenEditor() para que
+    // el motivo de omisión, si lo hay, sea el mismo que decidiría la app.
+    const draftBase = draft ? JSON.parse(JSON.stringify(draft)) : emptyDraft('professional');
+    const yaVinculadoConDatos = !!(draft && draft._personalDataLinked && draft._personalDataIncorporatedCount);
+    if (yaVinculadoConDatos) {
+      lineas.push('Prerrelleno: NO se ejecutaría de nuevo al abrir. Motivo: ya está vinculado con datos reales (' + draft._personalDataIncorporatedCount + ' campos incorporados anteriormente) -- esto es definitivo por diseño, no un fallo.');
+    } else {
+      const copia = JSON.parse(JSON.stringify(draftBase));
+      const resultado = aplicarDatosPersonalesAlBorrador(copia);
+      if (!resultado.perfilDisponible) {
+        lineas.push('Prerrelleno: se OMITIRÍA al abrir. Motivo exacto: identity_data no está disponible (vacío, ausente o no legible) en este dispositivo AHORA MISMO.');
+      } else if (resultado.incorporados > 0) {
+        lineas.push('Prerrelleno: SÍ se ejecutaría al abrir y incorporaría ' + resultado.incorporados + ' campo(s) ahora mismo.');
+      } else {
+        lineas.push('Prerrelleno: se ejecutaría, pero incorporaría 0 campos -- el perfil está disponible pero no tiene ningún dato compatible que el borrador no tenga ya.');
+      }
+    }
+    return lineas.join('\n');
+  }
+
+  function mostrarDiagnosticoBusiness() {
+    let overlay = document.getElementById('biz-diagnostico-overlay');
+    if (overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.id = 'biz-diagnostico-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0a0a0a;color:#ccc;padding:20px;overflow:auto;font-family:monospace;font-size:11px;white-space:pre-wrap;';
+    overlay.textContent = 'Generando diagnóstico...';
+    const cerrar = document.createElement('button');
+    cerrar.type = 'button';
+    cerrar.textContent = '✕ Cerrar diagnóstico';
+    cerrar.style.cssText = 'position:sticky;top:0;display:block;margin-bottom:14px;padding:10px 16px;background:#AAFF00;color:#000;border:none;border-radius:8px;font-weight:700;font-family:sans-serif;';
+    cerrar.addEventListener('click', () => overlay.remove());
+    document.body.appendChild(overlay);
+    diagnosticoBusinessTexto().then((texto) => {
+      overlay.textContent = '';
+      overlay.appendChild(cerrar);
+      const pre = document.createElement('div');
+      pre.textContent = texto;
+      overlay.appendChild(pre);
+    });
   }
 
   // Sustituye el antiguo botón manual "Ver qué se copiaría" (exigía

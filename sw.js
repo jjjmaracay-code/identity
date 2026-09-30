@@ -1,3 +1,22 @@
+// v21: encontrada la causa real de que el prerrelleno (y otras
+// correcciones) nunca llegaran a algunos dispositivos: index.html
+// registraba DOS Service Workers en cada carga -- uno real (./sw.js,
+// este archivo) y otro completamente aparte, vestigial, construido al
+// vuelo con un Blob (cache 'identity-v1', sin relación con este sistema
+// de versiones), probablemente un resto de un prototipo anterior a la
+// PWA actual. Registrar dos veces para el mismo scope en cada carga es
+// terreno conocido de bugs de actualización en Service Workers,
+// especialmente en Safari/iOS -- se elimina el registro vestigial por
+// completo. Se añade además una comprobación activa de actualización
+// (reg.update()) y una recarga automática al detectar que un Service
+// Worker nuevo toma el control (evento 'controllerchange'), y
+// Cache-Control: no-cache explícito para /sw.js (ver _headers) para que
+// ninguna caché intermedia pueda servir una copia vieja del propio
+// archivo de actualización. Se añade también un panel de diagnóstico
+// TEMPORAL (solo lectura, sin enviar nada a ningún servidor) para
+// confirmar en el dispositivo real qué versión se está ejecutando. Sube
+// la versión por el cambio real de contenido en business.js.
+//
 // v20: corrige un bug real de v19 -- _personalDataLinked se marcaba
 // true incluso con 0 campos incorporados (perfil vacío o no disponible
 // todavía en ese momento), bloqueando el prerrelleno para siempre en ese
@@ -127,7 +146,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v20';
+const CACHE_NAME = 'identity-v21';
 const CACHE_URLS = [
   './index.html',
   './register.html',
