@@ -22,6 +22,17 @@
 //     se trata como vigente — no se penaliza retroactivamente a nadie que
 //     ya pagara; el propio ciclo de Stripe (renovación o cancelación)
 //     rellenará currentPeriodEnd la próxima vez que llegue un evento.
+//   - CANCELACIÓN INMEDIATA (status:'canceled'): deniega el acceso YA,
+//     sin importar currentPeriodEnd. Encontrado con datos reales en modo
+//     prueba (ver INFORME de entrega): Stripe, al cancelar
+//     inmediatamente, no retrocede current_period_end -- el campo se
+//     queda con la fecha del periodo que ya se había pagado, así que
+//     comparar solo esa fecha dejaba el acceso activo hasta esa fecha
+//     aunque la suscripción ya estuviera canceleda de verdad. status se
+//     comprueba ANTES que currentPeriodEnd por esta razón. No afecta al
+//     caso normal de "cancelar la renovación" (cancelAtPeriodEnd:true
+//     con status todavía 'active'): ese sigue vigente hasta
+//     currentPeriodEnd, como exige la regla de arriba.
 export const TRIAL_DAYS = 30;
 export const PAID_PLANS = ['pro', 'lifetime'];
 
@@ -29,6 +40,7 @@ export function computePaidActive(paid) {
   if (!paid || !paid.plan) return false;
   if (paid.plan === 'lifetime') return true;
   if (paid.plan === 'pro') {
+    if (paid.status === 'canceled') return false;
     if (!paid.currentPeriodEnd) return true; // legado, ver comentario de cabecera
     return Date.now() < new Date(paid.currentPeriodEnd).getTime();
   }
