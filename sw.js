@@ -1,3 +1,20 @@
+// v22: la corrección del doble Service Worker (v21) se probó con un
+// navegador real (Chromium vía Puppeteer, no jsdom): partiendo de la
+// versión con el botón manual antiguo ya instalada, con almacenamiento y
+// cachés conservados, un único "cerrar y volver a abrir" simulado basta
+// para pasar a la versión nueva -- confirmado, no supuesto. El
+// dispositivo real seguía sin actualizar incluso con v21 publicado, lo
+// que apunta a una particularidad de actualización de Service Worker
+// propia de Safari/iOS en apps instaladas, no a un fallo del código. Se
+// añade sw-diagnostico.html: página independiente, deliberadamente FUERA
+// del precache y sin ninguna dependencia de business.js, para poder leer
+// el estado real de Service Worker/cachés de un dispositivo aunque
+// business.js siga atascado en una versión antigua (evita depender de lo
+// mismo que se está diagnosticando). También añade el recuento total de
+// registros de Service Worker (getRegistrations()) al panel de
+// diagnóstico ya existente. Sube la versión por el cambio real de
+// contenido en business.js.
+//
 // v21: encontrada la causa real de que el prerrelleno (y otras
 // correcciones) nunca llegaran a algunos dispositivos: index.html
 // registraba DOS Service Workers en cada carga -- uno real (./sw.js,
@@ -146,7 +163,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v21';
+const CACHE_NAME = 'identity-v22';
 const CACHE_URLS = [
   './index.html',
   './register.html',

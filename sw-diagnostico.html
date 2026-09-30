@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>IDENTIFLY · Diagnóstico del Service Worker</title>
+<style>
+  body { background:#0a0a0a; color:#ccc; font-family:monospace; font-size:13px; white-space:pre-wrap; padding:20px; margin:0; }
+  h1 { color:#AAFF00; font-size:14px; }
+</style>
+</head>
+<body>
+<h1>Diagnóstico del Service Worker (temporal, solo lectura)</h1>
+<div id="out">Generando...</div>
+<script>
+// Página independiente, deliberadamente FUERA del precache del Service
+// Worker (no está en CACHE_URLS de sw.js) y sin ninguna dependencia de
+// business.js/index.html: si el dispositivo estuviera atascado en un
+// Service Worker antiguo que nunca actualiza el resto de la app, esta
+// URL en concreto nunca se pudo haber cacheado antes (es nueva), así que
+// tanto el Service Worker antiguo como el nuevo la sirven igual --
+// directo de red -- dando una lectura fiable del estado real del
+// dispositivo sin depender de lo mismo que se está diagnosticando.
+// No envía nada a ningún servidor. No modifica nada.
+async function diagnosticar() {
+  const lineas = [];
+  lineas.push('Origen: ' + location.origin);
+  lineas.push('');
+  try {
+    const nombres = await caches.keys();
+    lineas.push('Cachés instaladas: ' + (nombres.length ? nombres.join(', ') : '(ninguna)'));
+  } catch (e) {
+    lineas.push('Cachés instaladas: (no se pudo consultar: ' + e.message + ')');
+  }
+  try {
+    const controller = navigator.serviceWorker && navigator.serviceWorker.controller;
+    lineas.push('Service Worker controlando esta página: ' + (controller ? 'sí (' + controller.scriptURL + ')' : 'no'));
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg) {
+      lineas.push('Registro SW -> active: ' + (reg.active ? reg.active.scriptURL : '(ninguno)'));
+      lineas.push('Registro SW -> waiting: ' + (reg.waiting ? reg.waiting.scriptURL + '  <-- hay una version nueva esperando activarse' : '(ninguno)'));
+      lineas.push('Registro SW -> installing: ' + (reg.installing ? reg.installing.scriptURL : '(ninguno)'));
+      lineas.push('Registro SW -> scope: ' + reg.scope);
+    } else {
+      lineas.push('Registro SW: (sin registro de Service Worker en este origen)');
+    }
+    const regs = navigator.serviceWorker && await navigator.serviceWorker.getRegistrations();
+    lineas.push('Total de registros de Service Worker en este origen: ' + (regs ? regs.length : '(no se pudo consultar)'));
+  } catch (e) {
+    lineas.push('Service Worker: (no se pudo consultar: ' + e.message + ')');
+  }
+  document.getElementById('out').textContent = lineas.join('\n');
+}
+diagnosticar();
+</script>
+</body>
+</html>

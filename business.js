@@ -22,7 +22,7 @@
   // Sube junto con CACHE_NAME en sw.js en cada cambio real de este
   // archivo -- únicamente para el diagnóstico temporal (ver
   // diagnosticoBusinessTexto), no afecta a ninguna lógica de negocio.
-  const BUSINESS_CODE_VERSION = 'v21';
+  const BUSINESS_CODE_VERSION = 'v22';
 
   const MODALITIES = ['professional', 'freelance', 'company'];
   // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
@@ -743,6 +743,8 @@
       } else {
         lineas.push('Registro SW: (sin registro de Service Worker en este origen)');
       }
+      const regs = navigator.serviceWorker && await navigator.serviceWorker.getRegistrations();
+      lineas.push('Total de registros de Service Worker en este origen: ' + (regs ? regs.length : '(no se pudo consultar)'));
     } catch (e) {
       lineas.push('Service Worker: (no se pudo consultar: ' + e.message + ')');
     }
