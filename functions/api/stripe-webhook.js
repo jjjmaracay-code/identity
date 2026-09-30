@@ -90,6 +90,21 @@ function isoFromUnix(sec) {
   return typeof sec === 'number' ? new Date(sec * 1000).toISOString() : null;
 }
 
+// Cuentas de Stripe más recientes ya no devuelven current_period_end en
+// el propio objeto Subscription -- lo mueven a cada SubscriptionItem
+// (sub.items.data[N].current_period_end). Confirmado en modo prueba: un
+// registro real (ver INFORME de entrega) llegó con status:'active' (la
+// llamada a Stripe SÍ tuvo éxito) pero current_period_end:null en el
+// nivel superior, porque este código solo miraba ahí. Se intenta primero
+// el campo superior (cuentas/API antiguas) y se cae al de items si no
+// está, sin romper ninguno de los dos casos.
+function currentPeriodEndUnix(sub) {
+  if (typeof sub?.current_period_end === 'number') return sub.current_period_end;
+  const item = sub?.items?.data?.[0];
+  if (typeof item?.current_period_end === 'number') return item.current_period_end;
+  return null;
+}
+
 // true si YA hay un estado más nuevo (o igual) guardado que el evento
 // actual -- en ese caso el evento actual se descarta sin escribir nada.
 function esEventoObsoleto(existing, eventCreated) {
@@ -139,7 +154,7 @@ export async function onRequestPost(context) {
             plan: 'pro', sessionId: session.id, date: existing?.date || nowIso,
             subscriptionId: session.subscription,
             status: sub?.status || 'active',
-            currentPeriodEnd: sub ? isoFromUnix(sub.current_period_end) : null,
+            currentPeriodEnd: sub ? isoFromUnix(currentPeriodEndUnix(sub)) : null,
             cancelAtPeriodEnd: !!sub?.cancel_at_period_end,
             updatedAt: nowIso, lastEventCreated: eventCreated,
           }));
@@ -174,7 +189,7 @@ export async function onRequestPost(context) {
           date: existing?.date || new Date().toISOString(),
           subscriptionId: sub.id,
           status: sub.status,
-          currentPeriodEnd: isoFromUnix(sub.current_period_end),
+          currentPeriodEnd: isoFromUnix(currentPeriodEndUnix(sub)),
           cancelAtPeriodEnd: !!sub.cancel_at_period_end,
           updatedAt: new Date().toISOString(),
           lastEventCreated: eventCreated,
