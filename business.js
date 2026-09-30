@@ -22,7 +22,7 @@
   // Sube junto con CACHE_NAME en sw.js en cada cambio real de este
   // archivo -- únicamente para el diagnóstico temporal (ver
   // diagnosticoBusinessTexto), no afecta a ninguna lógica de negocio.
-  const BUSINESS_CODE_VERSION = 'v24';
+  const BUSINESS_CODE_VERSION = 'v25';
 
   const MODALITIES = ['professional', 'freelance', 'company'];
   // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
@@ -152,6 +152,7 @@
   // borrador guardado hasta que el usuario pulse "Guardar en mi dispositivo".
   let workingDraft = null;
   let savedSnapshotJson = null; // JSON del último borrador GUARDADO (para detectar cambios sin guardar)
+  let _incorporadosAlAbrir = 0; // campos del perfil incorporados al abrir el editor (solo para el aviso)
 
   function isEditorDirty() {
     if (!workingDraft) return false;
@@ -366,15 +367,27 @@
     // predeterminados aquí mismo, en memoria, sin reescribir el borrador
     // guardado hasta que el usuario cambie algo y pulse Guardar/Publicar.
     draft.design = sanitizeDesignClient(draft.design);
+    draft._personalDataAppliedValues = draft._personalDataAppliedValues || {};
+    // Restos de versiones anteriores: ya no se guardan en el borrador.
+    delete draft._personalDataIncorporatedCount;
+    delete draft._personalDataLinked;
+    // Referencia para "cambios sin guardar": el borrador tal como está
+    // (ya normalizado) ANTES del prerrelleno. Antes se comparaba contra
+    // el borrador guardado sin normalizar, y el contador de prerrelleno
+    // añadido al borrador lo marcaba siempre como modificado -- eso
+    // pedía confirmar al salir sin motivo y bloqueaba la recarga tras una
+    // actualización mientras el editor estuviera abierto. Si el
+    // prerrelleno incorpora algo, sí cuenta como cambio sin guardar.
+    const antesDelPrerrelleno = JSON.stringify(draft);
     // Prerrelleno desde el perfil personal: rastreo por campo dentro de
     // la propia función (ver su comentario) -- siempre es seguro
     // llamarla, nunca sobrescribe nada ni repone algo borrado a
     // propósito, así que se ejecuta en cada apertura sin necesitar una
     // marca global que decida si "ya tocaba" o no.
     const resultadoPrerrelleno = aplicarDatosPersonalesAlBorrador(draft);
-    draft._personalDataIncorporatedCount = resultadoPrerrelleno.incorporados;
+    _incorporadosAlAbrir = resultadoPrerrelleno.incorporados;
     workingDraft = JSON.parse(JSON.stringify(draft));
-    savedSnapshotJson = JSON.stringify(draftGuardado ? { ...draftGuardado, modality } : draft);
+    savedSnapshotJson = resultadoPrerrelleno.incorporados > 0 ? antesDelPrerrelleno : JSON.stringify(draft);
     openBusinessEditor();
   }
 
@@ -633,7 +646,10 @@
   // misma clave de localStorage que ya usa el perfil evita inventar un
   // segundo esquema y funciona igual sin conexión.
   function getPersonalProfileData() {
-    try { return JSON.parse(localStorage.getItem('identity_data') || '{}'); } catch (_) { return {}; }
+    try { return JSON.parse(localStorage.getItem('identity_data') || '{}') || {}; } catch (_) { return {}; }
+  }
+  function getRegistrationName() {
+    try { return (JSON.parse(localStorage.getItem('identity_registration') || 'null') || {}).name || ''; } catch (_) { return ''; }
   }
 
   // Incorpora al borrador (mutándolo) los datos del perfil personal que
@@ -667,8 +683,18 @@
     const asignar = (key, val) => {
       if (draft[key] || Object.prototype.hasOwnProperty.call(aplicados, key)) return;
       const limpio = (val == null) ? '' : String(val).trim();
-      if (limpio) { draft[key] = limpio; aplicados[key] = true; incorporados++; }
+      if (limpio) { draft[key] = limpio.slice(0, LIMITS[key] || LIMITS.url); aplicados[key] = true; incorporados++; }
     };
+    const telefono = (prefijo, numero) => {
+      const n = numero ? String(numero).trim() : '';
+      return n ? ((prefijo ? prefijo + ' ' : '') + n) : '';
+    };
+
+    // Nombre: el mismo que muestra la tarjeta principal (perfil guardado >
+    // nombre del registro, ver computeDisplayNameAndJob en index.html).
+    // Antes solo se leía pd.name: una ficha cuyo nombre visible venía del
+    // registro quedaba sin nombre en Business.
+    const nombre = pd.name || getRegistrationName();
 
     // Nombre personal vs. razón social: nunca se usa el nombre de la
     // persona como nombre de una Empresa (instrucción) -- solo pd.company
@@ -677,19 +703,24 @@
     if (draft.modality === 'company') {
       asignar('displayName', pd.company);
     } else {
-      asignar('displayName', pd.name);
+      asignar('displayName', nombre);
     }
     // Persona de contacto y cargo: correspondencia clara en las TRES
     // modalidades (instrucción), no solo Empresa -- son quien atiende la
     // tarjeta, independientemente de qué nombre se use como displayName.
-    asignar('contactPerson', pd.name);
+    asignar('contactPerson', nombre);
     asignar('contactRole', pd.job);
 
-    asignar('phone', pd.phoneNumber ? ((pd.phoneCountryCode ? pd.phoneCountryCode + ' ' : '') + pd.phoneNumber) : '');
-    // Correo de CONTACTO del perfil (pd.email) -- nunca el correo de
-    // acceso/login (identity_registration.email): son conceptos distintos
-    // y esta función no lee ese almacenamiento en absoluto.
-    asignar('email', pd.email);
+    // Teléfono: el principal y, si está vacío, el móvil o el fijo -- antes
+    // solo se miraba el principal y una ficha con solo móvil no aportaba
+    // ningún teléfono.
+    asignar('phone', telefono(pd.phoneCountryCode, pd.phoneNumber)
+      || telefono(pd.mobileCountryCode, pd.mobileNumber)
+      || telefono(pd.landlineCountryCode, pd.landlineNumber));
+    // Correo de CONTACTO del perfil (principal, o el de trabajo/secundario
+    // si el principal está vacío) -- nunca el correo de acceso/login
+    // (identity_registration.email): son conceptos distintos.
+    asignar('email', pd.email || pd.emailWork || pd.email2);
     asignar('web', pd.web);
     asignar('address', pd.address);
 
@@ -698,7 +729,7 @@
       const campoClave = 'social_' + k;
       if (draft.social[k] || Object.prototype.hasOwnProperty.call(aplicados, campoClave)) return;
       const val = pd[k] ? String(pd[k]).trim() : '';
-      if (val) { draft.social[k] = val; aplicados[campoClave] = true; incorporados++; }
+      if (val) { draft.social[k] = val.slice(0, LIMITS.url); aplicados[campoClave] = true; incorporados++; }
     });
 
     return { incorporados, perfilDisponible };
@@ -842,7 +873,7 @@
   // verdad se incorporó algo -- un borrador sin ningún dato de perfil
   // compatible no muestra nada.
   function copyProfileBoxHtml() {
-    if (!workingDraft || !workingDraft._personalDataIncorporatedCount) return '';
+    if (!workingDraft || !_incorporadosAlAbrir) return '';
     return `<div class="biz-copy-profile-box" id="biz-copy-profile-box">
       <p style="font-size:11.5px;color:rgba(255,255,255,0.5);" data-i18n="index.business.copy_profile_incorporated">${tf('index.business.copy_profile_incorporated', 'Datos de tu perfil incorporados. Puedes editarlos antes de publicar.')}</p>
     </div>`;

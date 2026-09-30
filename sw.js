@@ -1,3 +1,33 @@
+// v25: causa de fondo de que un dispositivo siguiera ejecutando un
+// business.js antiguo aunque el Service Worker nuevo se instalara: el
+// precache (cache.addAll) y la estrategia "cache primero" de los .js/.css
+// usaban el modo de caché por defecto de fetch(), que PUEDE responder
+// desde la caché HTTP del propio navegador en vez de ir a la red. Una
+// copia vieja de business.js guardada en la caché HTTP del dispositivo
+// (p. ej. con un max-age largo impuesto antes por el Browser Cache TTL de
+// Cloudflare -- cambiar ese ajuste NO invalida lo que el dispositivo ya
+// guardó) terminaba copiada dentro de la caché nueva en la instalación,
+// y desde ahí se servía para siempre sin volver a mirar la red. Chromium
+// con un perfil limpio no puede reproducirlo porque no tiene esa copia.
+// Cambios:
+//   - La instalación descarga cada recurso con cache:'reload' (red
+//     siempre, ignora la caché HTTP) y solo sustituye la versión anterior
+//     si TODO se descargó bien; si algo falla, la instalación falla y el
+//     Service Worker anterior sigue activo (el modo sin conexión nunca se
+//     queda a medias).
+//   - El código propio (.js/.css/.json del mismo origen) y el HTML pasan
+//     a "red primero" con revalidación (cache:'no-cache', 304 barato), con
+//     la copia local como respaldo sin conexión o si la red tarda.
+//   - business.js/business.css se piden versionados (?v=25) desde
+//     index.html: otra URL, así que ninguna copia vieja puede coincidir.
+//   - Precache con rutas canónicas ('/', '/register'...): Cloudflare Pages
+//     responde /index.html con 308 -> '/', y una respuesta redirigida
+//     guardada en caché es rechazada por Safari/Chrome al servir una
+//     navegación -- el arranque sin conexión desde start_url fallaba.
+//   - Mensaje IDENTIFLY_REFRESCAR para el botón "Actualizar aplicación":
+//     vuelve a descargar todo el precache desde la red y solo lo sustituye
+//     si la descarga completa tiene éxito. No toca localStorage.
+//
 // v24: corrección definitiva del prerrelleno -- rastreo POR CAMPO
 // (draft._personalDataAppliedValues) en vez de una marca global
 // (_personalDataLinked/_personalDataIncorporatedCount): esa marca única
@@ -195,103 +225,197 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v24';
+const APP_VERSION = '25';
+const CACHE_NAME = 'identity-v' + APP_VERSION;
+// Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
-  './index.html',
-  './register.html',
-  './recovery.html',
-  './paywall.html',
-  './install.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './assets/logo-wings.png',
-  './vendor/qr-code-styling/qr-code-styling.js',
-  './business.css',
-  './business.js',
+  '/',
+  '/register',
+  '/recovery',
+  '/paywall',
+  '/install',
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/assets/logo-wings.png',
+  '/vendor/qr-code-styling/qr-code-styling.js',
+  '/storage-wipe.js',
+  '/i18n/loader.js',
+  '/i18n/es.json',
+  '/i18n/en.json',
+  '/i18n/fr.json',
+  '/i18n/pt.json',
+  '/i18n/de.json',
+  '/business.css?v=' + APP_VERSION,
+  '/business.js?v=' + APP_VERSION,
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_URLS))
-  );
+// Si la red tarda más que esto y hay copia local, se sirve la copia (la
+// respuesta de red, si llega después, igualmente actualiza la caché).
+const NETWORK_TIMEOUT_MS = 6000;
+
+// Una respuesta que llegó tras una redirección no puede servirse a una
+// navegación (Safari/Chrome la rechazan) -- se reconstruye sin esa marca.
+async function limpiarRedireccion(response) {
+  if (!response.redirected) return response;
+  const body = await response.blob();
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
+// Descarga TODOS los recursos desde la red (cache:'reload' ignora la caché
+// HTTP del dispositivo). Si uno solo falla, rechaza sin escribir nada.
+async function descargarPrecache() {
+  return Promise.all(CACHE_URLS.map(async (url) => {
+    const response = await fetch(new Request(url, { cache: 'reload', credentials: 'same-origin' }));
+    if (!response.ok) throw new Error(url + ' -> HTTP ' + response.status);
+    return [url, await limpiarRedireccion(response)];
+  }));
+}
+
+async function guardarPrecache(pares) {
+  const cache = await caches.open(CACHE_NAME);
+  await Promise.all(pares.map(([url, response]) => cache.put(url, response)));
+}
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(descargarPrecache().then(guardarPrecache));
   self.skipWaiting();
 });
 
-self.addEventListener('fetch', event => {
-  const pathname = new URL(event.request.url).pathname;
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+    await self.clients.claim();
+  })());
+});
 
-  // Tarjetas públicas de Business (/c/{id}) y toda la API (/api/*, incluye
-  // los endpoints de Business y los ya existentes de plan/registro/pago):
-  // siempre red, nunca caché -- ni se lee de caché ni se escribe en ella.
-  // Debe ir ANTES que cualquier otra regla (incluida la de "isHTML" más
-  // abajo, que si no se excluyera aquí capturaría /c/{id} por llegar como
-  // navegación de nivel superior). Ver nota de v15 arriba.
-  if (pathname.startsWith('/c/') || pathname.startsWith('/api/')) {
+// Equivalente sin redirección de una ruta .html de Cloudflare Pages
+// (/index.html -> /, /register.html -> /register).
+function rutaCanonica(pathname) {
+  if (pathname === '/index.html') return '/';
+  if (pathname.endsWith('.html')) return pathname.slice(0, -5);
+  return pathname;
+}
+
+async function buscarEnCache(request, esNavegacion) {
+  const url = new URL(request.url);
+  const cached = await caches.match(request)
+    || await caches.match(url.origin + rutaCanonica(url.pathname) + url.search)
+    // business.js pedido sin ?v= (o con otra versión) desde una página
+    // antigua: sirve la copia vigente en vez de fallar sin conexión.
+    || await caches.match(request, { ignoreSearch: true })
+    || (esNavegacion ? await caches.match('/') : undefined);
+  return cached ? limpiarRedireccion(cached) : undefined;
+}
+
+// Red primero, revalidando (nunca la caché HTTP a ciegas); copia local si
+// no hay red o si la red tarda y existe copia.
+function redPrimero(event, esNavegacion) {
+  const request = event.request;
+  const peticionRed = esNavegacion
+    // Una navegación no admite RequestInit sobre el Request original; se
+    // reconstruye con la misma URL y redirect:'manual' para que el
+    // navegador siga él mismo las redirecciones (308 de /index.html).
+    ? fetch(request.url, { cache: 'no-cache', credentials: 'same-origin', redirect: 'manual' })
+    : fetch(new Request(request, { cache: 'no-cache' }));
+
+  const deRed = peticionRed.then((response) => {
+    if (response && response.status === 200 && response.type === 'basic') {
+      const copia = response.clone();
+      event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, copia)).catch(() => {}));
+    }
+    return response;
+  });
+
+  return new Promise((resolve, reject) => {
+    let resuelto = false;
+    const usarCache = async () => {
+      const cached = await buscarEnCache(request, esNavegacion);
+      if (cached && !resuelto) { resuelto = true; resolve(cached); }
+      return cached;
+    };
+    const timer = setTimeout(usarCache, NETWORK_TIMEOUT_MS);
+    deRed.then((response) => {
+      clearTimeout(timer);
+      if (!resuelto) { resuelto = true; resolve(response); }
+    }).catch(async (err) => {
+      clearTimeout(timer);
+      const cached = await usarCache();
+      if (!cached && !resuelto) { resuelto = true; reject(err); }
+    });
+  });
+}
+
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  const pathname = url.pathname;
+  const mismoOrigen = url.origin === self.location.origin;
+
+  // Tarjetas públicas de Business (/c/{id}) y toda la API: siempre red,
+  // nunca caché (ver nota de v15). Debe ir antes que cualquier otra regla.
+  if (mismoOrigen && (pathname.startsWith('/c/') || pathname.startsWith('/api/'))) {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  const isHTML = event.request.mode === 'navigate' ||
-                 pathname.endsWith('.html');
-
-  if (isHTML) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          if (response && response.status === 200) {
-            const toCache = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
-  // La Cache API solo admite GET — cachear una respuesta de POST/PUT/etc.
-  // (ej. /api/register-complete) lanza una excepción en cache.put(). Esas
-  // peticiones van directo a red, sin pasar por cache en ningún sentido.
+  // La Cache API solo admite GET.
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
 
+  const esNavegacion = event.request.mode === 'navigate';
+  if (mismoOrigen && (esNavegacion || pathname.endsWith('.html'))) {
+    event.respondWith(redPrimero(event, esNavegacion));
+    return;
+  }
+
+  // Código propio de la app: red primero para que una corrección llegue
+  // en la siguiente apertura con conexión, sin depender de subir versión.
+  if (mismoOrigen && /\.(js|css|json)$/.test(pathname)) {
+    event.respondWith(redPrimero(event, false));
+    return;
+  }
+
+  // Resto (imágenes, vídeos, librerías de CDN): cache primero, igual que antes.
   event.respondWith(
-    caches.match(event.request).then(cached => {
+    caches.match(event.request).then((cached) => {
       if (cached) return cached;
-      return fetch(event.request).then(response => {
+      return fetch(event.request).then((response) => {
         if (!response || response.status !== 200 || response.type === 'opaque') {
           return response;
         }
         const toCache = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, toCache));
         return response;
       });
     })
   );
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-// El nombre de una caché por sí solo no demuestra qué versión del propio
-// sw.js está realmente en ejecución (una caché vieja puede seguir
-// existiendo aunque el Service Worker sí se haya actualizado, o
-// viceversa) -- esto responde con la verdad real: CACHE_NAME tal como lo
-// ve el código que de verdad se está ejecutando ahora mismo, no una
-// inferencia externa. Si el Service Worker activo no responde a este
-// mensaje en absoluto, es en sí mismo una prueba de que es una versión
-// anterior a este mecanismo (ver diagnósticos).
+// Mensajes desde la página:
+//  - 'IDENTIFLY_QUE_VERSION': responde con la versión real en ejecución
+//    (ver diagnósticos, v23).
+//  - { tipo: 'IDENTIFLY_REFRESCAR' }: vuelve a descargar todo el precache
+//    desde la red; solo lo sustituye si la descarga completa tiene éxito.
+//    Responde por el MessagePort recibido. Nunca toca localStorage.
 self.addEventListener('message', (event) => {
   if (event.data === 'IDENTIFLY_QUE_VERSION') {
     event.source.postMessage({ tipo: 'IDENTIFLY_VERSION', cacheName: CACHE_NAME });
+    return;
+  }
+  if (event.data && event.data.tipo === 'IDENTIFLY_REFRESCAR') {
+    const port = event.ports && event.ports[0];
+    event.waitUntil(
+      descargarPrecache()
+        .then(guardarPrecache)
+        .then(() => { if (port) port.postMessage({ ok: true, cacheName: CACHE_NAME }); })
+        .catch((err) => { if (port) port.postMessage({ ok: false, error: String(err && err.message || err) }); })
+    );
   }
 });

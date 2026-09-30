@@ -13,7 +13,7 @@
 <link rel="canonical" href="https://www.identifly.app/">
 <script src="storage-wipe.js"></script>
 <script src="/i18n/loader.js"></script>
-<link rel="stylesheet" href="business.css">
+<link rel="stylesheet" href="business.css?v=25">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -2121,6 +2121,30 @@
   .btn-delete-account:hover { background: rgba(255,30,30,0.15); border-color: #ff4444; box-shadow: 0 0 16px rgba(255,60,60,0.2); }
   .btn-delete-account:active { background: #ff2222; color: #fff; }
 
+  .app-update-section { margin: 18px 0 4px; text-align: center; }
+  .btn-app-update {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(170,255,0,0.45);
+    background: rgba(170,255,0,0.06);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #aaff00;
+    cursor: pointer;
+  }
+  .btn-app-update:disabled { opacity: 0.5; cursor: default; }
+  .app-update-version {
+    margin-top: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 1px;
+  }
+
   .gallery-tab:hover { background: rgba(170,255,0,0.08); border-color: rgba(170,255,0,0.4); color: rgba(170,255,0,0.8); }
 
   .qr-template-item:hover, .qr-pattern-item:hover, .qr-corner-item:hover {
@@ -3798,6 +3822,13 @@
   </div>
 
   <button class="btn-save" id="btn-save" data-i18n="index.edit.save_button">Guardar identidad</button>
+
+  <!-- ACTUALIZAR APLICACIÓN — vuelve a descargar el código de la app sin
+       tocar ningún dato guardado (ver window.identiflyActualizarApp). -->
+  <div class="app-update-section">
+    <button type="button" class="btn-app-update" id="btn-app-update" data-i18n="index.update.button">Actualizar aplicación</button>
+    <div class="app-update-version"><span data-i18n="index.update.version_label">Versión</span> <span id="app-update-version-num"></span></div>
+  </div>
 
   <!-- BAJA VOLUNTARIA -->
   <div class="delete-account-section" id="sec-cuenta">
@@ -8585,38 +8616,58 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
 
 <!-- Service Worker -->
 <script>
+// Debe coincidir con APP_VERSION de sw.js y con el ?v= de business.js/css.
+window.IDENTIFLY_APP_VERSION = '25';
+
+// true si recargar ahora perdería algo: cambios de Business sin guardar,
+// o un perfil que no se pudo guardar (p. ej. una red social inválida).
+// El perfil y el diseñador de QR se guardan aquí mismo antes de decidir,
+// igual que ya hace el guardado de 'visibilitychange'.
+function identiflyHayAlgoSinGuardar() {
+  if (typeof window.identityHayEdicionSinGuardar === 'function' && window.identityHayEdicionSinGuardar()) return true;
+  try {
+    if (document.getElementById('screen-qr-designer')?.classList.contains('open') && typeof saveQRDesign === 'function') saveQRDesign();
+    if (document.getElementById('screen-edit')?.classList.contains('open') && typeof saveProfile === 'function') {
+      if (saveProfile() === false) return true;
+    }
+  } catch (e) {
+    console.log('No se pudo guardar antes de recargar', e);
+    return true;
+  }
+  return false;
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
       .then((reg) => {
         console.log('SW registrado');
         // Comprobación activa de actualización en cada carga -- no
-        // depende únicamente del ciclo implícito del navegador (hasta
-        // 24h, y con quiebras conocidas en PWA instaladas en iOS que
-        // pueden dejarlo sin comprobarse indefinidamente). Sin esto, un
-        // Service Worker nuevo podía quedar sin detectarse durante mucho
-        // tiempo aunque el servidor ya sirviera la versión corregida.
+        // depende únicamente del ciclo implícito del navegador.
         reg.update().catch(() => {});
       })
       .catch(e => console.log('SW error', e));
 
-    // Antes, activar un Service Worker nuevo (skipWaiting + clients.claim,
-    // ver sw.js) tomaba el control de futuras peticiones, pero la página
-    // YA ABIERTA seguía ejecutando el business.js/index.html cargados en
-    // memoria de la versión anterior -- solo una recarga real aplica el
-    // código nuevo. 'controllerchange' se dispara justo cuando el nuevo
-    // Service Worker empieza a controlar esta pestaña: se recarga una
-    // única vez (isReload evita un bucle si el evento se disparase más
-    // de una vez).
+    // Una PWA instalada en iOS casi nunca se "vuelve a cargar": al
+    // abrirla desde el icono se reanuda la misma página en memoria, sin
+    // navegación, y por tanto sin comprobación de actualización. Se
+    // comprueba también cada vez que la app vuelve a primer plano (como
+    // mucho una vez por minuto).
+    let ultimaComprobacion = Date.now();
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden || Date.now() - ultimaComprobacion < 60000) return;
+      ultimaComprobacion = Date.now();
+      navigator.serviceWorker.getRegistration().then((reg) => reg && reg.update()).catch(() => {});
+    });
+
+    // 'controllerchange' se dispara cuando el Service Worker nuevo empieza
+    // a controlar esta pestaña: se recarga una única vez para ejecutar el
+    // código nuevo, pero nunca si eso perdería algo sin guardar -- se
+    // pospone y se reintenta cada pocos segundos.
     let isReload = false;
     function recargarCuandoSeaSeguro() {
       if (isReload) return;
-      // No perder cambios de Business sin guardar (instrucción): si el
-      // editor tiene algo sin guardar ahora mismo, se pospone y se vuelve
-      // a comprobar cada pocos segundos -- nunca se descarta el cambio,
-      // solo se recarga en cuanto deje de haber algo pendiente (guardado
-      // o editor cerrado).
-      if (typeof window.identityHayEdicionSinGuardar === 'function' && window.identityHayEdicionSinGuardar()) {
+      if (identiflyHayAlgoSinGuardar()) {
         setTimeout(recargarCuandoSeaSeguro, 4000);
         return;
       }
@@ -8626,9 +8677,82 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', recargarCuandoSeaSeguro);
   });
 }
+
+// Espera a que un Service Worker en instalación termine: resuelve true si
+// llegó a activarse, false si se descartó (descarga fallida).
+function identiflyEsperarWorker(worker, timeoutMs) {
+  return new Promise((resolve) => {
+    if (!worker) return resolve(false);
+    if (worker.state === 'activated') return resolve(true);
+    if (worker.state === 'redundant') return resolve(false);
+    const timer = setTimeout(() => resolve(false), timeoutMs);
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'activated') { clearTimeout(timer); resolve(true); }
+      if (worker.state === 'redundant') { clearTimeout(timer); resolve(false); }
+    });
+  });
+}
+
+// Pide al Service Worker activo que vuelva a descargar todo el código de
+// la app desde la red (ver IDENTIFLY_REFRESCAR en sw.js). Solo sustituye
+// la copia local si la descarga completa tuvo éxito.
+function identiflyRefrescarCache(timeoutMs) {
+  return new Promise((resolve) => {
+    const controller = navigator.serviceWorker.controller;
+    if (!controller) return resolve({ ok: false, error: 'sin Service Worker activo' });
+    const canal = new MessageChannel();
+    const timer = setTimeout(() => resolve({ ok: false, error: 'tiempo agotado' }), timeoutMs);
+    canal.port1.onmessage = (e) => { clearTimeout(timer); resolve(e.data || { ok: false }); };
+    controller.postMessage({ tipo: 'IDENTIFLY_REFRESCAR' }, [canal.port2]);
+  });
+}
+
+// Botón "Actualizar aplicación": descarga la versión publicada y recarga.
+// Nunca toca localStorage (identidad, PIN, borradores, Business, QR,
+// vídeo...). Si la descarga falla, la versión instalada sigue intacta y
+// funcionando sin conexión.
+window.identiflyActualizarApp = async function () {
+  const aviso = (key, fallback) => showToast(tOrFallback(key, fallback));
+  if (!('serviceWorker' in navigator)) { location.reload(); return; }
+  if (!navigator.onLine) { aviso('index.update.offline_toast', 'Sin conexión. Conéctate a internet para actualizar.'); return; }
+  if (identiflyHayAlgoSinGuardar()) { aviso('index.update.unsaved_toast', 'Guarda antes los cambios pendientes y vuelve a intentarlo.'); return; }
+
+  const btn = document.getElementById('btn-app-update');
+  if (btn) btn.disabled = true;
+  aviso('index.update.checking_toast', 'Buscando actualización...');
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) { location.reload(); return; }
+    await reg.update();
+    const nuevo = reg.installing || reg.waiting;
+    if (nuevo) {
+      // Hay una versión nueva: al activarse, 'controllerchange' recarga
+      // la página (ver arriba). Si la descarga falla, se descarta sola y
+      // la versión actual sigue activa.
+      const activado = await identiflyEsperarWorker(nuevo, 60000);
+      if (!activado) throw new Error('la versión nueva no se pudo instalar');
+      return;
+    }
+    // Misma versión: se vuelve a descargar igualmente el código desde la
+    // red por si la copia local quedó desfasada, y se recarga.
+    const resultado = await identiflyRefrescarCache(60000);
+    if (!resultado.ok) throw new Error(resultado.error || 'descarga fallida');
+    location.reload();
+  } catch (e) {
+    console.log('Actualización fallida', e);
+    aviso('index.update.error_toast', 'No se pudo actualizar. La versión actual sigue funcionando; inténtalo más tarde.');
+    if (btn) btn.disabled = false;
+  }
+};
+
+(() => {
+  const num = document.getElementById('app-update-version-num');
+  if (num) num.textContent = window.IDENTIFLY_APP_VERSION;
+  document.getElementById('btn-app-update')?.addEventListener('click', () => window.identiflyActualizarApp());
+})();
 </script>
 
-<script src="business.js"></script>
+<script src="business.js?v=25"></script>
 
 <!-- =================== MODAL IMPORTADOR =================== -->
 <div id="import-modal">
