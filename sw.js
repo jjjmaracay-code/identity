@@ -1,3 +1,19 @@
+// v24: corrección definitiva del prerrelleno -- rastreo POR CAMPO
+// (draft._personalDataAppliedValues) en vez de una marca global
+// (_personalDataLinked/_personalDataIncorporatedCount): esa marca única
+// dejaba bloqueados el resto de campos para siempre en cuanto se
+// incorporaba uno solo (bug real confirmado). Ahora cada campo se
+// recuerda por separado, así que un borrador con incorporación parcial
+// de una versión anterior completa el resto de sus campos vacíos sin
+// tocar los que ya tienen contenido propio ni reponer los que constan
+// como borrados a propósito. Se retira el mecanismo de marca global.
+// También evita perder cambios de Business sin guardar al recargar tras
+// una actualización de Service Worker: el registro del script principal
+// comprueba isEditorDirty() (expuesta como
+// window.identityHayEdicionSinGuardar) antes de recargar, y pospone la
+// recarga en vez de descartar la edición en curso. Sube la versión por
+// el cambio real de contenido en business.js/index.html.
+//
 // v23: diagnóstico del ordenador con este mismo cache (identity-v11,
 // commit bc2916e): confirmado leyendo ese código histórico que YA usaba
 // la misma estrategia "red primero" para HTML que esta versión -- así
@@ -179,7 +195,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v23';
+const CACHE_NAME = 'identity-v24';
 const CACHE_URLS = [
   './index.html',
   './register.html',

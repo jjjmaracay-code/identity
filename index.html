@@ -8609,11 +8609,21 @@ if ('serviceWorker' in navigator) {
     // única vez (isReload evita un bucle si el evento se disparase más
     // de una vez).
     let isReload = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
+    function recargarCuandoSeaSeguro() {
       if (isReload) return;
+      // No perder cambios de Business sin guardar (instrucción): si el
+      // editor tiene algo sin guardar ahora mismo, se pospone y se vuelve
+      // a comprobar cada pocos segundos -- nunca se descarta el cambio,
+      // solo se recarga en cuanto deje de haber algo pendiente (guardado
+      // o editor cerrado).
+      if (typeof window.identityHayEdicionSinGuardar === 'function' && window.identityHayEdicionSinGuardar()) {
+        setTimeout(recargarCuandoSeaSeguro, 4000);
+        return;
+      }
       isReload = true;
       location.reload();
-    });
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', recargarCuandoSeaSeguro);
   });
 }
 </script>

@@ -22,7 +22,7 @@
   // Sube junto con CACHE_NAME en sw.js en cada cambio real de este
   // archivo -- únicamente para el diagnóstico temporal (ver
   // diagnosticoBusinessTexto), no afecta a ninguna lógica de negocio.
-  const BUSINESS_CODE_VERSION = 'v23';
+  const BUSINESS_CODE_VERSION = 'v24';
 
   const MODALITIES = ['professional', 'freelance', 'company'];
   // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
@@ -235,6 +235,13 @@
   // cerrar las vistas privadas de Business sin depender de que btn-lock
   // sea el único camino hacia screen-pin.
   window.closeAllBusinessScreens = closeAllBusinessScreens;
+  // Consultado por el registro del Service Worker en el script principal
+  // antes de recargar automáticamente al activarse una versión nueva --
+  // una recarga forzada mientras hay cambios de Business sin guardar los
+  // perdería (instrucción). isEditorDirty ya existe para el aviso de
+  // "salir sin guardar" del propio editor; se reutiliza tal cual, no se
+  // duplica su lógica.
+  window.identityHayEdicionSinGuardar = () => isEditorDirty();
   // business.js se carga como <script> clásico cerca del final del body
   // (después de #btn-lock, ver index.html), así que el elemento ya existe
   // en el DOM en este punto — no hace falta esperar a DOMContentLoaded.
@@ -359,28 +366,13 @@
     // predeterminados aquí mismo, en memoria, sin reescribir el borrador
     // guardado hasta que el usuario cambie algo y pulse Guardar/Publicar.
     draft.design = sanitizeDesignClient(draft.design);
-    // Prerrelleno desde el perfil personal. Se reintenta mientras no haya
-    // quedado marcado con datos reales (_personalDataLinked true Y
-    // _personalDataIncorporatedCount > 0) -- una marca puesta con 0
-    // incorporados nunca demuestra que el perfil existiera en ese momento
-    // (pudo estar vacío, sin cargar todavía, o genuinamente sin nada
-    // nuevo que ofrecer): en cualquiera de esos casos, reintentar es
-    // inofensivo (si de verdad no hay nada nuevo, vuelve a incorporar 0) y
-    // corrige el caso real en que sí había datos pero no se llegaron a
-    // leer. En cuanto una vez SÍ se incorpora algo (>0), la marca se
-    // congela para siempre: no vuelve a aplicarse, así que un campo que el
-    // usuario borre a propósito después y guarde se queda borrado.
-    if (!draft._personalDataLinked || !draft._personalDataIncorporatedCount) {
-      const resultado = aplicarDatosPersonalesAlBorrador(draft);
-      if (resultado.perfilDisponible) {
-        draft._personalDataLinked = true;
-        draft._personalDataIncorporatedCount = resultado.incorporados;
-      }
-      // Perfil no disponible todavía (identity_data vacío/inexistente en
-      // este momento): no se marca linked -- se reintenta la próxima vez
-      // que se abra esta modalidad, en vez de quedar bloqueado para
-      // siempre con un borrador vacío.
-    }
+    // Prerrelleno desde el perfil personal: rastreo por campo dentro de
+    // la propia función (ver su comentario) -- siempre es seguro
+    // llamarla, nunca sobrescribe nada ni repone algo borrado a
+    // propósito, así que se ejecuta en cada apertura sin necesitar una
+    // marca global que decida si "ya tocaba" o no.
+    const resultadoPrerrelleno = aplicarDatosPersonalesAlBorrador(draft);
+    draft._personalDataIncorporatedCount = resultadoPrerrelleno.incorporados;
     workingDraft = JSON.parse(JSON.stringify(draft));
     savedSnapshotJson = JSON.stringify(draftGuardado ? { ...draftGuardado, modality } : draft);
     openBusinessEditor();
@@ -645,23 +637,37 @@
   }
 
   // Incorpora al borrador (mutándolo) los datos del perfil personal que
-  // tengan una correspondencia clara y que el borrador todavía tenga
-  // vacíos -- nunca sobrescribe un campo que Business ya tenga, sea de
-  // antes o recién escrito por el usuario. Se lee independientemente de
-  // los controles t-* que solo deciden qué se comparte en la vCard
-  // principal (instrucción): esos controles no afectan si el DATO existe.
-  // Devuelve cuántos campos se incorporaron Y si el perfil estaba
-  // realmente disponible (identity_data existía con algún dato) --
-  // distinguir esto de "incorporados===0" es necesario para que
-  // tryOpenEditor() sepa si puede congelar la marca _personalDataLinked o
-  // si debe reintentar la próxima vez (ver ese comentario).
+  // tengan una correspondencia clara. Rastreo POR CAMPO, no una marca
+  // global para todo el borrador (ver INFORME de entrega: una marca única
+  // dejaba bloqueados el resto de campos para siempre en cuanto se
+  // incorporaba uno solo). Para cada campo candidato:
+  //   - Si ya tiene contenido en el borrador (propio o ya copiado antes),
+  //     nunca se toca.
+  //   - Si está vacío y NUNCA se llegó a incorporar un valor real para
+  //     ÉL, se intenta rellenar ahora si el perfil tiene algo que ofrecer
+  //     -- así un borrador donde antes solo se completó un campo (o uno
+  //     de antes de que existiera este rastreo) no bloquea los demás, y
+  //     un dato que el perfil no tuviera al principio pero sí más tarde
+  //     puede seguir llegando en una apertura posterior.
+  //   - Si está vacío pero SÍ hay constancia de que aquí se incorporó un
+  //     valor en el pasado (draft._personalDataAppliedValues[campo]),
+  //     es que el usuario lo borró después a propósito: nunca se repone.
+  // Se lee independientemente de los controles t-* que solo deciden qué
+  // se comparte en la vCard principal (instrucción): esos controles no
+  // afectan si el DATO existe. Devuelve cuántos campos se incorporaron
+  // EN ESTA llamada y si el perfil tenía algún dato en absoluto (solo
+  // informativo, para el panel de diagnóstico).
   function aplicarDatosPersonalesAlBorrador(draft) {
     const pd = getPersonalProfileData();
     const perfilDisponible = Object.keys(pd).length > 0;
+    draft._personalDataAppliedValues = draft._personalDataAppliedValues || {};
+    const aplicados = draft._personalDataAppliedValues;
     let incorporados = 0;
+
     const asignar = (key, val) => {
+      if (draft[key] || Object.prototype.hasOwnProperty.call(aplicados, key)) return;
       const limpio = (val == null) ? '' : String(val).trim();
-      if (limpio && !draft[key]) { draft[key] = limpio; incorporados++; }
+      if (limpio) { draft[key] = limpio; aplicados[key] = true; incorporados++; }
     };
 
     // Nombre personal vs. razón social: nunca se usa el nombre de la
@@ -679,9 +685,7 @@
     asignar('contactPerson', pd.name);
     asignar('contactRole', pd.job);
 
-    if (pd.phoneNumber) {
-      asignar('phone', (pd.phoneCountryCode ? pd.phoneCountryCode + ' ' : '') + pd.phoneNumber);
-    }
+    asignar('phone', pd.phoneNumber ? ((pd.phoneCountryCode ? pd.phoneCountryCode + ' ' : '') + pd.phoneNumber) : '');
     // Correo de CONTACTO del perfil (pd.email) -- nunca el correo de
     // acceso/login (identity_registration.email): son conceptos distintos
     // y esta función no lee ese almacenamiento en absoluto.
@@ -691,8 +695,10 @@
 
     draft.social = draft.social || {};
     SOCIAL_KEYS.forEach((k) => {
+      const campoClave = 'social_' + k;
+      if (draft.social[k] || Object.prototype.hasOwnProperty.call(aplicados, campoClave)) return;
       const val = pd[k] ? String(pd[k]).trim() : '';
-      if (val && !draft.social[k]) { draft.social[k] = val; incorporados++; }
+      if (val) { draft.social[k] = val; aplicados[campoClave] = true; incorporados++; }
     });
 
     return { incorporados, perfilDisponible };
@@ -785,29 +791,24 @@
     const draft = loadDraft();
     lineas.push('Borrador Business existe: ' + (draft ? 'sí' : 'no'));
     if (draft) {
-      lineas.push('_personalDataLinked: ' + (Object.prototype.hasOwnProperty.call(draft, '_personalDataLinked') ? String(draft._personalDataLinked) : '(no existe en este borrador)'));
-      lineas.push('_personalDataIncorporatedCount: ' + (Object.prototype.hasOwnProperty.call(draft, '_personalDataIncorporatedCount') ? String(draft._personalDataIncorporatedCount) : '(no existe en este borrador)'));
+      const aplicados = draft._personalDataAppliedValues;
+      lineas.push('Campos con un valor ya incorporado alguna vez (nunca se reponen si se borran): ' + (aplicados && Object.keys(aplicados).length ? Object.keys(aplicados).join(', ') : '(ninguno todavía)'));
     }
     lineas.push('');
 
     // Simulación con la MISMA función real (aplicarDatosPersonalesAlBorrador),
     // sobre una COPIA -- nunca sobre el borrador real, nunca se guarda.
-    // Reproduce exactamente la condición real de tryOpenEditor() para que
-    // el motivo de omisión, si lo hay, sea el mismo que decidiría la app.
+    // Ya no hay una marca global que omita la llamada entera: se ejecuta
+    // siempre (rastreo por campo, ver esa función), así que esto muestra
+    // exactamente cuántos campos NUEVOS incorporaría ahora mismo.
     const draftBase = draft ? JSON.parse(JSON.stringify(draft)) : emptyDraft('professional');
-    const yaVinculadoConDatos = !!(draft && draft._personalDataLinked && draft._personalDataIncorporatedCount);
-    if (yaVinculadoConDatos) {
-      lineas.push('Prerrelleno: NO se ejecutaría de nuevo al abrir. Motivo: ya está vinculado con datos reales (' + draft._personalDataIncorporatedCount + ' campos incorporados anteriormente) -- esto es definitivo por diseño, no un fallo.');
+    const resultado = aplicarDatosPersonalesAlBorrador(draftBase);
+    if (!resultado.perfilDisponible) {
+      lineas.push('Prerrelleno: identity_data no está disponible (vacío, ausente o no legible) en este dispositivo AHORA MISMO -- no hay nada que ofrecer todavía.');
+    } else if (resultado.incorporados > 0) {
+      lineas.push('Prerrelleno: SÍ incorporaría ' + resultado.incorporados + ' campo(s) nuevo(s) al abrir ahora mismo.');
     } else {
-      const copia = JSON.parse(JSON.stringify(draftBase));
-      const resultado = aplicarDatosPersonalesAlBorrador(copia);
-      if (!resultado.perfilDisponible) {
-        lineas.push('Prerrelleno: se OMITIRÍA al abrir. Motivo exacto: identity_data no está disponible (vacío, ausente o no legible) en este dispositivo AHORA MISMO.');
-      } else if (resultado.incorporados > 0) {
-        lineas.push('Prerrelleno: SÍ se ejecutaría al abrir y incorporaría ' + resultado.incorporados + ' campo(s) ahora mismo.');
-      } else {
-        lineas.push('Prerrelleno: se ejecutaría, pero incorporaría 0 campos -- el perfil está disponible pero no tiene ningún dato compatible que el borrador no tenga ya.');
-      }
+      lineas.push('Prerrelleno: no incorporaría ningún campo nuevo -- o ya están todos completados/con un valor propio, o los que faltan ya se borraron a propósito antes.');
     }
     return lineas.join('\n');
   }
