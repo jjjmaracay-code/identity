@@ -8,7 +8,7 @@
    nada del diseño aprobado de la tarjeta personal ni de QR SELECT.
    =================================================================== */
 
-#screen-business, #screen-business-editor, #screen-business-preview {
+#screen-business, #screen-business-editor, #screen-business-preview, #screen-business-cardview {
   position: fixed;
   inset: 0;
   background: var(--bg);
@@ -21,7 +21,8 @@
 #screen-business { z-index: 270; }
 #screen-business-editor { z-index: 275; }
 #screen-business-preview { z-index: 280; }
-#screen-business.open, #screen-business-editor.open, #screen-business-preview.open {
+#screen-business-cardview { z-index: 282; }
+#screen-business.open, #screen-business-editor.open, #screen-business-preview.open, #screen-business-cardview.open {
   transform: translateY(0);
 }
 
@@ -341,4 +342,88 @@
 
 @media (max-width: 360px) {
   .biz-modality-card, .biz-section { max-width: 100%; }
+}
+
+/* =================== v27: navegación, compartir y acabado =================== */
+
+/* Cabecera de las capas superiores (vista previa y tarjeta publicada):
+   "Volver al editor" siempre visible a la izquierda, con área táctil
+   amplia; el título nunca se parte en varias líneas apretadas. */
+.biz-sub-header {
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  padding: max(18px, calc(10px + env(safe-area-inset-top))) 16px 12px;
+  border-bottom: 1px solid rgba(170,255,0,0.1);
+  background: var(--bg);
+}
+.biz-back-btn {
+  flex-shrink: 0; min-height: 44px; padding: 0 14px; border-radius: 12px; cursor: pointer;
+  border: 1px solid rgba(170,255,0,0.45); background: rgba(170,255,0,0.08); color: var(--green);
+  font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+}
+.biz-back-btn:active { transform: translateY(1px); background: rgba(170,255,0,0.16); }
+.biz-sub-title-wrap { min-width: 0; }
+.biz-sub-title { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; line-height: 1.3; text-transform: uppercase; color: #fff; overflow-wrap: anywhere; }
+.biz-sub-hint { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+/* Tarjeta publicada dentro de la app */
+.biz-cardview-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: auto; -webkit-overflow-scrolling: touch; }
+.biz-cardview-frame { flex: 1 1 auto; width: 100%; min-height: 100%; border: 0; display: block; background: #080808; }
+.biz-cardview-frame[hidden] { display: none; }
+.biz-cardview-status { padding: 28px 20px; text-align: center; font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.65); }
+.biz-cardview-status[hidden] { display: none; }
+.biz-cardview-status .btn-myqr-action { margin: 16px auto 0; }
+
+/* Ayuda propia de cada modalidad, arriba del formulario */
+.biz-modality-intro { font-size: 12.5px; line-height: 1.55; color: rgba(255,255,255,0.6); margin: 0 0 16px; max-width: 460px; }
+
+/* Compartir: acción principal del bloque público */
+.biz-public-card .biz-share-main {
+  margin: 12px 0 0; max-width: none; min-height: 48px;
+  background: var(--green) !important; color: #000 !important; text-shadow: none !important;
+}
+.biz-share-help { font-size: 11.5px; line-height: 1.45; color: rgba(255,255,255,0.5); margin: 6px 2px 0; text-align: center; }
+.biz-public-card .biz-public-actions.two { margin-top: 10px; }
+.biz-public-actions .btn-myqr-action { min-height: 44px; }
+
+/* Cambios sin publicar: explica qué muestra el enlace y permite
+   actualizar explícitamente (nunca se publica solo). */
+.biz-public-pending {
+  margin-top: 12px; padding: 12px; border-radius: 12px;
+  border: 1px solid rgba(255,204,85,0.4); background: rgba(255,204,85,0.07);
+}
+.biz-public-pending[hidden] { display: none; }
+.biz-public-pending p { font-size: 12px; line-height: 1.5; color: #ffdd88; margin: 0 0 10px; }
+.biz-public-pending .btn-myqr-action { margin: 0; max-width: none; min-height: 44px; }
+
+/* Selector de acción principal: antes se pintaba con el estilo nativo
+   (fondo blanco con texto claro, casi ilegible). */
+.biz-field select {
+  -webkit-appearance: none; appearance: none;
+  background-color: #111;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23AAFF00' stroke-width='2'/></svg>");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 38px; min-height: 44px;
+}
+.biz-field select option { background: #111; color: #fff; }
+
+/* Foco visible con teclado y estados de carga/desactivación */
+#screen-business button:focus-visible, #screen-business-editor button:focus-visible,
+#screen-business-editor input:focus-visible, #screen-business-editor select:focus-visible,
+#screen-business-editor textarea:focus-visible, #screen-business-preview button:focus-visible,
+#screen-business-preview a:focus-visible, #screen-business-cardview button:focus-visible {
+  outline: 2px solid var(--green); outline-offset: 2px;
+}
+#screen-business-editor .btn-myqr-action[aria-busy="true"] { opacity: 0.75; cursor: progress; }
+#screen-business-editor .btn-myqr-action:disabled { cursor: default; }
+.biz-footer-link:active { color: var(--green); }
+.biz-add-service, .biz-service-remove { min-height: 40px; }
+
+/* Vista previa: botones de contacto con área táctil cómoda (igual que la
+   tarjeta pública). */
+.biz-pv-link-btn { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* Movimiento reducido: sin animación de entrada de las pantallas. */
+@media (prefers-reduced-motion: reduce) {
+  #screen-business, #screen-business-editor, #screen-business-preview, #screen-business-cardview { transition: none; }
+  .biz-back-btn:active, .btn-myqr-action:active { transform: none; }
 }

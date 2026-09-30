@@ -87,6 +87,9 @@ function buildVCardPublic(r) {
   if (r.email) vc += `EMAIL:${r.email}\n`;
   if (r.web) vc += `URL:${r.web}\n`;
   if (r.address) vc += `ADR:;;${r.address};;;;\n`;
+  for (const key of SOCIAL_KEYS) {
+    if (r.social && r.social[key]) vc += `URL;type=${SOCIAL_LABELS[key]}:${r.social[key]}\n`;
+  }
   vc += 'END:VCARD';
   return vc;
 }
@@ -158,7 +161,7 @@ export async function onRequestGet(context) {
   const vcardB64 = btoa(unescape(encodeURIComponent(buildVCardPublic(r))));
 
   const servicesHtml = (r.services && r.services.length)
-    ? `<section class="sec"><h2>Servicios</h2><ul class="services">${r.services.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul></section>`
+    ? `<section class="sec"><h2>${r.modality === 'company' ? 'Productos y servicios' : 'Servicios'}</h2><ul class="services">${r.services.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul></section>`
     : '';
 
   const galleryHtml = (r.gallery && r.gallery.length)
@@ -166,7 +169,7 @@ export async function onRequestGet(context) {
     : '';
 
   const locHtml = (r.address || r.hours || r.serviceArea)
-    ? `<section class="sec">
+    ? `<section class="sec"><h2>${r.modality === 'company' ? 'Dónde estamos' : 'Zona y horario'}</h2>
         ${r.serviceArea ? `<p class="muted"><strong>Zona de servicio:</strong> ${escapeHtml(r.serviceArea)}</p>` : ''}
         ${r.address ? `<p class="muted"><strong>Dirección:</strong> ${escapeHtml(r.address)}</p>` : ''}
         ${r.hours ? `<p class="muted"><strong>Horario:</strong> ${escapeHtml(r.hours)}</p>` : ''}
@@ -214,10 +217,11 @@ export async function onRequestGet(context) {
   .services li{font-size:13px;color:${theme.text};opacity:0.85;padding:8px 0;border-bottom:1px solid ${theme.hairline}}
   .muted{font-size:12px;color:${theme.muted};line-height:1.7}
   .links{display:flex;flex-wrap:wrap;gap:8px}
-  .link-btn{padding:9px 14px;border-radius:10px;border:1px solid ${theme.accentBorder};background:${theme.accentSoftBg};color:${theme.accent};font-size:11.5px;font-weight:600;letter-spacing:0.5px;text-decoration:none}
+  .link-btn{display:inline-flex;align-items:center;min-height:44px;padding:9px 16px;border-radius:12px;border:1px solid ${theme.accentBorder};background:${theme.accentSoftBg};color:${theme.accent};font-size:11.5px;font-weight:600;letter-spacing:0.5px;text-decoration:none}
+  .link-btn:active,.save-contact:active{opacity:0.75}
   .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
   .gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid ${theme.hairline}}
-  .save-contact{display:block;width:100%;text-align:center;margin-top:28px;padding:13px;border-radius:12px;border:1px solid ${theme.hairline};background:transparent;color:${theme.muted};font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
+  .save-contact{display:block;width:100%;min-height:48px;font-family:inherit;text-align:center;margin-top:28px;padding:13px;border-radius:12px;border:1px solid ${theme.hairline};background:transparent;color:${theme.muted};font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
   .foot{margin-top:24px;text-align:center;font-size:10px;color:${theme.muted};opacity:0.6;letter-spacing:1px}
   :focus-visible{outline:2px solid ${theme.accent};outline-offset:2px}
 </style></head>
@@ -232,17 +236,19 @@ export async function onRequestGet(context) {
     ${galleryHtml}
     ${locHtml}
     ${contactHtml}
-    <button class="save-contact" id="btn-save-contact" type="button">Guardar contacto</button>
+    <button class="save-contact" id="btn-save-contact" type="button" data-vcard="${escapeAttr(vcardB64)}" data-nombre="${escapeAttr((r.displayName || 'contacto').replace(/[^\w\- ]/g, '').trim() || 'contacto')}">Guardar contacto</button>
     <div class="foot">IDENTIFLY BUSINESS</div>
   </div>
   <script>
+    // El vCard vive en data-vcard del propio botón (base64): una sola
+    // fuente, que también usa la vista "Tarjeta publicada" de la app.
     document.getElementById('btn-save-contact').addEventListener('click', function () {
       try {
-        var vcard = decodeURIComponent(escape(atob('${vcardB64}')));
+        var vcard = decodeURIComponent(escape(atob(this.getAttribute('data-vcard'))));
         var blob = new Blob([vcard], { type: 'text/vcard' });
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = ${JSON.stringify((r.displayName || 'contacto').replace(/[^\w\- ]/g, '').trim() || 'contacto')} + '.vcf';
+        a.download = this.getAttribute('data-nombre') + '.vcf';
         document.body.appendChild(a);
         a.click();
         a.remove();

@@ -13,7 +13,7 @@
 <link rel="canonical" href="https://www.identifly.app/">
 <script src="storage-wipe.js"></script>
 <script src="/i18n/loader.js"></script>
-<link rel="stylesheet" href="business.css?v=26">
+<link rel="stylesheet" href="business.css?v=27">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -4133,15 +4133,34 @@
 </div>
 
 <!-- ===== IDENTIFLY BUSINESS · VISTA PREVIA PÚBLICA ===== -->
-<div id="screen-business-preview">
-  <div class="myqr-header">
-    <div class="myqr-header-titles">
-      <div class="myqr-title" data-i18n="index.business.preview_title">Vista previa pública</div>
-      <div class="myqr-subtitle" data-i18n="index.business.preview_hint">Así la verá cualquiera con el enlace</div>
-    </div>
-    <button class="btn-close" id="btn-close-business-preview" data-i18n="index.edit.close_button">✕ Cerrar</button>
+<div id="screen-business-preview" role="dialog" aria-modal="true" aria-labelledby="biz-preview-title">
+  <!-- "Volver al editor" siempre visible arriba a la izquierda: la vista
+       previa es una capa encima del editor, así que el borrador y la
+       posición de desplazamiento se conservan al volver. -->
+  <div class="biz-sub-header">
+    <button type="button" class="biz-back-btn" id="btn-close-business-preview" data-i18n="index.business.back_to_editor">‹ Volver al editor</button>
+    <div class="biz-sub-title" id="biz-preview-title" data-i18n="index.business.preview_title">Vista previa del borrador</div>
   </div>
   <div class="myqr-scroll" id="business-preview-body"></div>
+</div>
+
+<!-- ===== IDENTIFLY BUSINESS · TARJETA PUBLICADA (dentro de la app) =====
+     Muestra el HTML real de /c/{id} en un iframe aislado (ver
+     abrirTarjetaPublicada en business.js). No se sale de la app. -->
+<div id="screen-business-cardview" role="dialog" aria-modal="true" aria-labelledby="biz-cardview-title" aria-hidden="true">
+  <div class="biz-sub-header">
+    <button type="button" class="biz-back-btn" id="btn-close-business-cardview" data-i18n="index.business.back_to_editor">‹ Volver al editor</button>
+    <div class="biz-sub-title-wrap">
+      <div class="biz-sub-title" id="biz-cardview-title" data-i18n="index.business.card_view_title">Tarjeta publicada</div>
+      <div class="biz-sub-hint" data-i18n="index.business.card_view_hint">Así la ve quien abre tu enlace</div>
+    </div>
+  </div>
+  <div class="biz-cardview-body">
+    <div class="biz-cardview-status" id="biz-cardview-status" role="status" aria-live="polite"></div>
+    <iframe id="biz-cardview-frame" class="biz-cardview-frame" title="Tarjeta publicada" hidden
+            sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads"
+            referrerpolicy="no-referrer"></iframe>
+  </div>
 </div>
 
 <!-- Toast -->
@@ -8651,7 +8670,7 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
 <!-- Service Worker -->
 <script>
 // Debe coincidir con APP_VERSION de sw.js y con el ?v= de business.js/css.
-window.IDENTIFLY_APP_VERSION = '26';
+window.IDENTIFLY_APP_VERSION = '27';
 
 // true si recargar ahora perdería algo: cambios de Business sin guardar,
 // o un perfil que no se pudo guardar (p. ej. una red social inválida).
@@ -8786,7 +8805,7 @@ window.identiflyActualizarApp = async function () {
 })();
 </script>
 
-<script src="business.js?v=26"></script>
+<script src="business.js?v=27"></script>
 
 <!-- =================== MODAL IMPORTADOR =================== -->
 <div id="import-modal">

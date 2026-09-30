@@ -1,3 +1,11 @@
+// v27: IDENTIFLY BUSINESS -- "Abrir tarjeta" y la vista previa se
+// muestran dentro de la app con "Volver al editor" (antes la tarjeta
+// podía abrirse en la misma ventana de la app instalada sin regreso),
+// "Compartir tarjeta" como acción principal, aviso de cambios sin
+// publicar, textos por modalidad y acabado visual. Sube la versión por
+// el cambio real de business.js/business.css, index.html y los 5
+// diccionarios.
+//
 // v26: IDENTIFLY BUSINESS -- bloque "Tu tarjeta pública" (enlace real,
 // abrir, compartir, copiar, QR), QR público corregido (leía window.qrDesign,
 // inexistente), pie del editor compacto y toast que ya no intercepta
@@ -231,7 +239,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const APP_VERSION = '26';
+const APP_VERSION = '27';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

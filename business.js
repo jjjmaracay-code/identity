@@ -19,10 +19,9 @@
   const DRAFT_KEY = 'identity_business_draft';
   const META_KEY = 'identity_business_publish_meta';
 
-  // Sube junto con CACHE_NAME en sw.js en cada cambio real de este
-  // archivo -- únicamente para el diagnóstico temporal (ver
-  // diagnosticoBusinessTexto), no afecta a ninguna lógica de negocio.
-  const BUSINESS_CODE_VERSION = 'v26';
+  // Sube junto con APP_VERSION en sw.js en cada cambio real de este
+  // archivo. Solo informativo, no afecta a ninguna lógica de negocio.
+  const BUSINESS_CODE_VERSION = 'v27';
 
   const MODALITIES = ['professional', 'freelance', 'company'];
   // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
@@ -219,13 +218,17 @@
 
   function closeAllBusinessScreens() {
     _locked = true;
-    ['screen-business', 'screen-business-editor', 'screen-business-preview'].forEach((id) => {
+    ['screen-business', 'screen-business-editor', 'screen-business-preview', 'screen-business-cardview'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.classList.remove('open');
     });
     if (_keydownHub) { document.removeEventListener('keydown', _keydownHub); _keydownHub = null; }
     if (_keydownEditor) { document.removeEventListener('keydown', _keydownEditor); _keydownEditor = null; }
     if (_keydownPreview) { document.removeEventListener('keydown', _keydownPreview); _keydownPreview = null; }
+    if (_keydownCardView) { document.removeEventListener('keydown', _keydownCardView); _keydownCardView = null; }
+    _cardViewToken++;
+    const frame = document.getElementById('biz-cardview-frame');
+    if (frame) { frame.hidden = true; frame.removeAttribute('srcdoc'); }
     _bizQrToken++; // invalida cualquier render de QR pendiente
   }
   // Expuesta en window para que otros mecanismos de bloqueo del script
@@ -257,6 +260,7 @@
     screen.classList.add('open');
     await renderHub();
     if (_locked) return; // se bloqueó mientras renderHub() esperaba la red
+    if (_keydownHub) document.removeEventListener('keydown', _keydownHub);
     _keydownHub = (e) => { if (e.key === 'Escape' && !isQrZoomSafe()) closeBusinessHub(); };
     document.addEventListener('keydown', _keydownHub);
     document.getElementById('btn-close-business')?.focus();
@@ -319,28 +323,9 @@
         }
       }
     }
-    asegurarBotonDiagnostico();
     if (window.applyI18n) window.applyI18n(screen_business_el());
   }
   function screen_business_el() { return document.getElementById('screen-business'); }
-
-  // Botón temporal de diagnóstico (ver DIAGNÓSTICO TEMPORAL más abajo):
-  // se crea por JS, sin tocar el HTML, e idempotente (no duplica si el
-  // hub se vuelve a renderizar). Discreto: mismo estilo que el enlace
-  // secundario ya existente (btn-biz-pull-server), al final del scroll.
-  function asegurarBotonDiagnostico() {
-    if (document.getElementById('btn-biz-diagnostico')) return;
-    const scroll = document.getElementById('business-hub-scroll');
-    if (!scroll) return;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'btn-biz-diagnostico';
-    btn.className = 'biz-secondary-link';
-    btn.style.marginTop = '16px';
-    btn.textContent = 'Diagnóstico';
-    btn.addEventListener('click', mostrarDiagnosticoBusiness);
-    scroll.appendChild(btn);
-  }
 
   function isPublishedDirty() {
     const meta = loadMeta();
@@ -401,7 +386,14 @@
     const bloque = document.getElementById('biz-public-block');
     if (bloque) delete bloque.dataset.tipo; // se regenera con el estado actual
     renderEditorForm();
-    _keydownEditor = (e) => { if (e.key === 'Escape' && !isQrZoomSafe()) attemptCloseEditor(); };
+    if (_keydownEditor) document.removeEventListener('keydown', _keydownEditor);
+    _keydownEditor = (e) => {
+      if (e.key !== 'Escape' || isQrZoomSafe()) return;
+      // Escape cierra primero la capa superior (vista previa o tarjeta).
+      if (document.getElementById('screen-business-cardview')?.classList.contains('open')) return;
+      if (document.getElementById('screen-business-preview')?.classList.contains('open')) return;
+      attemptCloseEditor();
+    };
     document.addEventListener('keydown', _keydownEditor);
   }
 
@@ -425,6 +417,36 @@
     freelance: ['identity', 'design', 'presentation', 'services', 'area', 'contact', 'links', 'gallery', 'action'],
     company: ['identity', 'design', 'presentation', 'services', 'address', 'contact', 'links', 'gallery', 'action'],
   };
+
+  // Títulos y ayudas adaptados a cada modalidad sobre los MISMOS campos
+  // (no se amplía el formulario ni cambia el borrador).
+  const MODALITY_TEXTS = {
+    professional: {
+      intro: ['index.business.intro_professional', 'Tu tarjeta como profesional: tu especialidad, quién eres y cómo contactarte.'],
+      displayName: ['index.business.field_display_name_professional', 'Tu nombre profesional'],
+      tagline: ['index.business.field_specialty', 'Especialidad'],
+      description: ['index.business.field_description_professional', 'Sobre ti'],
+      services: ['index.business.section_services', 'Servicios'],
+    },
+    freelance: {
+      intro: ['index.business.intro_freelance', 'Tu tarjeta de servicios: qué haces, dónde trabajas y cómo pedirte presupuesto.'],
+      displayName: ['index.business.field_display_name_freelance', 'Nombre o marca'],
+      tagline: ['index.business.field_main_service', 'Servicio principal'],
+      description: ['index.business.field_description_freelance', 'Qué ofreces'],
+      services: ['index.business.section_services', 'Servicios'],
+    },
+    company: {
+      intro: ['index.business.intro_company', 'La tarjeta de tu negocio: marca, actividad, dirección y contacto general.'],
+      displayName: ['index.business.field_display_name_company', 'Nombre de la empresa'],
+      tagline: ['index.business.field_activity', 'Actividad'],
+      description: ['index.business.field_description_company', 'Sobre la empresa'],
+      services: ['index.business.section_services_company', 'Productos y servicios'],
+    },
+  };
+  function textoModalidad(clave) {
+    const t = (MODALITY_TEXTS[workingDraft.modality] || MODALITY_TEXTS.professional)[clave];
+    return { key: t[0], text: tf(t[0], t[1]) };
+  }
 
   function renderEditorForm() {
     const modLabel = document.getElementById('biz-editor-modality-label');
@@ -452,7 +474,9 @@
       action: sectionAction(),
     };
 
-    container.innerHTML = copyProfileBoxHtml() + order.map((k) => sections[k]).join('');
+    const intro = textoModalidad('intro');
+    container.innerHTML = `<p class="biz-modality-intro" data-i18n="${intro.key}">${escapeHtml(intro.text)}</p>`
+      + copyProfileBoxHtml() + order.map((k) => sections[k]).join('');
     const bloque = document.getElementById('biz-public-block');
     if (bloque && !bloque.dataset.tipo) renderPublicBlock();
     if (window.applyI18n) window.applyI18n(container);
@@ -477,7 +501,7 @@
         <div id="biz-logo-tile" class="biz-image-tile">${d.logo ? `<img src="${d.logo}" alt=""><button type="button" class="biz-image-remove" id="biz-logo-remove">✕</button>` : `<span>${tf('index.business.add_image', 'Añadir')}</span>`}</div>
         <input type="file" id="biz-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none">
       </div>
-      ${field('index.business.field_display_name', 'Nombre visible o comercial', `<input type="text" id="biz-displayName" maxlength="${LIMITS.displayName}" value="${escapeHtml(d.displayName)}">`)}
+      ${field(textoModalidad('displayName').key, textoModalidad('displayName').text, `<input type="text" id="biz-displayName" maxlength="${LIMITS.displayName}" value="${escapeHtml(d.displayName)}" autocomplete="off">`)}
     </div>`;
   }
 
@@ -545,12 +569,12 @@
 
   function sectionPresentation() {
     const d = workingDraft;
-    const taglineLabel = d.modality === 'company' ? 'index.business.field_activity' : 'index.business.field_specialty';
-    const taglineFallback = d.modality === 'company' ? 'Actividad' : 'Especialidad';
+    const tagline = textoModalidad('tagline');
+    const description = textoModalidad('description');
     return `<div class="biz-section">
       <div class="biz-section-title" data-i18n="index.business.section_presentation">${tf('index.business.section_presentation', 'Presentación')}</div>
-      ${field(taglineLabel, taglineFallback, `<input type="text" id="biz-tagline" maxlength="${LIMITS.tagline}" value="${escapeHtml(d.tagline)}">`)}
-      ${field('index.business.field_description', 'Presentación breve', `<textarea id="biz-description" maxlength="${LIMITS.description}">${escapeHtml(d.description)}</textarea>`)}
+      ${field(tagline.key, tagline.text, `<input type="text" id="biz-tagline" maxlength="${LIMITS.tagline}" value="${escapeHtml(d.tagline)}">`)}
+      ${field(description.key, description.text, `<textarea id="biz-description" maxlength="${LIMITS.description}">${escapeHtml(d.description)}</textarea>`)}
     </div>`;
   }
 
@@ -561,7 +585,7 @@
         <button type="button" class="biz-service-remove" data-i="${i}">✕</button>
       </div>`).join('');
     return `<div class="biz-section">
-      <div class="biz-section-title" data-i18n="index.business.section_services">${tf('index.business.section_services', 'Servicios')}</div>
+      <div class="biz-section-title" data-i18n="${textoModalidad('services').key}">${escapeHtml(textoModalidad('services').text)}</div>
       <div id="biz-services-list">${rows}</div>
       ${d.services.length < LIMITS.servicesMax ? `<button type="button" class="biz-add-service" id="biz-add-service" data-i18n="index.business.add_service_button">${tf('index.business.add_service_button', '+ Añadir servicio')}</button>` : ''}
     </div>`;
@@ -739,137 +763,6 @@
     return { incorporados, perfilDisponible };
   }
 
-  // =================== DIAGNÓSTICO TEMPORAL (solo lectura) ===================
-  // Ver INFORME de entrega: el prerrelleno funciona en las pruebas locales
-  // (jsdom, 32/32 casos) pero un dispositivo real sigue reportándolo
-  // vacío tras la corrección publicada -- esto reúne, en el propio
-  // dispositivo, evidencia real en vez de otra hipótesis. Nunca escribe
-  // nada (ni siquiera para "probar" el prerrelleno: se simula sobre una
-  // COPIA, nunca sobre el borrador real) ni envía nada a ningún servidor.
-  // Se retira en cuanto deje de hacer falta.
-  const CAMPOS_PERSONALES_DIAGNOSTICO = ['name', 'job', 'company', 'phoneCountryCode', 'phoneNumber', 'email', 'web', 'address', ...SOCIAL_KEYS];
-
-  async function diagnosticoBusinessTexto() {
-    const lineas = [];
-    lineas.push('=== DIAGNÓSTICO BUSINESS (temporal, solo lectura) ===');
-    lineas.push('Código Business en ejecución: ' + BUSINESS_CODE_VERSION);
-    lineas.push('Origen: ' + location.origin);
-    lineas.push('');
-
-    // Cachés realmente instaladas en ESTE dispositivo -- si "identity-vNN"
-    // (la versión actual, ver CACHE_NAME en sw.js) no aparece aquí, el
-    // Service Worker de esta versión nunca terminó de instalarse en este
-    // dispositivo, sea cual sea el motivo (confirma o descarta la caché
-    // del dispositivo con datos, no con suposiciones).
-    try {
-      const nombres = await caches.keys();
-      lineas.push('Cachés instaladas: ' + (nombres.length ? nombres.join(', ') : '(ninguna)'));
-    } catch (e) {
-      lineas.push('Cachés instaladas: (no se pudo consultar: ' + e.message + ')');
-    }
-
-    // Service Worker que controla ESTA pestaña ahora mismo, y el estado
-    // real del registro (activo/en espera/instalando) -- "waiting" no
-    // vacío es la señal clásica de una actualización descargada que
-    // nunca llegó a activarse (típico si la pestaña/PWA nunca se cerró
-    // del todo).
-    try {
-      const controller = navigator.serviceWorker && navigator.serviceWorker.controller;
-      lineas.push('Service Worker controlando esta página: ' + (controller ? 'sí (' + controller.scriptURL + ')' : 'no'));
-      const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        lineas.push('Registro SW -> active: ' + (reg.active ? reg.active.scriptURL : '(ninguno)'));
-        lineas.push('Registro SW -> waiting: ' + (reg.waiting ? reg.waiting.scriptURL + '  <-- hay una versión nueva esperando activarse' : '(ninguno)'));
-        lineas.push('Registro SW -> installing: ' + (reg.installing ? reg.installing.scriptURL : '(ninguno)'));
-      } else {
-        lineas.push('Registro SW: (sin registro de Service Worker en este origen)');
-      }
-      const regs = navigator.serviceWorker && await navigator.serviceWorker.getRegistrations();
-      lineas.push('Total de registros de Service Worker en este origen: ' + (regs ? regs.length : '(no se pudo consultar)'));
-
-      // El NOMBRE de una caché no demuestra por sí solo qué código
-      // ejecuta el Service Worker activo -- se le pregunta DIRECTAMENTE
-      // (mismo mecanismo que sw-diagnostico.html). Sin respuesta en 1.5s
-      // es en sí mismo una prueba de que es una versión anterior a esto.
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        const version = await new Promise((resolve) => {
-          const t = setTimeout(() => resolve('(sin respuesta en 1.5s -- versión anterior a este mecanismo)'), 1500);
-          function handler(e) {
-            if (e.data && e.data.tipo === 'IDENTIFLY_VERSION') {
-              clearTimeout(t);
-              navigator.serviceWorker.removeEventListener('message', handler);
-              resolve(e.data.cacheName);
-            }
-          }
-          navigator.serviceWorker.addEventListener('message', handler);
-          navigator.serviceWorker.controller.postMessage('IDENTIFLY_QUE_VERSION');
-        });
-        lineas.push('Versión que el Service Worker activo dice de sí mismo: ' + version);
-      }
-    } catch (e) {
-      lineas.push('Service Worker: (no se pudo consultar: ' + e.message + ')');
-    }
-    lineas.push('');
-
-    // identity_data: solo presencia de campos, nunca valores.
-    let pd = null, pdError = null;
-    try { pd = JSON.parse(localStorage.getItem('identity_data') || 'null'); } catch (e) { pdError = e.message; }
-    lineas.push('identity_data existe: ' + (localStorage.getItem('identity_data') != null ? 'sí' : 'no'));
-    lineas.push('identity_data es JSON válido: ' + (pdError ? 'NO (' + pdError + ')' : 'sí'));
-    if (pd && typeof pd === 'object') {
-      const presencia = CAMPOS_PERSONALES_DIAGNOSTICO.map((k) => k + (pd[k] ? '✓' : '✗')).join('  ');
-      lineas.push('Campos del perfil (solo presencia, nunca el valor): ' + presencia);
-    }
-    lineas.push('');
-
-    // Borrador Business real -- mismo loadDraft() que usa la app.
-    const draft = loadDraft();
-    lineas.push('Borrador Business existe: ' + (draft ? 'sí' : 'no'));
-    if (draft) {
-      const aplicados = draft._personalDataAppliedValues;
-      lineas.push('Campos con un valor ya incorporado alguna vez (nunca se reponen si se borran): ' + (aplicados && Object.keys(aplicados).length ? Object.keys(aplicados).join(', ') : '(ninguno todavía)'));
-    }
-    lineas.push('');
-
-    // Simulación con la MISMA función real (aplicarDatosPersonalesAlBorrador),
-    // sobre una COPIA -- nunca sobre el borrador real, nunca se guarda.
-    // Ya no hay una marca global que omita la llamada entera: se ejecuta
-    // siempre (rastreo por campo, ver esa función), así que esto muestra
-    // exactamente cuántos campos NUEVOS incorporaría ahora mismo.
-    const draftBase = draft ? JSON.parse(JSON.stringify(draft)) : emptyDraft('professional');
-    const resultado = aplicarDatosPersonalesAlBorrador(draftBase);
-    if (!resultado.perfilDisponible) {
-      lineas.push('Prerrelleno: identity_data no está disponible (vacío, ausente o no legible) en este dispositivo AHORA MISMO -- no hay nada que ofrecer todavía.');
-    } else if (resultado.incorporados > 0) {
-      lineas.push('Prerrelleno: SÍ incorporaría ' + resultado.incorporados + ' campo(s) nuevo(s) al abrir ahora mismo.');
-    } else {
-      lineas.push('Prerrelleno: no incorporaría ningún campo nuevo -- o ya están todos completados/con un valor propio, o los que faltan ya se borraron a propósito antes.');
-    }
-    return lineas.join('\n');
-  }
-
-  function mostrarDiagnosticoBusiness() {
-    let overlay = document.getElementById('biz-diagnostico-overlay');
-    if (overlay) overlay.remove();
-    overlay = document.createElement('div');
-    overlay.id = 'biz-diagnostico-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0a0a0a;color:#ccc;padding:20px;overflow:auto;font-family:monospace;font-size:11px;white-space:pre-wrap;';
-    overlay.textContent = 'Generando diagnóstico...';
-    const cerrar = document.createElement('button');
-    cerrar.type = 'button';
-    cerrar.textContent = '✕ Cerrar diagnóstico';
-    cerrar.style.cssText = 'position:sticky;top:0;display:block;margin-bottom:14px;padding:10px 16px;background:#AAFF00;color:#000;border:none;border-radius:8px;font-weight:700;font-family:sans-serif;';
-    cerrar.addEventListener('click', () => overlay.remove());
-    document.body.appendChild(overlay);
-    diagnosticoBusinessTexto().then((texto) => {
-      overlay.textContent = '';
-      overlay.appendChild(cerrar);
-      const pre = document.createElement('div');
-      pre.textContent = texto;
-      overlay.appendChild(pre);
-    });
-  }
-
   // Sustituye el antiguo botón manual "Ver qué se copiaría" (exigía
   // reintroducir los datos o pulsar un botón aparte cada vez, ver
   // instrucción): el prerrelleno ya ocurrió al abrir el editor
@@ -962,6 +855,8 @@
       if (workingDraft.services.length >= LIMITS.servicesMax) return;
       workingDraft.services.push('');
       renderEditorForm();
+      const inputs = document.querySelectorAll('#biz-editor-form .biz-service-input');
+      inputs[inputs.length - 1]?.focus();
     });
 
     // Logo
@@ -1042,9 +937,22 @@
   }
 
   // =================== VALIDACIÓN / PAYLOAD ===================
+  // Campos de ubicación que cada modalidad permite editar. El borrador es
+  // uno solo para las tres modalidades (conserva los valores de todas),
+  // pero solo se publica lo que la modalidad actual muestra en su
+  // formulario -- antes una Empresa publicaba la "Zona de servicio"
+  // escrita en Autónomo, que ni siquiera podía ver ni editar.
+  const LOCATION_FIELDS_BY_MODALITY = {
+    professional: [],
+    freelance: ['serviceArea', 'hours'],
+    company: ['address', 'hours'],
+  };
+
   function buildPublicPayloadFromDraft(d) {
     const social = {};
     SOCIAL_KEYS.forEach((k) => { if (d.social && d.social[k]) social[k] = d.social[k].trim(); });
+    const ubicacion = LOCATION_FIELDS_BY_MODALITY[d.modality] || [];
+    const siAplica = (campo) => (ubicacion.includes(campo) ? (d[campo] || '').trim() : '');
     return {
       modality: d.modality,
       displayName: (d.displayName || '').trim(),
@@ -1052,9 +960,9 @@
       tagline: (d.tagline || '').trim(),
       description: (d.description || '').trim(),
       services: (d.services || []).map((s) => s.trim()).filter(Boolean),
-      serviceArea: (d.serviceArea || '').trim(),
-      address: (d.address || '').trim(),
-      hours: (d.hours || '').trim(),
+      serviceArea: siAplica('serviceArea'),
+      address: siAplica('address'),
+      hours: siAplica('hours'),
       phone: (d.phone || '').trim(),
       email: (d.email || '').trim(),
       contactPerson: (d.contactPerson || '').trim(),
@@ -1180,6 +1088,8 @@
     }
     const local = document.getElementById('biz-local-state');
     if (local) local.textContent = textoEstadoLocal();
+    const pendiente = document.getElementById('biz-public-pending');
+    if (pendiente) pendiente.hidden = est.tipo !== 'pending';
     // Si el tipo de estado cambió (p. ej. por otra acción), el bloque
     // completo se regenera una sola vez.
     const bloque = document.getElementById('biz-public-block');
@@ -1213,14 +1123,24 @@
         ${est.url ? `<p class="biz-public-url-off">${escapeHtml(est.url)}</p>` : ''}
         <button type="button" class="btn-myqr-action" id="btn-biz-reactivate">${escapeHtml(tf('index.business.reactivate_button', 'Reactivar publicación'))}</button>`;
     } else {
-      cuerpo = `<label class="biz-public-label" for="biz-public-url">${escapeHtml(tf('index.business.public_url_label', 'Enlace público'))}</label>
-        <input type="text" class="biz-public-url" id="biz-public-url" readonly value="${escapeHtml(est.url)}">
-        <div class="biz-public-actions">
-          <a class="btn-myqr-action" id="biz-open-public" href="${escapeHtml(est.url)}" target="_blank" rel="noopener">${escapeHtml(tf('index.business.open_card_button', 'Abrir tarjeta publicada'))}</a>
-          <button type="button" class="btn-myqr-action" id="biz-share-link">${escapeHtml(tf('index.business.share_link_button', 'Compartir enlace'))}</button>
-          <button type="button" class="btn-myqr-action" id="biz-copy-link">${escapeHtml(tf('index.business.copy_link_button', 'Copiar enlace'))}</button>
+      // Compartir es la acción principal; Copiar y Abrir, secundarias en
+      // una fila. "Abrir tarjeta" la muestra DENTRO de la app con un
+      // "Volver al editor" visible (ver abrirTarjetaPublicada) -- antes era
+      // un enlace target=_blank que, en la app instalada, podía abrirse en
+      // la misma ventana sin ningún modo de volver.
+      cuerpo = `<div class="biz-public-pending" id="biz-public-pending" hidden>
+          <p>${escapeHtml(tf('index.business.pending_notice', 'Tienes cambios sin publicar: el enlace muestra la última versión publicada.'))}</p>
+          <button type="button" class="btn-myqr-action" id="biz-public-update">${escapeHtml(tf('index.business.update_short', 'Actualizar publicación'))}</button>
         </div>
-        <div class="biz-qr-block">
+        <label class="biz-public-label" for="biz-public-url">${escapeHtml(tf('index.business.public_url_label', 'Enlace público'))}</label>
+        <input type="text" class="biz-public-url" id="biz-public-url" readonly value="${escapeHtml(est.url)}">
+        <button type="button" class="btn-myqr-action biz-share-main" id="biz-share-link">${escapeHtml(tf('index.business.share_card_button', 'Compartir tarjeta'))}</button>
+        <p class="biz-share-help">${escapeHtml(tf('index.business.share_help', 'Envía el enlace de tu tarjeta por WhatsApp, correo o mensajes.'))}</p>
+        <div class="biz-public-actions two">
+          <button type="button" class="btn-myqr-action" id="biz-copy-link">${escapeHtml(tf('index.business.copy_link_button', 'Copiar enlace'))}</button>
+          <button type="button" class="btn-myqr-action" id="biz-open-public">${escapeHtml(tf('index.business.open_card_button', 'Abrir tarjeta'))}</button>
+        </div>`;
+      cuerpo += `<div class="biz-qr-block">
           <div id="biz-qr-render" role="img" aria-label="${escapeHtml(tf('index.business.qr_label', 'QR de tarjeta pública'))}"></div>
           <div class="biz-qr-status" id="biz-qr-status" aria-live="polite"></div>
           <div class="biz-public-actions two">
@@ -1236,6 +1156,8 @@
     bloque.querySelector('#btn-biz-unpublish')?.addEventListener('click', (e) => unpublish(e.currentTarget));
     bloque.querySelector('#biz-share-link')?.addEventListener('click', compartirEnlace);
     bloque.querySelector('#biz-copy-link')?.addEventListener('click', () => copiarEnlace());
+    bloque.querySelector('#biz-open-public')?.addEventListener('click', abrirTarjetaPublicada);
+    bloque.querySelector('#biz-public-update')?.addEventListener('click', (e) => publish(e.currentTarget));
     bloque.querySelector('#biz-public-url')?.addEventListener('focus', (e) => e.target.select());
     bloque.querySelector('#biz-qr-expand')?.addEventListener('click', ampliarQr);
     bloque.querySelector('#biz-qr-download')?.addEventListener('click', (e) => descargarQr(e.currentTarget));
@@ -1261,8 +1183,12 @@
     renderPublishFooter();
   }
 
-  async function publish() {
-    const btn = document.getElementById('btn-biz-publish');
+  // Publicar/actualizar se puede lanzar desde el pie o desde el aviso de
+  // "cambios sin publicar"; _publicando evita dos envíos simultáneos.
+  let _publicando = false;
+  async function publish(btnArg) {
+    const btn = (btnArg && btnArg.nodeType === 1) ? btnArg : document.getElementById('btn-biz-publish');
+    if (_publicando) return;
     const payload = buildPublicPayloadFromDraft(workingDraft);
     const err = validateForPublish(payload);
     if (err) { toast(tf('index.business.validation_' + err, 'Revisa los datos: hay un campo obligatorio o un enlace no válido.')); return; }
@@ -1275,6 +1201,7 @@
     if (!cred) { toast(tf('index.business.no_account_toast', 'Necesitas una cuenta registrada para publicar.')); return; }
     if (!hayRed()) return;
 
+    _publicando = true;
     await conBotonOcupado(btn, tf('index.business.busy_publishing', 'Publicando…'), async () => {
       try {
         // baseVersion: token opaco de concurrencia optimista (ver v18 en sw.js).
@@ -1309,6 +1236,8 @@
         }
       } catch (_) {
         toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo completar la acción. Se conserva tu borrador.'));
+      } finally {
+        _publicando = false;
       }
     });
   }
@@ -1439,7 +1368,7 @@
   function compartirEnlace() {
     const url = urlActual();
     if (!url) { toast(tf('index.business.public_hint_unpublished', 'Publica tu tarjeta para obtener un enlace y un QR.')); return; }
-    if (typeof navigator.share !== 'function') { copiarEnlace(); return; }
+    if (typeof navigator.share !== 'function') { copiarEnlace(true); return; }
     if (_compartiendo) return;
     _compartiendo = true;
     let promesa;
@@ -1447,21 +1376,25 @@
       promesa = navigator.share({ title: loadMeta()?.payload?.displayName || 'IDENTIFLY BUSINESS', url });
     } catch (e) {
       _compartiendo = false;
-      copiarEnlace();
+      copiarEnlace(true);
       return;
     }
     Promise.resolve(promesa)
-      .catch((e) => { if (!e || e.name !== 'AbortError') copiarEnlace(); })
+      // Cancelar el menú (AbortError) no es un fallo: no se muestra nada.
+      .catch((e) => { if (!e || e.name !== 'AbortError') copiarEnlace(true); })
       .finally(() => { _compartiendo = false; });
   }
 
-  async function copiarEnlace() {
+  async function copiarEnlace(desdeCompartir) {
     const url = urlActual();
     if (!url) return;
+    const textoCopiado = desdeCompartir === true
+      ? tf('index.business.link_copied_share_toast', 'Enlace copiado. Pégalo en WhatsApp, correo o mensajes.')
+      : tf('index.business.link_copied_toast', 'Enlace copiado');
     try {
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         await navigator.clipboard.writeText(url);
-        toast(tf('index.business.link_copied_toast', 'Enlace copiado'));
+        toast(textoCopiado);
         return;
       }
     } catch (_) { /* sin permiso o sin gesto: se prueba la vía clásica */ }
@@ -1474,9 +1407,119 @@
       try { copiado = document.execCommand('copy'); } catch (_) { copiado = false; }
     }
     // Último recurso: el enlace queda seleccionado y visible para copiarlo a mano.
-    toast(copiado
-      ? tf('index.business.link_copied_toast', 'Enlace copiado')
-      : tf('index.business.copy_manual_toast', 'Mantén pulsado el enlace seleccionado para copiarlo.'));
+    toast(copiado ? textoCopiado : tf('index.business.copy_manual_toast', 'Mantén pulsado el enlace seleccionado para copiarlo.'));
+  }
+
+  // =================== VER LA TARJETA PUBLICADA (dentro de la app) ===================
+  // Muestra el HTML REAL que recibe un visitante (pedido a /c/{id}) en un
+  // iframe aislado, dentro de una pantalla con "Volver al editor" visible.
+  // No se navega fuera de la app: el editor, el borrador sin guardar y la
+  // posición de desplazamiento siguen intactos debajo. El iframe va con
+  // sandbox sin allow-same-origin: la tarjeta no puede leer los datos
+  // locales de la app. Los controles del propietario viven fuera del
+  // iframe, así que la tarjeta pública sigue sin ninguno.
+  let _prevFocusCardView = null, _keydownCardView = null, _cardViewToken = 0;
+
+  // La copia de la tarjeta dentro del iframe hereda la CSP de la app, que
+  // bloquea en marcos los enlaces tel:/mailto: y la descarga blob: del
+  // vCard (verificado en WebKit: "Refused to load tel:..."). Sin tocar la
+  // CSP, esta copia -- SOLO la del visor, nunca la página pública -- lleva
+  // un puente mínimo: esos toques se envían a la app, que los ejecuta en
+  // su propio contexto igual que los enlaces de la vista previa. Los
+  // enlaces web siguen abriéndose en una ventana nueva como siempre.
+  const PUENTE_TARJETA = '<script>(function(){document.addEventListener("click",function(e){'
+    + 'var t=e.target;if(!t||!t.closest)return;'
+    + 'var a=t.closest(\'a[href^="tel:"],a[href^="mailto:"]\');'
+    + 'if(a){e.preventDefault();parent.postMessage({tipo:"identifly-tarjeta",accion:"enlace",href:a.getAttribute("href")},"*");return;}'
+    + 'var b=t.closest("#btn-save-contact");'
+    + 'if(b&&b.getAttribute("data-vcard")){e.preventDefault();e.stopImmediatePropagation();'
+    + 'parent.postMessage({tipo:"identifly-tarjeta",accion:"vcard",vcard:b.getAttribute("data-vcard"),nombre:b.getAttribute("data-nombre")||""},"*");}'
+    + '},true);})();<\/script>';
+
+  function conPuente(html) {
+    const i = html.lastIndexOf('</body>');
+    return i >= 0 ? html.slice(0, i) + PUENTE_TARJETA + html.slice(i) : html + PUENTE_TARJETA;
+  }
+
+  // Solo se aceptan mensajes del iframe del visor, y solo estas dos
+  // acciones con datos acotados.
+  function manejarMensajeTarjeta(e) {
+    const frame = document.getElementById('biz-cardview-frame');
+    if (!frame || e.source !== frame.contentWindow) return;
+    const d = e.data;
+    if (!d || d.tipo !== 'identifly-tarjeta') return;
+    if (d.accion === 'enlace' && typeof d.href === 'string' && /^(tel:[+\d]{3,30}|mailto:[^\s<>"]{3,200})$/.test(d.href)) {
+      const a = document.createElement('a');
+      a.href = d.href;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
+    if (d.accion === 'vcard' && typeof d.vcard === 'string' && d.vcard.length < 200000) {
+      try {
+        const texto = decodeURIComponent(escape(atob(d.vcard)));
+        if (!texto.startsWith('BEGIN:VCARD')) return;
+        const nombre = String(d.nombre || 'contacto').replace(/[^\w\- ]/g, '').trim() || 'contacto';
+        const href = URL.createObjectURL(new Blob([texto], { type: 'text/vcard' }));
+        const a = document.createElement('a');
+        a.href = href;
+        a.download = nombre + '.vcf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(href), 30000);
+      } catch (_) {
+        toast(tf('index.business.vcard_error_toast', 'No se pudo preparar el contacto.'));
+      }
+    }
+  }
+  async function abrirTarjetaPublicada() {
+    const url = urlActual();
+    if (!url) { toast(tf('index.business.public_hint_unpublished', 'Publica tu tarjeta para obtener un enlace y un QR.')); return; }
+    if (!hayRed()) return;
+    const screen = document.getElementById('screen-business-cardview');
+    const frame = document.getElementById('biz-cardview-frame');
+    const estado = document.getElementById('biz-cardview-status');
+    if (!screen || !frame || !estado) return;
+    const miToken = ++_cardViewToken;
+    frame.hidden = true;
+    frame.removeAttribute('srcdoc');
+    estado.hidden = false;
+    estado.textContent = tf('index.business.card_view_loading', 'Cargando tu tarjeta publicada…');
+    _prevFocusCardView = document.activeElement;
+    screen.classList.add('open');
+    screen.setAttribute('aria-hidden', 'false');
+    if (!_keydownCardView) {
+      _keydownCardView = (e) => { if (e.key === 'Escape' && !isQrZoomSafe()) cerrarTarjetaPublicada(); };
+      document.addEventListener('keydown', _keydownCardView);
+    }
+    document.getElementById('btn-close-business-cardview')?.focus({ preventScroll: true });
+    try {
+      if (new URL(url).origin !== location.origin) throw new Error('otro_origen');
+      const res = await fetch(url, { cache: 'no-store', credentials: 'omit' });
+      const html = await res.text();
+      if (miToken !== _cardViewToken || _locked) return;
+      frame.srcdoc = conPuente(html);
+      frame.hidden = false;
+      estado.hidden = true;
+    } catch (_) {
+      if (miToken !== _cardViewToken) return;
+      estado.innerHTML = `<span>${escapeHtml(tf('index.business.card_view_error', 'No se pudo cargar la tarjeta publicada. Tu borrador sigue en el editor.'))}</span>
+        <button type="button" class="btn-myqr-action" id="biz-cardview-retry">${escapeHtml(tf('index.business.qr_retry_button', 'Reintentar'))}</button>`;
+      document.getElementById('biz-cardview-retry')?.addEventListener('click', abrirTarjetaPublicada);
+    }
+  }
+
+  function cerrarTarjetaPublicada() {
+    _cardViewToken++;
+    const screen = document.getElementById('screen-business-cardview');
+    if (screen) { screen.classList.remove('open'); screen.setAttribute('aria-hidden', 'true'); }
+    const frame = document.getElementById('biz-cardview-frame');
+    if (frame) { frame.hidden = true; frame.removeAttribute('srcdoc'); }
+    if (_keydownCardView) { document.removeEventListener('keydown', _keydownCardView); _keydownCardView = null; }
+    if (_prevFocusCardView && typeof _prevFocusCardView.focus === 'function') _prevFocusCardView.focus({ preventScroll: true });
+    _prevFocusCardView = null;
   }
 
   // =================== QR DE TARJETA PÚBLICA ===================
@@ -1694,16 +1737,20 @@
     const screen = document.getElementById('screen-business-preview');
     if (!screen) return;
     _prevFocusPreview = document.activeElement;
+    body.scrollTop = 0;
     screen.classList.add('open');
-    _keydownPreview = (e) => { if (e.key === 'Escape') closePreview(); };
-    document.addEventListener('keydown', _keydownPreview);
+    if (!_keydownPreview) {
+      _keydownPreview = (e) => { if (e.key === 'Escape') closePreview(); };
+      document.addEventListener('keydown', _keydownPreview);
+    }
+    document.getElementById('btn-close-business-preview')?.focus({ preventScroll: true });
   }
 
   function closePreview() {
     const screen = document.getElementById('screen-business-preview');
     if (screen) screen.classList.remove('open');
     if (_keydownPreview) { document.removeEventListener('keydown', _keydownPreview); _keydownPreview = null; }
-    if (_prevFocusPreview && typeof _prevFocusPreview.focus === 'function') _prevFocusPreview.focus();
+    if (_prevFocusPreview && typeof _prevFocusPreview.focus === 'function') _prevFocusPreview.focus({ preventScroll: true });
     _prevFocusPreview = null;
   }
 
@@ -1725,6 +1772,8 @@
     document.getElementById('btn-biz-publish')?.addEventListener('click', publish);
     document.getElementById('btn-biz-pull-server')?.addEventListener('click', pullFromServer);
     document.getElementById('btn-close-business-preview')?.addEventListener('click', closePreview);
+    document.getElementById('btn-close-business-cardview')?.addEventListener('click', cerrarTarjetaPublicada);
+    window.addEventListener('message', manejarMensajeTarjeta);
 
     if (window.i18nReady && typeof window.i18nReady.finally === 'function') {
       window.i18nReady.finally(() => {
