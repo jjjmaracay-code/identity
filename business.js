@@ -22,7 +22,7 @@
   // Sube junto con CACHE_NAME en sw.js en cada cambio real de este
   // archivo -- únicamente para el diagnóstico temporal (ver
   // diagnosticoBusinessTexto), no afecta a ninguna lógica de negocio.
-  const BUSINESS_CODE_VERSION = 'v22';
+  const BUSINESS_CODE_VERSION = 'v23';
 
   const MODALITIES = ['professional', 'freelance', 'company'];
   // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
@@ -745,6 +745,26 @@
       }
       const regs = navigator.serviceWorker && await navigator.serviceWorker.getRegistrations();
       lineas.push('Total de registros de Service Worker en este origen: ' + (regs ? regs.length : '(no se pudo consultar)'));
+
+      // El NOMBRE de una caché no demuestra por sí solo qué código
+      // ejecuta el Service Worker activo -- se le pregunta DIRECTAMENTE
+      // (mismo mecanismo que sw-diagnostico.html). Sin respuesta en 1.5s
+      // es en sí mismo una prueba de que es una versión anterior a esto.
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        const version = await new Promise((resolve) => {
+          const t = setTimeout(() => resolve('(sin respuesta en 1.5s -- versión anterior a este mecanismo)'), 1500);
+          function handler(e) {
+            if (e.data && e.data.tipo === 'IDENTIFLY_VERSION') {
+              clearTimeout(t);
+              navigator.serviceWorker.removeEventListener('message', handler);
+              resolve(e.data.cacheName);
+            }
+          }
+          navigator.serviceWorker.addEventListener('message', handler);
+          navigator.serviceWorker.controller.postMessage('IDENTIFLY_QUE_VERSION');
+        });
+        lineas.push('Versión que el Service Worker activo dice de sí mismo: ' + version);
+      }
     } catch (e) {
       lineas.push('Service Worker: (no se pudo consultar: ' + e.message + ')');
     }

@@ -1,3 +1,19 @@
+// v23: diagnóstico del ordenador con este mismo cache (identity-v11,
+// commit bc2916e): confirmado leyendo ese código histórico que YA usaba
+// la misma estrategia "red primero" para HTML que esta versión -- así
+// que index.html (y su script de registro) debería obtenerse fresco de
+// red en cada visita con conexión, no de una copia vieja. Se comprobaron
+// además, uno a uno contra producción ahora mismo, los 12 recursos de
+// CACHE_URLS: todos responden con éxito, sin ningún rechazo que
+// explicara un fallo de cache.addAll() en el paso de instalación (esa
+// causa queda descartada por evidencia, no por suposición, para el
+// estado actual del servidor). El nombre de una caché no demuestra qué
+// código ejecuta el Service Worker activo -- se añade un mensaje
+// (IDENTIFLY_QUE_VERSION) para que el propio Service Worker responda con
+// su CACHE_NAME real; si no responde, es en sí mismo la prueba de que es
+// una versión anterior a este mecanismo. Sube la versión por el cambio
+// real de contenido en business.js.
+//
 // v22: la corrección del doble Service Worker (v21) se probó con un
 // navegador real (Chromium vía Puppeteer, no jsdom): partiendo de la
 // versión con el botón manual antiguo ya instalada, con almacenamiento y
@@ -163,7 +179,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v22';
+const CACHE_NAME = 'identity-v23';
 const CACHE_URLS = [
   './index.html',
   './register.html',
@@ -248,4 +264,18 @@ self.addEventListener('activate', event => {
     )
   );
   self.clients.claim();
+});
+
+// El nombre de una caché por sí solo no demuestra qué versión del propio
+// sw.js está realmente en ejecución (una caché vieja puede seguir
+// existiendo aunque el Service Worker sí se haya actualizado, o
+// viceversa) -- esto responde con la verdad real: CACHE_NAME tal como lo
+// ve el código que de verdad se está ejecutando ahora mismo, no una
+// inferencia externa. Si el Service Worker activo no responde a este
+// mensaje en absoluto, es en sí mismo una prueba de que es una versión
+// anterior a este mecanismo (ver diagnósticos).
+self.addEventListener('message', (event) => {
+  if (event.data === 'IDENTIFLY_QUE_VERSION') {
+    event.source.postMessage({ tipo: 'IDENTIFLY_VERSION', cacheName: CACHE_NAME });
+  }
 });
