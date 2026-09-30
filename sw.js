@@ -1,3 +1,13 @@
+// v20: corrige un bug real de v19 -- _personalDataLinked se marcaba
+// true incluso con 0 campos incorporados (perfil vacío o no disponible
+// todavía en ese momento), bloqueando el prerrelleno para siempre en ese
+// borrador aunque el perfil se completara después. Ahora la marca solo se
+// congela cuando el perfil estaba realmente disponible; si no lo estaba,
+// se reintenta la próxima vez que se abra esa modalidad. También extiende
+// persona de contacto y cargo a Profesional/Autónomo (antes solo Empresa)
+// y confirma que el correo de contacto nunca usa el de acceso/login. Sube
+// la versión por el cambio real de contenido en business.js.
+//
 // v19: corrige el prerrelleno de IDENTIFLY BUSINESS desde el perfil
 // personal -- leía window.profileData, que nunca existió (profileData es
 // `let` de ámbito de módulo en index.html, nunca se expuso en window),
@@ -117,7 +127,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v19';
+const CACHE_NAME = 'identity-v20';
 const CACHE_URLS = [
   './index.html',
   './register.html',

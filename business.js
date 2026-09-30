@@ -335,16 +335,27 @@
     // predeterminados aquí mismo, en memoria, sin reescribir el borrador
     // guardado hasta que el usuario cambie algo y pulse Guardar/Publicar.
     draft.design = sanitizeDesignClient(draft.design);
-    // Prerrelleno desde el perfil personal -- una sola vez por borrador
-    // (marca _personalDataLinked persistida en el propio borrador, ver
-    // aplicarDatosPersonalesAlBorrador). Cubre tanto un borrador nuevo
-    // como uno ya guardado antes de que existiera esta marca (completa
-    // sus campos nunca rellenados). Nunca vuelve a aplicarse después: si
-    // el usuario borra deliberadamente un campo incorporado y guarda, se
-    // queda borrado para siempre.
-    if (!draft._personalDataLinked) {
-      draft._personalDataIncorporatedCount = aplicarDatosPersonalesAlBorrador(draft);
-      draft._personalDataLinked = true;
+    // Prerrelleno desde el perfil personal. Se reintenta mientras no haya
+    // quedado marcado con datos reales (_personalDataLinked true Y
+    // _personalDataIncorporatedCount > 0) -- una marca puesta con 0
+    // incorporados nunca demuestra que el perfil existiera en ese momento
+    // (pudo estar vacío, sin cargar todavía, o genuinamente sin nada
+    // nuevo que ofrecer): en cualquiera de esos casos, reintentar es
+    // inofensivo (si de verdad no hay nada nuevo, vuelve a incorporar 0) y
+    // corrige el caso real en que sí había datos pero no se llegaron a
+    // leer. En cuanto una vez SÍ se incorpora algo (>0), la marca se
+    // congela para siempre: no vuelve a aplicarse, así que un campo que el
+    // usuario borre a propósito después y guarde se queda borrado.
+    if (!draft._personalDataLinked || !draft._personalDataIncorporatedCount) {
+      const resultado = aplicarDatosPersonalesAlBorrador(draft);
+      if (resultado.perfilDisponible) {
+        draft._personalDataLinked = true;
+        draft._personalDataIncorporatedCount = resultado.incorporados;
+      }
+      // Perfil no disponible todavía (identity_data vacío/inexistente en
+      // este momento): no se marca linked -- se reintenta la próxima vez
+      // que se abra esta modalidad, en vez de quedar bloqueado para
+      // siempre con un borrador vacío.
     }
     workingDraft = JSON.parse(JSON.stringify(draft));
     savedSnapshotJson = JSON.stringify(draftGuardado ? { ...draftGuardado, modality } : draft);
@@ -615,10 +626,14 @@
   // antes o recién escrito por el usuario. Se lee independientemente de
   // los controles t-* que solo deciden qué se comparte en la vCard
   // principal (instrucción): esos controles no afectan si el DATO existe.
-  // Devuelve cuántos campos se incorporaron, para decidir si se muestra el
-  // aviso breve (ver copyProfileBoxHtml).
+  // Devuelve cuántos campos se incorporaron Y si el perfil estaba
+  // realmente disponible (identity_data existía con algún dato) --
+  // distinguir esto de "incorporados===0" es necesario para que
+  // tryOpenEditor() sepa si puede congelar la marca _personalDataLinked o
+  // si debe reintentar la próxima vez (ver ese comentario).
   function aplicarDatosPersonalesAlBorrador(draft) {
     const pd = getPersonalProfileData();
+    const perfilDisponible = Object.keys(pd).length > 0;
     let incorporados = 0;
     const asignar = (key, val) => {
       const limpio = (val == null) ? '' : String(val).trim();
@@ -656,7 +671,7 @@
       if (val && !draft.social[k]) { draft.social[k] = val; incorporados++; }
     });
 
-    return incorporados;
+    return { incorporados, perfilDisponible };
   }
 
   // Sustituye el antiguo botón manual "Ver qué se copiaría" (exigía
