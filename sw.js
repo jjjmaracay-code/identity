@@ -1,3 +1,9 @@
+// v26: IDENTIFLY BUSINESS -- bloque "Tu tarjeta pública" (enlace real,
+// abrir, compartir, copiar, QR), QR público corregido (leía window.qrDesign,
+// inexistente), pie del editor compacto y toast que ya no intercepta
+// toques. Sube la versión por el cambio real de business.js/business.css,
+// index.html y las claves nuevas de los 5 diccionarios.
+//
 // v25: causa de fondo de que un dispositivo siguiera ejecutando un
 // business.js antiguo aunque el Service Worker nuevo se instalara: el
 // precache (cache.addAll) y la estrategia "cache primero" de los .js/.css
@@ -225,7 +231,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const APP_VERSION = '25';
+const APP_VERSION = '26';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -358,16 +364,14 @@ self.addEventListener('fetch', (event) => {
 
   // Tarjetas públicas de Business (/c/{id}) y toda la API: siempre red,
   // nunca caché (ver nota de v15). Debe ir antes que cualquier otra regla.
-  if (mismoOrigen && (pathname.startsWith('/c/') || pathname.startsWith('/api/'))) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+  // Sin respondWith: el navegador las resuelve directamente en la red, sin
+  // pasar por la caché, y un fallo de red llega a la página como un error
+  // normal de fetch (que la página ya gestiona) en vez de como un error
+  // del propio Service Worker.
+  if (mismoOrigen && (pathname.startsWith('/c/') || pathname.startsWith('/api/'))) return;
 
-  // La Cache API solo admite GET.
-  if (event.request.method !== 'GET') {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+  // La Cache API solo admite GET: el resto va directo a la red.
+  if (event.request.method !== 'GET') return;
 
   const esNavegacion = event.request.mode === 'navigate';
   if (mismoOrigen && (esNavegacion || pathname.endsWith('.html'))) {

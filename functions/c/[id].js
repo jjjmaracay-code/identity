@@ -59,10 +59,18 @@ const ACTION_LABELS = {
   contact: 'Contactar', quote: 'Pedir presupuesto', booking: 'Reservar cita', catalog: 'Ver catálogo',
 };
 
+// Solo '+' y dígitos: un tel: con espacios, guiones o paréntesis no
+// siempre abre el marcador.
+function telLimpio(phone) {
+  return String(phone || '').replace(/[^\d+]/g, '');
+}
+
 function actionHref(r) {
   if (r.primaryAction === 'contact') {
-    if (r.phone) return 'tel:' + encodeURIComponent(r.phone.replace(/\s+/g, ''));
-    if (r.email) return 'mailto:' + encodeURIComponent(r.email);
+    // Sin encodeURIComponent: convertía '+' en %2B y '@' en %40, que
+    // algunas apps de teléfono/correo no decodifican.
+    if (r.phone && telLimpio(r.phone)) return 'tel:' + telLimpio(r.phone);
+    if (r.email) return 'mailto:' + r.email;
   }
   if (r.primaryAction === 'quote') return r.quoteUrl;
   if (r.primaryAction === 'booking') return r.bookingUrl;
@@ -166,7 +174,7 @@ export async function onRequestGet(context) {
     : '';
 
   const contactLinks = [];
-  if (r.phone) contactLinks.push(`<a class="link-btn" href="tel:${escapeAttr(r.phone.replace(/\s+/g, ''))}">Llamar</a>`);
+  if (r.phone && telLimpio(r.phone)) contactLinks.push(`<a class="link-btn" href="tel:${escapeAttr(telLimpio(r.phone))}">Llamar</a>`);
   if (r.email) contactLinks.push(`<a class="link-btn" href="mailto:${escapeAttr(r.email)}">Escribir</a>`);
   if (r.web) contactLinks.push(`<a class="link-btn" href="${escapeAttr(r.web)}" target="_blank" rel="noopener nofollow">Web</a>`);
   for (const key of SOCIAL_KEYS) {

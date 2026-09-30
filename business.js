@@ -22,7 +22,7 @@
   // Sube junto con CACHE_NAME en sw.js en cada cambio real de este
   // archivo -- únicamente para el diagnóstico temporal (ver
   // diagnosticoBusinessTexto), no afecta a ninguna lógica de negocio.
-  const BUSINESS_CODE_VERSION = 'v25';
+  const BUSINESS_CODE_VERSION = 'v26';
 
   const MODALITIES = ['professional', 'freelance', 'company'];
   // MISMO conjunto que functions/_shared/business.js SOCIAL_KEYS -- ver
@@ -398,6 +398,8 @@
     _locked = false;
     _prevFocusEditor = document.activeElement;
     screen.classList.add('open');
+    const bloque = document.getElementById('biz-public-block');
+    if (bloque) delete bloque.dataset.tipo; // se regenera con el estado actual
     renderEditorForm();
     _keydownEditor = (e) => { if (e.key === 'Escape' && !isQrZoomSafe()) attemptCloseEditor(); };
     document.addEventListener('keydown', _keydownEditor);
@@ -451,6 +453,8 @@
     };
 
     container.innerHTML = copyProfileBoxHtml() + order.map((k) => sections[k]).join('');
+    const bloque = document.getElementById('biz-public-block');
+    if (bloque && !bloque.dataset.tipo) renderPublicBlock();
     if (window.applyI18n) window.applyI18n(container);
     wireEditorEvents(container);
     renderPublishFooter();
@@ -1085,19 +1089,159 @@
   }
 
   // =================== ACCIONES: GUARDAR / PUBLICAR / DESPUBLICAR ===================
-  function renderPublishFooter() {
-    const publishBtn = document.getElementById('btn-biz-publish');
-    const unpublishBtn = document.getElementById('btn-biz-unpublish');
-    const reactivateBtn = document.getElementById('btn-biz-reactivate');
-    const meta = loadMeta();
-    if (publishBtn) {
-      publishBtn.textContent = (meta && meta.id)
-        ? tf('index.business.update_button', 'Actualizar tarjeta pública')
-        : tf('index.business.publish_button', 'Publicar tarjeta');
+
+  // Bloquea un botón mientras dura una acción asíncrona y lo restaura
+  // SIEMPRE (éxito, error, cancelación o bloqueo de la app) -- ningún
+  // botón puede quedarse deshabilitado tras un fallo. Si el botón ya está
+  // ocupado, la segunda pulsación se ignora (evita dobles envíos).
+  async function conBotonOcupado(btn, textoOcupado, fn) {
+    if (btn && btn.dataset.ocupado === '1') return;
+    const textoOriginal = btn ? btn.textContent : '';
+    if (btn) { btn.dataset.ocupado = '1'; btn.disabled = true; btn.setAttribute('aria-busy', 'true'); if (textoOcupado) btn.textContent = textoOcupado; }
+    try {
+      return await fn();
+    } finally {
+      if (btn) {
+        delete btn.dataset.ocupado;
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        // Si mientras tanto se re-renderizó el texto (p. ej. Publicar ->
+        // Actualizar publicación), se respeta ese texto nuevo.
+        if (textoOcupado && btn.textContent === textoOcupado) btn.textContent = textoOriginal;
+      }
+      // El texto del botón principal depende del estado (Publicar /
+      // Actualizar publicación): se recalcula tras cualquier acción.
+      renderPublishFooter();
     }
-    if (unpublishBtn) unpublishBtn.style.display = (meta && meta.published) ? 'block' : 'none';
-    if (reactivateBtn) reactivateBtn.style.display = (meta && meta.id && meta.published === false) ? 'block' : 'none';
-    renderQrBlock(meta);
+  }
+
+  // Las operaciones que necesitan red lo explican antes de intentarlo, sin
+  // tocar el trabajo en curso (el editor y el borrador siguen intactos).
+  function hayRed() {
+    if (navigator.onLine === false) {
+      toast(tf('index.business.offline_needs_network_toast', 'Sin conexión. Esta acción necesita Internet; tus cambios siguen en el editor.'));
+      return false;
+    }
+    return true;
+  }
+
+  // Solo se acepta como enlace público la URL que devolvió el servidor
+  // con la forma real de una tarjeta (/c/{id}) -- nunca una URL inventada,
+  // de vista previa local ni con un token.
+  function urlPublicaValida(meta) {
+    const url = meta && meta.url;
+    if (typeof url !== 'string') return null;
+    try {
+      const u = new URL(url);
+      if ((u.protocol === 'https:' || u.protocol === 'http:') && /^\/c\/[a-f0-9-]+$/i.test(u.pathname) && !u.search && !u.hash) return u.href;
+    } catch (_) { /* no es una URL */ }
+    return null;
+  }
+
+  function estadoPublicacion() {
+    const meta = loadMeta();
+    const url = urlPublicaValida(meta);
+    if (meta && meta.published === true && url) {
+      const pendiente = !!workingDraft && JSON.stringify(buildPublicPayloadFromDraft(workingDraft)) !== JSON.stringify(meta.payload);
+      return { tipo: pendiente ? 'pending' : 'published', meta, url };
+    }
+    if (meta && meta.id && meta.published === false) return { tipo: 'unpublished', meta, url };
+    return { tipo: 'draft', meta, url: null };
+  }
+
+  function textoEstadoLocal() {
+    if (isEditorDirty()) return tf('index.business.local_dirty', 'Cambios sin guardar en este dispositivo');
+    if (loadDraft()) return tf('index.business.local_saved', 'Borrador guardado en este dispositivo');
+    return tf('index.business.local_none', 'Todavía no has guardado este borrador');
+  }
+
+  // Actualización barata (solo textos), llamada en cada pulsación: nunca
+  // reconstruye el bloque ni el QR -- antes cada tecla regeneraba el QR
+  // entero y podía perderse un toque sobre sus botones a media
+  // reconstrucción.
+  function renderPublishFooter() {
+    const est = estadoPublicacion();
+    const publishBtn = document.getElementById('btn-biz-publish');
+    if (publishBtn && publishBtn.dataset.ocupado !== '1') {
+      publishBtn.textContent = (est.tipo === 'published' || est.tipo === 'pending')
+        ? tf('index.business.update_short', 'Actualizar publicación')
+        : tf('index.business.publish_short', 'Publicar');
+    }
+    const badge = document.getElementById('biz-public-badge');
+    if (badge) {
+      const textos = {
+        draft: tf('index.business.public_state_draft', 'Borrador'),
+        published: tf('index.business.public_state_published', 'Publicada'),
+        pending: tf('index.business.public_state_pending', 'Publicada · cambios sin publicar'),
+        unpublished: tf('index.business.public_state_unpublished', 'Despublicada'),
+      };
+      badge.textContent = textos[est.tipo];
+      badge.className = 'biz-public-badge st-' + est.tipo;
+    }
+    const local = document.getElementById('biz-local-state');
+    if (local) local.textContent = textoEstadoLocal();
+    // Si el tipo de estado cambió (p. ej. por otra acción), el bloque
+    // completo se regenera una sola vez.
+    const bloque = document.getElementById('biz-public-block');
+    if (bloque && bloque.dataset.tipo !== (est.tipo === 'pending' ? 'published' : est.tipo)) renderPublicBlock();
+  }
+
+  // Bloque "Tu tarjeta pública": enlace real, abrir, compartir, copiar y QR.
+  // Antes de publicar solo se explica cómo obtenerlos -- nunca controles
+  // que aparenten funcionar sobre un enlace que no existe.
+  function renderPublicBlock() {
+    const bloque = document.getElementById('biz-public-block');
+    if (!bloque) return;
+    const est = estadoPublicacion();
+    const tipoBloque = est.tipo === 'pending' ? 'published' : est.tipo;
+    bloque.dataset.tipo = tipoBloque;
+    _bizQrToken++; // invalida cualquier QR en curso del bloque anterior
+    _bizQrPng = null;
+    _bizQrUrl = null;
+
+    const cabecera = `<div class="biz-public-head">
+        <h2 class="biz-public-title" id="biz-public-title">${escapeHtml(tf('index.business.public_title', 'Tu tarjeta pública'))}</h2>
+        <span class="biz-public-badge" id="biz-public-badge"></span>
+      </div>
+      <p class="biz-public-local" id="biz-local-state"></p>`;
+
+    let cuerpo = '';
+    if (tipoBloque === 'draft') {
+      cuerpo = `<p class="biz-public-hint">${escapeHtml(tf('index.business.public_hint_unpublished', 'Publica tu tarjeta para obtener un enlace y un QR.'))}</p>`;
+    } else if (tipoBloque === 'unpublished') {
+      cuerpo = `<p class="biz-public-hint">${escapeHtml(tf('index.business.public_unpublished_desc', 'El enlace y su QR ya no muestran la tarjeta. Si la reactivas, vuelve a estar disponible en la misma dirección.'))}</p>
+        ${est.url ? `<p class="biz-public-url-off">${escapeHtml(est.url)}</p>` : ''}
+        <button type="button" class="btn-myqr-action" id="btn-biz-reactivate">${escapeHtml(tf('index.business.reactivate_button', 'Reactivar publicación'))}</button>`;
+    } else {
+      cuerpo = `<label class="biz-public-label" for="biz-public-url">${escapeHtml(tf('index.business.public_url_label', 'Enlace público'))}</label>
+        <input type="text" class="biz-public-url" id="biz-public-url" readonly value="${escapeHtml(est.url)}">
+        <div class="biz-public-actions">
+          <a class="btn-myqr-action" id="biz-open-public" href="${escapeHtml(est.url)}" target="_blank" rel="noopener">${escapeHtml(tf('index.business.open_card_button', 'Abrir tarjeta publicada'))}</a>
+          <button type="button" class="btn-myqr-action" id="biz-share-link">${escapeHtml(tf('index.business.share_link_button', 'Compartir enlace'))}</button>
+          <button type="button" class="btn-myqr-action" id="biz-copy-link">${escapeHtml(tf('index.business.copy_link_button', 'Copiar enlace'))}</button>
+        </div>
+        <div class="biz-qr-block">
+          <div id="biz-qr-render" role="img" aria-label="${escapeHtml(tf('index.business.qr_label', 'QR de tarjeta pública'))}"></div>
+          <div class="biz-qr-status" id="biz-qr-status" aria-live="polite"></div>
+          <div class="biz-public-actions two">
+            <button type="button" class="btn-myqr-action" id="biz-qr-expand" disabled>${escapeHtml(tf('index.main.expand_qr_button', 'Ampliar QR'))}</button>
+            <button type="button" class="btn-myqr-action" id="biz-qr-download" disabled>${escapeHtml(tf('index.business.qr_download_button', 'Descargar QR'))}</button>
+          </div>
+        </div>
+        <button type="button" class="biz-secondary-link biz-danger-link" id="btn-biz-unpublish">${escapeHtml(tf('index.business.unpublish_button', 'Despublicar'))}</button>`;
+    }
+    bloque.innerHTML = `<section class="biz-public-card" aria-labelledby="biz-public-title">${cabecera}${cuerpo}</section>`;
+
+    bloque.querySelector('#btn-biz-reactivate')?.addEventListener('click', (e) => reactivate(e.currentTarget));
+    bloque.querySelector('#btn-biz-unpublish')?.addEventListener('click', (e) => unpublish(e.currentTarget));
+    bloque.querySelector('#biz-share-link')?.addEventListener('click', compartirEnlace);
+    bloque.querySelector('#biz-copy-link')?.addEventListener('click', () => copiarEnlace());
+    bloque.querySelector('#biz-public-url')?.addEventListener('focus', (e) => e.target.select());
+    bloque.querySelector('#biz-qr-expand')?.addEventListener('click', ampliarQr);
+    bloque.querySelector('#biz-qr-download')?.addEventListener('click', (e) => descargarQr(e.currentTarget));
+
+    renderPublishFooter();
+    if (tipoBloque === 'published') renderPublicQr(est.url);
   }
 
   function saveLocal() {
@@ -1110,222 +1254,389 @@
       return;
     }
     savedSnapshotJson = JSON.stringify(workingDraft);
-    toast(tf('index.business.save_success_toast', 'Borrador guardado en este dispositivo.'));
+    const est = estadoPublicacion();
+    toast(est.tipo === 'pending'
+      ? tf('index.business.save_success_pending_toast', 'Guardado en este dispositivo. Pulsa «Actualizar publicación» para llevarlo a tu tarjeta pública.')
+      : tf('index.business.save_success_toast', 'Borrador guardado en este dispositivo.'));
     renderPublishFooter();
   }
 
-  let _publishing = false;
   async function publish() {
-    if (_publishing) return;
+    const btn = document.getElementById('btn-biz-publish');
     const payload = buildPublicPayloadFromDraft(workingDraft);
     const err = validateForPublish(payload);
     if (err) { toast(tf('index.business.validation_' + err, 'Revisa los datos: hay un campo obligatorio o un enlace no válido.')); return; }
+    if (estadoPublicacion().tipo === 'published') {
+      toast(tf('index.business.already_up_to_date_toast', 'Tu tarjeta pública ya está al día.'));
+      return;
+    }
 
     const cred = getRegAndToken();
     if (!cred) { toast(tf('index.business.no_account_toast', 'Necesitas una cuenta registrada para publicar.')); return; }
+    if (!hayRed()) return;
 
-    _publishing = true;
-    const btn = document.getElementById('btn-biz-publish');
-    if (btn) { btn.disabled = true; }
-    try {
-      // baseVersion: el token opaco `version` que este cliente conocía
-      // antes de editar (si ninguno, se manda null y el servidor no exige
-      // nada -- compatibilidad con la primera publicación o con no tener
-      // meta local, ver business-publish.js). Protege contra reintentos
-      // desincronizados: si la tarjeta cambió en el servidor mientras esta
-      // petición seguía en vuelo (por ejemplo, se despublicó desde otra
-      // pestaña), el servidor rechaza en vez de resucitarla a ciegas. Se
-      // usa un token opaco y no `updatedAt`: dos escrituras dentro del
-      // mismo milisegundo de reloj (real bajo reintentos rápidos)
-      // producirían el mismo `updatedAt` y el chequeo se saltaría en falso.
-      const metaPrevia = loadMeta();
-      const res = await fetch('/api/business-publish', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null, ...payload }),
-      });
-      if (_locked) return; // la app se bloqueó mientras la petición estaba en curso
-      const data = await res.json().catch(() => ({}));
-      if (data.ok) {
+    await conBotonOcupado(btn, tf('index.business.busy_publishing', 'Publicando…'), async () => {
+      try {
+        // baseVersion: token opaco de concurrencia optimista (ver v18 en sw.js).
+        const metaPrevia = loadMeta();
+        const res = await fetch('/api/business-publish', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null, ...payload }),
+        });
+        if (_locked) return; // la app se bloqueó mientras la petición estaba en curso
+        const data = await res.json().catch(() => ({}));
+        if (data.ok) {
+          saveDraftToStorage(workingDraft);
+          savedSnapshotJson = JSON.stringify(workingDraft);
+          saveMeta({ id: data.id, url: data.url, publishedAt: data.publishedAt, updatedAt: data.updatedAt, version: data.version, published: true, payload });
+          toast(tf('index.business.publish_success_toast', 'Tarjeta publicada. Ya tienes tu enlace y tu QR.'));
+          renderPublicBlock();
+          document.getElementById('biz-public-block')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (res.status === 402) {
+          toast(tf('index.business.plan_inactive_toast', 'Tu plan de pago no está activo — no se puede publicar.'));
+        } else if (res.status === 429) {
+          toast(tf('index.business.rate_limited_toast', 'Espera unos segundos antes de volver a intentarlo.'));
+        } else if (res.status === 401) {
+          toast(tf('index.business.reauth_toast', 'No se pudo verificar tu cuenta. Vuelve a intentarlo tras reabrir la app.'));
+        } else if (res.status === 409) {
+          if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
+          toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
+          renderPublicBlock();
+        } else if (res.status === 400) {
+          toast(tf('index.business.validation_' + (data.error || ''), tf('index.business.publish_error_toast', 'No se pudo publicar. Se conserva tu borrador para reintentarlo.')));
+        } else {
+          toast(tf('index.business.publish_error_toast', 'No se pudo publicar. Se conserva tu borrador para reintentarlo.'));
+        }
+      } catch (_) {
+        toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo completar la acción. Se conserva tu borrador.'));
+      }
+    });
+  }
+
+  // Alcanzable desde el bloque "Tu tarjeta pública" (acceso activo) y
+  // desde el hub (acceso inactivo, ver renderHub) -- el servidor permite
+  // despublicar sin plan vigente.
+  async function unpublish(btnArg) {
+    const btn = (btnArg && btnArg.nodeType === 1) ? btnArg : null;
+    const cred = getRegAndToken();
+    if (!cred) { toast(tf('index.business.no_account_toast', 'Necesitas una cuenta registrada para publicar.')); return; }
+    if (!hayRed()) return;
+    const ok = window.confirm(tf('index.business.unpublish_confirm', '¿Despublicar tu tarjeta? Su enlace y su QR dejarán de mostrarla. Tus datos y la dirección se conservan para reactivarla.'));
+    if (!ok) return;
+    await conBotonOcupado(btn, tf('index.business.busy_unpublishing', 'Despublicando…'), async () => {
+      try {
+        const metaPrevia = loadMeta();
+        const res = await fetch('/api/business-unpublish', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null }),
+        });
+        if (_locked) return;
+        const data = await res.json().catch(() => ({}));
+        if (data.ok) {
+          const meta = loadMeta() || {};
+          meta.published = false; meta.updatedAt = data.updatedAt; meta.version = data.version; if (data.id) meta.id = data.id;
+          saveMeta(meta);
+          toast(tf('index.business.unpublish_success_toast', 'Tarjeta despublicada. Su enlace y su QR ya no la muestran.'));
+        } else if (res.status === 404) {
+          toast(tf('index.business.nothing_published_toast', 'Todavía no hay ninguna tarjeta publicada para esta cuenta.'));
+        } else if (res.status === 409) {
+          if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
+          toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
+        } else {
+          toast(tf('index.business.unpublish_error_toast', 'No se pudo despublicar. Inténtalo de nuevo.'));
+        }
+      } catch (_) {
+        toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo completar la acción. Se conserva tu borrador.'));
+      }
+    });
+    if (_locked) return;
+    if (document.getElementById('screen-business-editor')?.classList.contains('open')) renderPublicBlock();
+    if (document.getElementById('screen-business')?.classList.contains('open')) renderHub();
+  }
+
+  async function reactivate(btnArg) {
+    const btn = (btnArg && btnArg.nodeType === 1) ? btnArg : null;
+    const cred = getRegAndToken();
+    if (!cred) { toast(tf('index.business.no_account_toast', 'Necesitas una cuenta registrada para publicar.')); return; }
+    if (!hayRed()) return;
+    await conBotonOcupado(btn, tf('index.business.busy_reactivating', 'Reactivando…'), async () => {
+      try {
+        const metaPrevia = loadMeta();
+        const res = await fetch('/api/business-reactivate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null }),
+        });
+        if (_locked) return;
+        const data = await res.json().catch(() => ({}));
+        if (data.ok) {
+          const meta = loadMeta() || {};
+          meta.published = true; meta.id = data.id; meta.url = data.url; meta.updatedAt = data.updatedAt; meta.version = data.version;
+          saveMeta(meta);
+          toast(tf('index.business.reactivate_success_toast', 'Tarjeta reactivada en su misma dirección.'));
+        } else if (res.status === 402) {
+          toast(tf('index.business.plan_inactive_toast', 'Tu plan de pago no está activo — no se puede reactivar.'));
+        } else if (res.status === 409) {
+          if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
+          toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
+        } else {
+          toast(tf('index.business.reactivate_error_toast', 'No se pudo reactivar. Inténtalo de nuevo.'));
+        }
+      } catch (_) {
+        toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo completar la acción. Se conserva tu borrador.'));
+      }
+    });
+    if (!_locked) renderPublicBlock();
+  }
+
+  async function pullFromServer(ev) {
+    const btn = ev && ev.currentTarget && ev.currentTarget.nodeType === 1 ? ev.currentTarget : null;
+    const cred = getRegAndToken();
+    if (!cred) { toast(tf('index.business.no_account_toast', 'Necesitas una cuenta registrada para publicar.')); return; }
+    if (!hayRed()) return;
+    await conBotonOcupado(btn, tf('index.business.busy_generic', 'Un momento…'), async () => {
+      try {
+        const res = await fetch('/api/business-fetch', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cred.email, token: cred.token }),
+        });
+        if (_locked) return;
+        const data = await res.json().catch(() => ({}));
+        if (!data.ok) { toast(tf('index.business.network_error_toast', 'No se pudo consultar el servidor.')); return; }
+        if (!data.exists) { toast(tf('index.business.nothing_published_toast', 'Todavía no hay ninguna tarjeta publicada para esta cuenta.')); return; }
+        const ok = window.confirm(tf('index.business.pull_confirm', 'Esto reemplazará tu borrador local con la última versión publicada en el servidor. ¿Continuar?'));
+        if (!ok || _locked) return;
+        const r = data.record;
+        workingDraft = {
+          modality: r.modality, displayName: r.displayName, logo: r.logo, tagline: r.tagline,
+          description: r.description, services: r.services || [], serviceArea: r.serviceArea,
+          address: r.address, hours: r.hours, phone: r.phone, email: r.email,
+          contactPerson: r.contactPerson, contactRole: r.contactRole, web: r.web,
+          catalogUrl: r.catalogUrl, bookingUrl: r.bookingUrl, quoteUrl: r.quoteUrl,
+          social: r.social || {}, gallery: r.gallery || [], primaryAction: r.primaryAction,
+          design: sanitizeDesignClient(r.design),
+          _personalDataAppliedValues: (workingDraft && workingDraft._personalDataAppliedValues) || {},
+        };
         saveDraftToStorage(workingDraft);
         savedSnapshotJson = JSON.stringify(workingDraft);
-        saveMeta({ id: data.id, url: data.url, publishedAt: data.publishedAt, updatedAt: data.updatedAt, version: data.version, published: true, payload });
-        toast(tf('index.business.publish_success_toast', 'Tarjeta publicada.'));
+        saveMeta({ id: r.id, url: data.url, publishedAt: r.publishedAt, updatedAt: r.updatedAt, version: r.version, published: r.published, payload: buildPublicPayloadFromDraft(workingDraft) });
+        toast(tf('index.business.pull_success_toast', 'Borrador actualizado desde el servidor.'));
         renderEditorForm();
-      } else if (res.status === 402) {
-        toast(tf('index.business.plan_inactive_toast', 'Tu plan de pago no está activo — no se puede publicar.'));
-      } else if (res.status === 429) {
-        toast(tf('index.business.rate_limited_toast', 'Espera unos segundos antes de volver a intentarlo.'));
-      } else if (res.status === 401) {
-        toast(tf('index.business.reauth_toast', 'No se pudo verificar tu cuenta. Vuelve a intentarlo tras reabrir la app.'));
-      } else if (res.status === 409) {
-        // La tarjeta cambió en el servidor desde la última vez que este
-        // dispositivo la conoció (otra pestaña/dispositivo la tocó
-        // mientras tanto) -- se refresca el estado local conocido para
-        // que el próximo intento ya parta del real, en vez de reintentar
-        // a ciegas sobre datos obsoletos.
-        if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
-        toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
-      } else {
-        toast(tf('index.business.publish_error_toast', 'No se pudo publicar. Se conserva tu borrador para reintentarlo.'));
+      } catch (_) {
+        toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo completar la acción. Se conserva tu borrador.'));
       }
-    } catch (_) {
-      toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo publicar. Se conserva tu borrador.'));
-    } finally {
-      _publishing = false;
-      if (btn) btn.disabled = false;
+    });
+  }
+
+  // =================== COMPARTIR / COPIAR ===================
+  function urlActual() {
+    return urlPublicaValida(loadMeta());
+  }
+
+  // Selector nativo del dispositivo si existe; si no existe o falla (salvo
+  // que el usuario lo cancele), se ofrece copiar. Cancelar nunca deja
+  // nada bloqueado: no hay estado "ocupado" que depender de la promesa.
+  let _compartiendo = false;
+  function compartirEnlace() {
+    const url = urlActual();
+    if (!url) { toast(tf('index.business.public_hint_unpublished', 'Publica tu tarjeta para obtener un enlace y un QR.')); return; }
+    if (typeof navigator.share !== 'function') { copiarEnlace(); return; }
+    if (_compartiendo) return;
+    _compartiendo = true;
+    let promesa;
+    try {
+      promesa = navigator.share({ title: loadMeta()?.payload?.displayName || 'IDENTIFLY BUSINESS', url });
+    } catch (e) {
+      _compartiendo = false;
+      copiarEnlace();
+      return;
     }
+    Promise.resolve(promesa)
+      .catch((e) => { if (!e || e.name !== 'AbortError') copiarEnlace(); })
+      .finally(() => { _compartiendo = false; });
   }
 
-  // Alcanzable desde dos sitios: el pie del editor (cuando el acceso de
-  // pago está activo) y el hub directamente (cuando NO lo está, ver
-  // renderHub) -- el servidor ya permitía despublicar sin plan vigente,
-  // pero antes el único botón vivía dentro del editor, que se bloqueaba
-  // precisamente en ese caso. No depende de datos locales (meta): si no
-  // hay ninguna tarjeta en el servidor para esta cuenta, se informa con
-  // claridad en vez de un error genérico.
-  async function unpublish() {
-    const cred = getRegAndToken();
-    if (!cred) { toast(tf('index.business.no_account_toast', 'Necesitas una cuenta registrada para publicar.')); return; }
-    const ok = window.confirm(tf('index.business.unpublish_confirm', '¿Despublicar tu tarjeta? Dejará de estar disponible en su enlace. Tus datos y la URL se conservan.'));
-    if (!ok) return;
+  async function copiarEnlace() {
+    const url = urlActual();
+    if (!url) return;
     try {
-      const metaPrevia = loadMeta();
-      const res = await fetch('/api/business-unpublish', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null }),
-      });
-      if (_locked) return; // bloqueada mientras esperábamos la respuesta
-      const data = await res.json().catch(() => ({}));
-      if (data.ok) {
-        const meta = loadMeta() || {};
-        meta.published = false; meta.updatedAt = data.updatedAt; meta.version = data.version; if (data.id) meta.id = data.id;
-        saveMeta(meta);
-        toast(tf('index.business.unpublish_success_toast', 'Tarjeta despublicada.'));
-      } else if (res.status === 404) {
-        toast(tf('index.business.nothing_published_toast', 'Todavía no hay ninguna tarjeta publicada para esta cuenta.'));
-      } else if (res.status === 409) {
-        if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
-        toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
-      } else {
-        toast(tf('index.business.unpublish_error_toast', 'No se pudo despublicar. Inténtalo de nuevo.'));
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(url);
+        toast(tf('index.business.link_copied_toast', 'Enlace copiado'));
+        return;
       }
-      if (document.getElementById('screen-business-editor')?.classList.contains('open')) renderPublishFooter();
-      if (document.getElementById('screen-business')?.classList.contains('open')) renderHub();
-    } catch (_) { toast(tf('index.business.network_error_toast', 'Sin conexión — no se pudo despublicar.')); }
-  }
-
-  async function reactivate() {
-    const cred = getRegAndToken();
-    if (!cred) return;
-    try {
-      const metaPrevia = loadMeta();
-      const res = await fetch('/api/business-reactivate', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cred.email, token: cred.token, baseVersion: metaPrevia?.version || null }),
-      });
-      if (_locked) return;
-      const data = await res.json().catch(() => ({}));
-      if (data.ok) {
-        const meta = loadMeta() || {};
-        meta.published = true; meta.id = data.id; meta.url = data.url; meta.updatedAt = data.updatedAt; meta.version = data.version;
-        saveMeta(meta);
-        toast(tf('index.business.reactivate_success_toast', 'Tarjeta reactivada en su misma dirección.'));
-        renderPublishFooter();
-      } else if (res.status === 402) {
-        toast(tf('index.business.plan_inactive_toast', 'Tu plan de pago no está activo — no se puede reactivar.'));
-      } else if (res.status === 409) {
-        if (data.id) { const m = loadMeta() || {}; m.id = data.id; m.updatedAt = data.updatedAt; m.version = data.version; m.published = data.published; saveMeta(m); }
-        toast(tf('index.business.version_conflict_toast', 'Esta tarjeta cambió en otro dispositivo o pestaña mientras tanto. Vuelve a intentarlo.'));
-      } else {
-        toast(tf('index.business.reactivate_error_toast', 'No se pudo reactivar.'));
-      }
-    } catch (_) { toast(tf('index.business.network_error_toast', 'Sin conexión.')); }
-  }
-
-  async function pullFromServer() {
-    const cred = getRegAndToken();
-    if (!cred) return;
-    try {
-      const res = await fetch('/api/business-fetch', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cred.email, token: cred.token }),
-      });
-      if (_locked) return;
-      const data = await res.json().catch(() => ({}));
-      if (!data.ok) { toast(tf('index.business.network_error_toast', 'No se pudo consultar el servidor.')); return; }
-      if (!data.exists) { toast(tf('index.business.nothing_published_toast', 'Todavía no hay ninguna tarjeta publicada para esta cuenta.')); return; }
-      const ok = window.confirm(tf('index.business.pull_confirm', 'Esto reemplazará tu borrador local con la última versión publicada en el servidor. ¿Continuar?'));
-      if (!ok) return;
-      if (_locked) return; // se bloqueó mientras se mostraba el confirm()
-      const r = data.record;
-      workingDraft = {
-        modality: r.modality, displayName: r.displayName, logo: r.logo, tagline: r.tagline,
-        description: r.description, services: r.services || [], serviceArea: r.serviceArea,
-        address: r.address, hours: r.hours, phone: r.phone, email: r.email,
-        contactPerson: r.contactPerson, contactRole: r.contactRole, web: r.web,
-        catalogUrl: r.catalogUrl, bookingUrl: r.bookingUrl, quoteUrl: r.quoteUrl,
-        social: r.social || {}, gallery: r.gallery || [], primaryAction: r.primaryAction,
-        design: sanitizeDesignClient(r.design), // recupera también la presentación (ver instrucción)
-      };
-      saveDraftToStorage(workingDraft);
-      savedSnapshotJson = JSON.stringify(workingDraft);
-      saveMeta({ id: r.id, url: data.url, publishedAt: r.publishedAt, updatedAt: r.updatedAt, version: r.version, published: r.published, payload: buildPublicPayloadFromDraft(workingDraft) });
-      toast(tf('index.business.pull_success_toast', 'Borrador actualizado desde el servidor.'));
-      renderEditorForm();
-    } catch (_) { toast(tf('index.business.network_error_toast', 'Sin conexión.')); }
+    } catch (_) { /* sin permiso o sin gesto: se prueba la vía clásica */ }
+    const input = document.getElementById('biz-public-url');
+    let copiado = false;
+    if (input) {
+      input.focus();
+      input.select();
+      try { input.setSelectionRange(0, url.length); } catch (_) {}
+      try { copiado = document.execCommand('copy'); } catch (_) { copiado = false; }
+    }
+    // Último recurso: el enlace queda seleccionado y visible para copiarlo a mano.
+    toast(copiado
+      ? tf('index.business.link_copied_toast', 'Enlace copiado')
+      : tf('index.business.copy_manual_toast', 'Mantén pulsado el enlace seleccionado para copiarlo.'));
   }
 
   // =================== QR DE TARJETA PÚBLICA ===================
   let _bizQrToken = 0;
-  async function renderQrBlock(meta) {
-    const holder = document.getElementById('biz-qr-holder');
-    if (!holder) return;
-    if (!meta || !meta.url) { holder.innerHTML = ''; return; }
+  let _bizQrPng = null; // PNG ya preparado (para que "Descargar" no pierda el gesto del usuario)
+  let _bizQrUrl = null; // URL que codifica el QR actualmente mostrado
+
+  // Diseño del QR acordado (el mismo del QR principal). Antes se leía
+  // window.qrDesign, que nunca existió (qrDesign es `let` de ámbito de
+  // módulo en index.html): buildQROptions(undefined) lanzaba y el catch
+  // vacío dejaba "Ampliar QR"/"Descargar PNG" sin ningún QR.
+  const QR_DESIGN_DEFAULT = {
+    dotsType: 'square', dotsColor: '#1a1a1a', bgColor: '#f5f5f5',
+    cornerSquareType: 'square', cornerDotType: 'square', cornerSquareColor: '#1a1a1a', cornerDotColor: '#1a1a1a',
+  };
+  function disenoQr() {
+    try {
+      const d = typeof window.identiflyQrDesign === 'function' ? window.identiflyQrDesign() : null;
+      return { ...QR_DESIGN_DEFAULT, ...(d || {}) };
+    } catch (_) { return { ...QR_DESIGN_DEFAULT }; }
+  }
+
+  function esperar(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  async function renderPublicQr(url) {
     const myToken = ++_bizQrToken;
-    holder.innerHTML = `<div class="biz-qr-block">
-      <div id="biz-qr-render"></div>
-      <div class="biz-qr-label" data-i18n="index.business.qr_label">${tf('index.business.qr_label', 'QR de tarjeta pública')}</div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <button type="button" class="btn-myqr-action" id="biz-qr-expand" style="margin:0;" data-i18n="index.main.expand_qr_button">${tf('index.main.expand_qr_button', 'Ampliar QR')}</button>
-        <button type="button" class="btn-myqr-action" id="biz-qr-download" style="margin:0;" data-i18n="index.business.qr_download_button">${tf('index.business.qr_download_button', 'Descargar PNG')}</button>
-      </div>
-    </div>`;
+    _bizQrPng = null;
+    _bizQrUrl = null;
+    const target = document.getElementById('biz-qr-render');
+    const estado = document.getElementById('biz-qr-status');
+    const btnAmpliar = document.getElementById('biz-qr-expand');
+    const btnDescargar = document.getElementById('biz-qr-download');
+    if (!target) return;
+    if (btnAmpliar) btnAmpliar.disabled = true;
+    if (btnDescargar) btnDescargar.disabled = true;
+    if (estado) estado.textContent = tf('index.business.qr_loading', 'Generando QR…');
+    target.innerHTML = '';
     try {
       await window.ensureQRCodeStylingLoaded();
       if (myToken !== _bizQrToken) return;
-      const design = window.qrDesign;
-      const opts = window.buildQROptions(design, 220, meta.url, 'Q');
-      const qr = new window.QRCodeStyling(opts);
-      const target = document.getElementById('biz-qr-render');
-      if (!target || myToken !== _bizQrToken) return;
+      const qr = new window.QRCodeStyling(window.buildQROptions(disenoQr(), 220, url, 'Q'));
       qr.append(target);
-    } catch (_) { /* si falla la carga de la librería, el bloque queda sin QR pero el resto del editor sigue usable */ }
+      // El SVG se dibuja de forma asíncrona dentro de la librería.
+      for (let i = 0; i < 40 && !(target.querySelector('svg rect, svg path, svg circle')); i++) await esperar(50);
+      if (myToken !== _bizQrToken) return;
+      if (!target.querySelector('svg')) throw new Error('qr_sin_svg');
+      _bizQrUrl = url;
+      if (estado) estado.textContent = '';
+      if (btnAmpliar) btnAmpliar.disabled = false;
+      if (btnDescargar) btnDescargar.disabled = false;
+      // Se prepara el PNG en segundo plano: al pulsar "Descargar QR" ya
+      // está listo y el selector del dispositivo no pierde el gesto.
+      prepararPngQr(url, myToken);
+    } catch (_) {
+      if (myToken !== _bizQrToken) return;
+      target.innerHTML = '';
+      if (estado) {
+        estado.innerHTML = `<span>${escapeHtml(tf('index.business.qr_error', 'No se pudo generar el QR.'))}</span> <button type="button" class="biz-secondary-link" id="biz-qr-retry">${escapeHtml(tf('index.business.qr_retry_button', 'Reintentar'))}</button>`;
+        document.getElementById('biz-qr-retry')?.addEventListener('click', () => renderPublicQr(url));
+      }
+    }
+  }
 
-    document.getElementById('biz-qr-expand')?.addEventListener('click', () => {
-      const svg = document.getElementById('biz-qr-render')?.querySelector('svg');
-      if (svg && typeof window.openQrZoom === 'function') window.openQrZoom(svg);
-    });
-    document.getElementById('biz-qr-download')?.addEventListener('click', async () => {
+  // PNG a partir de la propia matriz del QR (módulos cuadrados con los
+  // colores del diseño) -- respaldo cuando la conversión SVG->PNG de la
+  // librería sale en blanco (bug conocido de Safari/WebKit, ver
+  // isImageBlobBlank en index.html).
+  function pngDesdeMatriz(qr, design, lado) {
+    const matriz = qr && qr._qr;
+    if (!matriz || typeof matriz.getModuleCount !== 'function') return Promise.reject(new Error('sin_matriz'));
+    const n = matriz.getModuleCount();
+    const margen = 4;
+    const celda = Math.max(1, Math.floor(lado / (n + margen * 2)));
+    const total = celda * (n + margen * 2);
+    const canvas = document.createElement('canvas');
+    canvas.width = total; canvas.height = total;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = design.bgColor || '#ffffff';
+    ctx.fillRect(0, 0, total, total);
+    ctx.fillStyle = design.dotsColor || '#000000';
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (matriz.isDark(r, c)) ctx.fillRect((c + margen) * celda, (r + margen) * celda, celda, celda);
+      }
+    }
+    return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob'))), 'image/png'));
+  }
+
+  async function generarPngQr(url) {
+    await window.ensureQRCodeStylingLoaded();
+    const design = disenoQr();
+    const qr = new window.QRCodeStyling(window.buildQROptions(design, 1024, url, 'Q'));
+    qr.append(document.createElement('div'));
+    await esperar(300);
+    let blob = null;
+    try { blob = await qr.getRawData('png'); } catch (_) { blob = null; }
+    const enBlanco = !blob || (typeof window.isImageBlobBlank === 'function' ? await window.isImageBlobBlank(blob) : false);
+    return enBlanco ? pngDesdeMatriz(qr, design, 1024) : blob;
+  }
+
+  async function prepararPngQr(url, token) {
+    try {
+      const blob = await generarPngQr(url);
+      if (token === _bizQrToken) _bizQrPng = blob;
+    } catch (_) { /* se reintentará al pulsar Descargar */ }
+  }
+
+  function ampliarQr() {
+    const svg = document.getElementById('biz-qr-render')?.querySelector('svg');
+    if (!svg || typeof window.openQrZoom !== 'function') {
+      toast(tf('index.myqr.qr_loading_toast', 'El código aún se está generando. Espera un momento e inténtalo de nuevo.'));
+      return;
+    }
+    window.openQrZoom(svg);
+  }
+
+  function nombreArchivoQr() { return 'identifly-business-qr.png'; }
+
+  function descargarBlob(blob) {
+    const a = document.createElement('a');
+    const href = URL.createObjectURL(blob);
+    a.href = href;
+    a.download = nombreArchivoQr();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(href), 30000);
+    toast(tf('index.business.qr_downloaded_toast', 'QR descargado'));
+  }
+
+  // En móvil se usa el selector del dispositivo con el PNG (en iOS es la
+  // forma fiable de "Guardar imagen"); en ordenador, descarga directa.
+  async function descargarQr(btn) {
+    const url = _bizQrUrl;
+    if (!url) { ampliarQr(); return; }
+    const esMovil = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    if (_bizQrPng && esMovil && typeof navigator.share === 'function' && typeof navigator.canShare === 'function') {
+      const file = new File([_bizQrPng], nombreArchivoQr(), { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+      }
+    }
+    await conBotonOcupado(btn, tf('index.business.busy_generic', 'Un momento…'), async () => {
       try {
-        await window.ensureQRCodeStylingLoaded();
-        const design = window.qrDesign;
-        const qr = new window.QRCodeStyling(window.buildQROptions(design, 512, meta.url, 'Q'));
-        const tmp = document.createElement('div');
-        qr.append(tmp);
-        await new Promise((r) => setTimeout(r, 250));
-        const blob = await qr.getRawData('png');
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'identifly_business_qr.png';
-        a.click();
-      } catch (_) { toast(tf('index.business.qr_download_error_toast', 'No se pudo generar el PNG del QR.')); }
+        const blob = _bizQrPng || await generarPngQr(url);
+        if (url === _bizQrUrl) _bizQrPng = blob;
+        descargarBlob(blob);
+      } catch (_) {
+        toast(tf('index.business.qr_download_error_toast', 'No se pudo generar la imagen del QR. Puedes ampliarlo y hacer una captura.'));
+      }
     });
   }
 
   // =================== VISTA PREVIA ===================
   const ACTION_LABELS_PV = { contact: 'Contactar', quote: 'Pedir presupuesto', booking: 'Reservar cita', catalog: 'Ver catálogo' };
+  // Mismo criterio que la tarjeta pública (functions/c/[id].js): el
+  // teléfono solo conserva '+' y dígitos.
+  function telHref(phone) { const limpio = String(phone || '').replace(/[^\d+]/g, ''); return limpio ? 'tel:' + limpio : null; }
   function previewActionHref(p) {
-    if (p.primaryAction === 'contact') return p.phone ? 'tel:' + p.phone : (p.email ? 'mailto:' + p.email : null);
+    if (p.primaryAction === 'contact') return p.phone ? telHref(p.phone) : (p.email ? 'mailto:' + p.email : null);
     if (p.primaryAction === 'quote') return p.quoteUrl || null;
     if (p.primaryAction === 'booking') return p.bookingUrl || null;
     if (p.primaryAction === 'catalog') return p.catalogUrl || null;
@@ -1346,26 +1657,29 @@
       ? `<div class="biz-pv-sec"><h3>${tf('index.business.section_services', 'Servicios')}</h3><ul class="biz-pv-services">${payload.services.map((s) => `<li>${escapeHtml(s)}</li>`).join('')}</ul></div>` : '';
 
     const galleryHtml = payload.gallery.length
-      ? `<div class="biz-pv-sec"><h3>${tf('index.business.section_gallery', 'Galería')}</h3><div class="biz-pv-gallery">${payload.gallery.map((g) => `<img src="${g}" alt="">`).join('')}</div></div>` : '';
+      ? `<div class="biz-pv-sec"><h3>${escapeHtml(tf('index.business.pv_label_gallery', 'Galería'))}</h3><div class="biz-pv-gallery">${payload.gallery.map((g) => `<img src="${g}" alt="">`).join('')}</div></div>` : '';
 
     const locBits = [];
-    if (payload.serviceArea) locBits.push(`<p class="biz-pv-muted"><strong>${tf('index.business.field_service_area', 'Zona de servicio')}:</strong> ${escapeHtml(payload.serviceArea)}</p>`);
-    if (payload.address) locBits.push(`<p class="biz-pv-muted"><strong>${tf('index.business.field_address', 'Dirección')}:</strong> ${escapeHtml(payload.address)}</p>`);
-    if (payload.hours) locBits.push(`<p class="biz-pv-muted"><strong>${tf('index.business.field_hours', 'Horario')}:</strong> ${escapeHtml(payload.hours)}</p>`);
+    // Etiquetas propias del contenido público -- nunca las del formulario
+    // (que llevan "(opcional)"). Mismos textos que functions/c/[id].js.
+    if (payload.serviceArea) locBits.push(`<p class="biz-pv-muted"><strong>${escapeHtml(tf('index.business.pv_label_area', 'Zona de servicio'))}:</strong> ${escapeHtml(payload.serviceArea)}</p>`);
+    if (payload.address) locBits.push(`<p class="biz-pv-muted"><strong>${escapeHtml(tf('index.business.pv_label_address', 'Dirección'))}:</strong> ${escapeHtml(payload.address)}</p>`);
+    if (payload.hours) locBits.push(`<p class="biz-pv-muted"><strong>${escapeHtml(tf('index.business.pv_label_hours', 'Horario'))}:</strong> ${escapeHtml(payload.hours)}</p>`);
     const locHtml = locBits.length ? `<div class="biz-pv-sec">${locBits.join('')}</div>` : '';
 
     const links = [];
     if (payload.contactPerson) links.push(`<p class="biz-pv-muted" style="width:100%">${escapeHtml(payload.contactPerson)}${payload.contactRole ? ' · ' + escapeHtml(payload.contactRole) : ''}</p>`);
-    if (payload.phone) links.push(`<a class="biz-pv-link-btn" href="tel:${escapeHtml(payload.phone)}">${tf('index.business.action_call', 'Llamar')}</a>`);
+    if (payload.phone && telHref(payload.phone)) links.push(`<a class="biz-pv-link-btn" href="${escapeHtml(telHref(payload.phone))}">${tf('index.business.action_call', 'Llamar')}</a>`);
     if (payload.email) links.push(`<a class="biz-pv-link-btn" href="mailto:${escapeHtml(payload.email)}">${tf('index.business.action_write', 'Escribir')}</a>`);
     if (payload.web && isHttpUrlClient(payload.web)) links.push(`<a class="biz-pv-link-btn" href="${escapeHtml(payload.web)}" target="_blank" rel="noopener">Web</a>`);
     SOCIAL_KEYS.forEach((k) => { if (payload.social[k] && isHttpUrlClient(payload.social[k])) links.push(`<a class="biz-pv-link-btn" href="${escapeHtml(payload.social[k])}" target="_blank" rel="noopener">${SOCIAL_LABELS[k]}</a>`); });
     const contactHtml = links.length ? `<div class="biz-pv-sec"><h3>${tf('index.business.section_contact', 'Contacto')}</h3><div class="biz-pv-links">${links.join('')}</div></div>` : '';
 
     const href = previewActionHref(payload);
-    const actionHtml = href ? `<a class="biz-pv-action" href="javascript:void(0)">${escapeHtml(ACTION_LABELS_PV[payload.primaryAction] || 'Contactar')}</a>` : `<p class="biz-pv-muted" style="text-align:center;">${tf('index.business.no_action_configured', 'Configura un destino para la acción principal antes de publicar.')}</p>`;
+    const actionHtml = href ? `<a class="biz-pv-action" href="${escapeHtml(href)}"${/^https?:/i.test(href) ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(ACTION_LABELS_PV[payload.primaryAction] || 'Contactar')}</a>` : `<p class="biz-pv-muted" style="text-align:center;">${tf('index.business.no_action_configured', 'Configura un destino para la acción principal antes de publicar.')}</p>`;
 
     body.innerHTML = `
+      <p class="biz-pv-draft-note">${escapeHtml(tf('index.business.preview_draft_note', 'Borrador: así se verá al publicar. No es la versión publicada.'))}</p>
       ${logoHtml}
       <div class="biz-pv-name">${escapeHtml(payload.displayName || tf('index.business.preview_untitled', 'Sin nombre todavía'))}</div>
       ${payload.tagline ? `<div class="biz-pv-tagline">${escapeHtml(payload.tagline)}</div>` : ''}
@@ -1398,7 +1712,7 @@
     document.getElementById('btn-open-business')?.addEventListener('click', openBusinessHub);
     document.getElementById('btn-close-business')?.addEventListener('click', closeBusinessHub);
     document.getElementById('btn-business-upgrade')?.addEventListener('click', () => { window.location.href = '/paywall.html'; });
-    document.getElementById('btn-business-unpublish-hub')?.addEventListener('click', unpublish);
+    document.getElementById('btn-business-unpublish-hub')?.addEventListener('click', (e) => unpublish(e.currentTarget));
 
     document.querySelectorAll('.biz-modality-card').forEach((card) => {
       card.addEventListener('click', () => tryOpenEditor(card.dataset.modality));
@@ -1406,12 +1720,9 @@
 
     document.getElementById('btn-close-business-editor')?.addEventListener('click', () => attemptCloseEditor(true));
     document.getElementById('btn-biz-back-hub')?.addEventListener('click', () => attemptCloseEditor(false));
-    document.getElementById('btn-biz-back-home')?.addEventListener('click', () => attemptCloseEditor(true));
     document.getElementById('btn-biz-save-local')?.addEventListener('click', saveLocal);
     document.getElementById('btn-biz-preview')?.addEventListener('click', openPreview);
     document.getElementById('btn-biz-publish')?.addEventListener('click', publish);
-    document.getElementById('btn-biz-unpublish')?.addEventListener('click', unpublish);
-    document.getElementById('btn-biz-reactivate')?.addEventListener('click', reactivate);
     document.getElementById('btn-biz-pull-server')?.addEventListener('click', pullFromServer);
     document.getElementById('btn-close-business-preview')?.addEventListener('click', closePreview);
 

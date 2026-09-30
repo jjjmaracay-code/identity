@@ -195,12 +195,55 @@
 }
 .biz-copy-profile-actions button.cancel { border-color: rgba(255,255,255,0.15); background: transparent; color: rgba(255,255,255,0.5); }
 
+/* Pie compacto: antes siete botones apilados (~370px fijos en un iPhone)
+   dejaban muy poco espacio al formulario. Ahora: dos acciones principales
+   en una fila y la navegación secundaria como enlaces en otra. */
 .biz-editor-footer {
-  padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.06);
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 6px;
   background: var(--bg);
 }
+.biz-footer-main { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.biz-footer-main .btn-myqr-action { margin: 0; max-width: none; padding: 12px 6px; font-size: 10.5px; letter-spacing: 1px; line-height: 1.25; }
+.biz-footer-main .btn-myqr-action:disabled { opacity: 0.55; cursor: default; }
+.biz-publish-main { background: var(--green) !important; color: #000 !important; text-shadow: none !important; }
+.biz-footer-hint { font-size: 9.5px; letter-spacing: 0.3px; color: rgba(255,255,255,0.35); text-align: center; line-height: 1.4; }
+.biz-footer-secondary { display: flex; justify-content: space-between; gap: 8px; }
+.biz-footer-link {
+  background: none; border: none; padding: 6px 2px; min-height: 32px; cursor: pointer; font-family: inherit;
+  font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: rgba(170,255,0,0.75);
+}
+
+/* ---- "Tu tarjeta pública" ---- */
+.biz-public-card {
+  border: 1px solid rgba(170,255,0,0.3); border-radius: 14px; padding: 14px; margin-bottom: 20px; max-width: 460px;
+  background: linear-gradient(180deg, rgba(170,255,0,0.06), rgba(0,0,0,0.2));
+}
+.biz-public-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.biz-public-title { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); font-weight: 700; margin: 0; }
+.biz-public-badge { font-size: 9.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; padding: 4px 9px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+.biz-public-badge.st-published { color: #000; background: var(--green); border-color: var(--green); }
+.biz-public-badge.st-pending { color: #ffcc55; border-color: rgba(255,204,85,0.5); background: rgba(255,204,85,0.08); }
+.biz-public-badge.st-unpublished { color: #ff6b6b; border-color: rgba(255,107,107,0.45); }
+.biz-public-local { font-size: 11px; color: rgba(255,255,255,0.45); margin: 6px 0 0; }
+.biz-public-hint { font-size: 12.5px; line-height: 1.55; color: rgba(255,255,255,0.7); margin: 10px 0 0; }
+.biz-public-label { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.45); margin: 12px 0 6px; }
+.biz-public-url {
+  width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 10px; font-size: 13px; font-family: inherit;
+  border: 1px solid rgba(170,255,0,0.35); background: rgba(0,0,0,0.35); color: #fff;
+  -webkit-user-select: text; user-select: text;
+}
+.biz-public-url-off { font-size: 12px; color: rgba(255,255,255,0.35); text-decoration: line-through; word-break: break-all; margin: 8px 0 10px; }
+.biz-public-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+.biz-public-actions.two { grid-template-columns: 1fr 1fr; }
+.biz-public-actions .btn-myqr-action { margin: 0; max-width: none; text-decoration: none; }
+.biz-public-actions .btn-myqr-action:disabled { opacity: 0.45; cursor: default; }
+.biz-public-card #btn-biz-reactivate { margin: 10px 0 0; max-width: none; }
+.biz-danger-link { display: block; margin: 14px auto 0; color: #ff6b6b; }
+.biz-qr-status { font-size: 11.5px; color: rgba(255,255,255,0.55); min-height: 16px; margin-top: 6px; }
+#biz-qr-render:empty { display: none; }
+.biz-pv-draft-note { font-size: 11px; text-align: center; color: #ffcc55; border: 1px dashed rgba(255,204,85,0.4); border-radius: 10px; padding: 8px; margin-bottom: 14px; }
 .biz-danger { border-color: rgba(255,107,107,0.35) !important; color: #ff6b6b !important; }
 .biz-secondary-link {
   background: none; border: none; color: rgba(255,255,255,0.4); font-size: 10.5px;
@@ -208,7 +251,7 @@
   text-decoration: underline; text-underline-offset: 3px;
 }
 
-.biz-qr-block { max-width: 260px; margin: 8px auto 0; text-align: center; }
+.biz-qr-block { max-width: 260px; margin: 14px auto 0; text-align: center; }
 .biz-qr-block svg, .biz-qr-block canvas { width: 100%; height: auto; }
 .biz-qr-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 8px; }
 

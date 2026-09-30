@@ -13,7 +13,7 @@
 <link rel="canonical" href="https://www.identifly.app/">
 <script src="storage-wipe.js"></script>
 <script src="/i18n/loader.js"></script>
-<link rel="stylesheet" href="business.css?v=25">
+<link rel="stylesheet" href="business.css?v=26">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -1718,6 +1718,22 @@
     text-transform: uppercase;
     white-space: nowrap;
     box-shadow: 0 0 40px rgba(170,255,0,0.5);
+    /* Invisible (opacity:0) seguía recibiendo toques en el centro de la
+       pantalla, por encima de cualquier pantalla: nunca debe capturarlos. */
+    pointer-events: none;
+  }
+  /* Avisos largos: en varias líneas dentro de la pantalla, en vez de una
+     sola línea que se sale por ambos lados. */
+  .toast.toast-long {
+    white-space: normal;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    text-align: center;
+    letter-spacing: 1px;
+    font-size: 12px;
+    line-height: 1.45;
+    padding: 14px 20px;
+    border-radius: 18px;
   }
 
   .toast.show {
@@ -4092,18 +4108,27 @@
     <button class="btn-close" id="btn-close-business-editor" data-i18n="index.edit.close_button">✕ Cerrar</button>
   </div>
   <div class="myqr-scroll" id="business-editor-scroll">
+    <!-- "Tu tarjeta pública": estado, enlace real, compartir y QR (ver
+         renderPublicBlock en business.js). Arriba para que siempre sea
+         lo primero que se ve al entrar. -->
+    <div id="biz-public-block"></div>
     <div id="biz-editor-form"></div>
-    <div id="biz-qr-holder"></div>
     <button type="button" class="biz-secondary-link" id="btn-biz-pull-server" data-i18n="index.business.pull_server_button">Recuperar última versión publicada del servidor</button>
   </div>
+  <!-- Pie compacto: dos acciones principales separadas (dispositivo /
+       Internet) y navegación secundaria en una sola línea. Despublicar y
+       reactivar viven en el bloque "Tu tarjeta pública"; "Cerrar" de la
+       cabecera ya vuelve al inicio. -->
   <div class="biz-editor-footer">
-    <button class="btn-myqr-action" id="btn-biz-save-local" style="margin:0;" data-i18n="index.business.save_local_button">Guardar en mi dispositivo</button>
-    <button class="btn-myqr-action" id="btn-biz-preview" style="margin:0;" data-i18n="index.business.preview_button">Vista previa pública</button>
-    <button class="btn-myqr-action" id="btn-biz-publish" style="margin:0;" data-i18n="index.business.publish_button">Publicar tarjeta</button>
-    <button class="btn-myqr-action" id="btn-biz-reactivate" style="margin:0;display:none;" data-i18n="index.business.reactivate_button">Reactivar publicación</button>
-    <button class="btn-myqr-action biz-danger" id="btn-biz-unpublish" style="margin:0;display:none;" data-i18n="index.business.unpublish_button">Despublicar</button>
-    <button class="btn-myqr-action" id="btn-biz-back-hub" style="margin:0;" data-i18n="index.business.back_to_hub_button">Volver a IDENTIFLY BUSINESS</button>
-    <button class="btn-myqr-action" id="btn-biz-back-home" style="margin:0;" data-i18n="index.myqr.back_home_button">Volver al inicio</button>
+    <div class="biz-footer-main">
+      <button type="button" class="btn-myqr-action" id="btn-biz-save-local" data-i18n="index.business.save_short">Guardar</button>
+      <button type="button" class="btn-myqr-action biz-publish-main" id="btn-biz-publish" data-i18n="index.business.publish_short">Publicar</button>
+    </div>
+    <div class="biz-footer-hint" data-i18n="index.business.footer_hint">Guardar: solo en este dispositivo · Publicar: visible en Internet</div>
+    <div class="biz-footer-secondary">
+      <button type="button" class="biz-footer-link" id="btn-biz-back-hub" data-i18n="index.business.back_short">‹ Modalidades</button>
+      <button type="button" class="biz-footer-link" id="btn-biz-preview" data-i18n="index.business.preview_short">Vista previa del borrador</button>
+    </div>
   </div>
 </div>
 
@@ -5631,6 +5656,9 @@ const DEFAULT_QR_DESIGN = {
   cornerDotColor: '#1a1a1a',
 };
 let qrDesign = { ...DEFAULT_QR_DESIGN, ...profileData.qrDesign };
+// Copia de solo lectura del diseño actual para el QR de la tarjeta
+// Business (business.js no puede ver este `let` de ámbito de módulo).
+window.identiflyQrDesign = () => ({ ...qrDesign });
 
 function saveQRDesign() {
   profileData.qrDesign = { ...DEFAULT_QR_DESIGN, ...qrDesign };
@@ -7571,9 +7599,15 @@ window.addEventListener('pagehide', () => {
 // =================== TOAST ===================
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  const texto = String(msg == null ? '' : msg);
+  t.textContent = texto;
+  t.classList.toggle('toast-long', texto.length > 24);
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  // Un aviso nuevo reinicia la cuenta atrás (antes el temporizador del
+  // aviso anterior podía ocultar el nuevo antes de tiempo), y los largos
+  // duran lo suficiente para leerse.
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => t.classList.remove('show'), Math.min(6000, Math.max(2200, texto.length * 60)));
 }
 
 function showErrorToast(msg) {
@@ -8617,7 +8651,7 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
 <!-- Service Worker -->
 <script>
 // Debe coincidir con APP_VERSION de sw.js y con el ?v= de business.js/css.
-window.IDENTIFLY_APP_VERSION = '25';
+window.IDENTIFLY_APP_VERSION = '26';
 
 // true si recargar ahora perdería algo: cambios de Business sin guardar,
 // o un perfil que no se pudo guardar (p. ej. una red social inválida).
@@ -8752,7 +8786,7 @@ window.identiflyActualizarApp = async function () {
 })();
 </script>
 
-<script src="business.js?v=25"></script>
+<script src="business.js?v=26"></script>
 
 <!-- =================== MODAL IMPORTADOR =================== -->
 <div id="import-modal">
