@@ -325,7 +325,8 @@
       toast(tf('index.business.paid_feature_toast', 'IDENTIFLY BUSINESS es una función de pago. Mejora tu plan para editar y publicar.'));
       return;
     }
-    const draft = loadDraft() || emptyDraft(modality);
+    const draftGuardado = loadDraft();
+    const draft = draftGuardado || emptyDraft(modality);
     // Cambiar de modalidad adapta la presentación y conserva el borrador
     // (instrucción) — nunca se crea un segundo borrador.
     draft.modality = modality;
@@ -334,8 +335,19 @@
     // predeterminados aquí mismo, en memoria, sin reescribir el borrador
     // guardado hasta que el usuario cambie algo y pulse Guardar/Publicar.
     draft.design = sanitizeDesignClient(draft.design);
+    // Prerrelleno desde el perfil personal -- una sola vez por borrador
+    // (marca _personalDataLinked persistida en el propio borrador, ver
+    // aplicarDatosPersonalesAlBorrador). Cubre tanto un borrador nuevo
+    // como uno ya guardado antes de que existiera esta marca (completa
+    // sus campos nunca rellenados). Nunca vuelve a aplicarse después: si
+    // el usuario borra deliberadamente un campo incorporado y guarda, se
+    // queda borrado para siempre.
+    if (!draft._personalDataLinked) {
+      draft._personalDataIncorporatedCount = aplicarDatosPersonalesAlBorrador(draft);
+      draft._personalDataLinked = true;
+    }
     workingDraft = JSON.parse(JSON.stringify(draft));
-    savedSnapshotJson = JSON.stringify(loadDraft() ? { ...loadDraft(), modality } : draft);
+    savedSnapshotJson = JSON.stringify(draftGuardado ? { ...draftGuardado, modality } : draft);
     openBusinessEditor();
   }
 
@@ -584,12 +596,79 @@
     </div>`;
   }
 
+  // Lee el perfil personal directamente de su almacenamiento real
+  // ('identity_data', ver STORAGE_KEY en el script principal) -- NUNCA de
+  // window.profileData: ese objeto vive como `let profileData` de ámbito
+  // de módulo en index.html, nunca se expuso como propiedad de window, así
+  // que window.profileData siempre fue `undefined` y el prerrelleno nunca
+  // encontraba nada que copiar (causa real del fallo reportado: LinkedIn/
+  // GitHub existían en el perfil pero Business los veía vacíos). Leer la
+  // misma clave de localStorage que ya usa el perfil evita inventar un
+  // segundo esquema y funciona igual sin conexión.
+  function getPersonalProfileData() {
+    try { return JSON.parse(localStorage.getItem('identity_data') || '{}'); } catch (_) { return {}; }
+  }
+
+  // Incorpora al borrador (mutándolo) los datos del perfil personal que
+  // tengan una correspondencia clara y que el borrador todavía tenga
+  // vacíos -- nunca sobrescribe un campo que Business ya tenga, sea de
+  // antes o recién escrito por el usuario. Se lee independientemente de
+  // los controles t-* que solo deciden qué se comparte en la vCard
+  // principal (instrucción): esos controles no afectan si el DATO existe.
+  // Devuelve cuántos campos se incorporaron, para decidir si se muestra el
+  // aviso breve (ver copyProfileBoxHtml).
+  function aplicarDatosPersonalesAlBorrador(draft) {
+    const pd = getPersonalProfileData();
+    let incorporados = 0;
+    const asignar = (key, val) => {
+      const limpio = (val == null) ? '' : String(val).trim();
+      if (limpio && !draft[key]) { draft[key] = limpio; incorporados++; }
+    };
+
+    // Nombre personal vs. razón social: nunca se usa el nombre de la
+    // persona como nombre de una Empresa (instrucción) -- solo pd.company
+    // cuenta para displayName en esa modalidad; si no existe, se deja
+    // vacío en vez de inventar un dato empresarial sin equivalente.
+    if (draft.modality === 'company') {
+      asignar('displayName', pd.company);
+    } else {
+      asignar('displayName', pd.name);
+    }
+    // Persona de contacto y cargo: correspondencia clara en las TRES
+    // modalidades (instrucción), no solo Empresa -- son quien atiende la
+    // tarjeta, independientemente de qué nombre se use como displayName.
+    asignar('contactPerson', pd.name);
+    asignar('contactRole', pd.job);
+
+    if (pd.phoneNumber) {
+      asignar('phone', (pd.phoneCountryCode ? pd.phoneCountryCode + ' ' : '') + pd.phoneNumber);
+    }
+    // Correo de CONTACTO del perfil (pd.email) -- nunca el correo de
+    // acceso/login (identity_registration.email): son conceptos distintos
+    // y esta función no lee ese almacenamiento en absoluto.
+    asignar('email', pd.email);
+    asignar('web', pd.web);
+    asignar('address', pd.address);
+
+    draft.social = draft.social || {};
+    SOCIAL_KEYS.forEach((k) => {
+      const val = pd[k] ? String(pd[k]).trim() : '';
+      if (val && !draft.social[k]) { draft.social[k] = val; incorporados++; }
+    });
+
+    return incorporados;
+  }
+
+  // Sustituye el antiguo botón manual "Ver qué se copiaría" (exigía
+  // reintroducir los datos o pulsar un botón aparte cada vez, ver
+  // instrucción): el prerrelleno ya ocurrió al abrir el editor
+  // (tryOpenEditor), así que aquí solo se informa, y únicamente cuando de
+  // verdad se incorporó algo -- un borrador sin ningún dato de perfil
+  // compatible no muestra nada.
   function copyProfileBoxHtml() {
+    if (!workingDraft || !workingDraft._personalDataIncorporatedCount) return '';
     return `<div class="biz-copy-profile-box" id="biz-copy-profile-box">
-      <div style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:1px;text-transform:uppercase;" data-i18n="index.business.copy_profile_title">${tf('index.business.copy_profile_title', 'Usar datos de mi perfil')}</div>
-      <p style="font-size:11.5px;color:rgba(255,255,255,0.5);margin-top:6px;" data-i18n="index.business.copy_profile_desc">${tf('index.business.copy_profile_desc', 'Copia al borrador algunos datos de tu tarjeta personal. No se publica nada todavía — solo se rellenan campos vacíos.')}</p>
-      <button type="button" class="biz-add-service" id="biz-copy-profile-btn" style="margin-top:10px;" data-i18n="index.business.copy_profile_button">${tf('index.business.copy_profile_button', 'Ver qué se copiaría')}</button>
-      <div id="biz-copy-profile-preview" style="display:none;margin-top:10px;"></div>
+      <p style="font-size:11.5px;color:rgba(255,255,255,0.5);" data-i18n="index.business.copy_profile_incorporated">${tf('index.business.copy_profile_incorporated', 'Datos de tu perfil incorporados. Puedes editarlos antes de publicar.')}</p>
     </div>`;
   }
 
@@ -711,54 +790,6 @@
       e.target.value = '';
     });
 
-    // Usar datos de mi perfil
-    container.querySelector('#biz-copy-profile-btn')?.addEventListener('click', () => showCopyProfilePreview(container));
-  }
-
-  function showCopyProfilePreview(container) {
-    const box = container.querySelector('#biz-copy-profile-preview');
-    if (!box) return;
-    const pd = window.profileData || {};
-    const candidates = [];
-    if (pd.name && !workingDraft.displayName) candidates.push(['displayName', pd.name, tf('index.business.copy_field_name', 'Nombre') ]);
-    if (workingDraft.modality === 'company' && pd.company && !workingDraft.displayName) candidates.push(['displayName', pd.company, tf('index.business.copy_field_company', 'Empresa')]);
-    if (pd.phoneNumber && !workingDraft.phone) candidates.push(['phone', ((pd.phoneCountryCode ? pd.phoneCountryCode + ' ' : '') + pd.phoneNumber), tf('index.business.copy_field_phone', 'Teléfono')]);
-    if (pd.email && !workingDraft.email) candidates.push(['email', pd.email, tf('index.business.copy_field_email', 'Correo')]);
-    if (pd.web && !workingDraft.web) candidates.push(['web', pd.web, tf('index.business.copy_field_web', 'Web')]);
-    // Redes: mismo conjunto que SOCIAL_KEYS (ver ese comentario) — se
-    // ofrecen igual que el resto de campos, uno por uno y solo si el
-    // borrador todavía no tiene ese enlace, para no perder enlaces que
-    // el usuario ya tenga en su perfil personal al copiar.
-    SOCIAL_KEYS.forEach((k) => {
-      if (pd[k] && !(workingDraft.social && workingDraft.social[k])) {
-        candidates.push(['social:' + k, pd[k], SOCIAL_LABELS[k]]);
-      }
-    });
-
-    if (!candidates.length) {
-      box.style.display = 'block';
-      box.innerHTML = `<p style="font-size:11.5px;color:rgba(255,255,255,0.4);">${tf('index.business.copy_nothing_toast', 'No hay campos vacíos que se puedan rellenar desde tu perfil ahora mismo.')}</p>`;
-      return;
-    }
-    box.style.display = 'block';
-    box.innerHTML = `<ul>${candidates.map((c) => `<li>${escapeHtml(c[2])}: <strong>${escapeHtml(String(c[1]))}</strong></li>`).join('')}</ul>
-      <div class="biz-copy-profile-actions">
-        <button type="button" id="biz-copy-confirm" data-i18n="index.business.copy_confirm_button">${tf('index.business.copy_confirm_button', 'Copiar al borrador')}</button>
-        <button type="button" class="cancel" id="biz-copy-cancel" data-i18n="index.business.copy_cancel_button">${tf('index.business.copy_cancel_button', 'Cancelar')}</button>
-      </div>`;
-    box.querySelector('#biz-copy-confirm').addEventListener('click', () => {
-      candidates.forEach(([key, val]) => {
-        if (key.startsWith('social:')) {
-          workingDraft.social = workingDraft.social || {};
-          workingDraft.social[key.slice('social:'.length)] = val;
-        } else {
-          workingDraft[key] = val;
-        }
-      });
-      renderEditorForm();
-      toast(tf('index.business.copy_done_toast', 'Datos copiados al borrador. Recuerda que copiar no publica nada.'));
-    });
-    box.querySelector('#biz-copy-cancel').addEventListener('click', () => { box.style.display = 'none'; box.innerHTML = ''; });
   }
 
   // =================== IMÁGENES ===================

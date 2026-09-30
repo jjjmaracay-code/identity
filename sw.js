@@ -1,3 +1,15 @@
+// v19: corrige el prerrelleno de IDENTIFLY BUSINESS desde el perfil
+// personal -- leía window.profileData, que nunca existió (profileData es
+// `let` de ámbito de módulo en index.html, nunca se expuso en window),
+// así que nunca encontraba nada que copiar (LinkedIn/GitHub y el resto
+// aparecían vacíos aunque el perfil los tuviera). Ahora lee
+// 'identity_data' (STORAGE_KEY) directamente y se aplica una sola vez por
+// borrador (marca persistida), sin reponer campos borrados a propósito.
+// Sustituye el botón manual "Ver qué se copiaría" por un aviso breve.
+// Sube la versión por el cambio real de contenido en business.js y por
+// las claves i18n modificadas (copy_profile_* sustituidas por
+// copy_profile_incorporated) en los 5 diccionarios.
+//
 // v18: corrige que rotar BUSINESS_ID_SECRET dejara huérfanas las
 // tarjetas ya publicadas (ese secreto se elimina por completo — el id
 // vuelve a ser aleatorio, permanente, localizado vía un índice interno
@@ -105,7 +117,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const CACHE_NAME = 'identity-v18';
+const CACHE_NAME = 'identity-v19';
 const CACHE_URLS = [
   './index.html',
   './register.html',
