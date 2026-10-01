@@ -4175,8 +4175,16 @@
   <button class="btn-install-close" id="btn-install-close">✕</button>
 </div>
 
-<!-- QRCode.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- QRCode.js (davidshimjs/qrcodejs 1.0.0, MIT) -->
+<!-- Auto-hospedado en vendor/ — antes se cargaba desde cdnjs.cloudflare.com,
+     lo que dejaba la generación del QR de la pantalla de alta de 2FA
+     (TOTP) dependiente de la red: sin conexión, ese QR y la propia
+     activación de 2FA no podían completarse ni siquiera cuando el resto
+     de la app funcionaba sin conexión con normalidad. Copia local byte a
+     byte de la 1.0.0 servida por cdnjs, verificada contra el hash SRI
+     (sha512) que cdnjs publica para esa misma versión -- misma licencia
+     MIT sin modificar. -->
+<script src="/vendor/qrcodejs/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU"></script>
 <!-- QR Code Styling -->
 <!-- Auto-hospedado en vendor/ — antes se cargaba desde cdn.jsdelivr.net,
      lo que dejaba la generación del QR (principal, miniatura, previews
@@ -4186,8 +4194,16 @@
      SRI conservado sin modificar: el archivo local es una copia byte a
      byte del original, verificada contra este mismo hash. -->
 <script src="/vendor/qr-code-styling/qr-code-styling.js" integrity="sha384-P7sw4KeI1SDhOs6wYFsBysIIHFqMTgG4y9vunEfL8ZuV0WhnHsh9MRu9Rso17MtY"></script>
-<!-- OTPAuth (TOTP 2FA) -->
-<script src="https://cdn.jsdelivr.net/npm/otpauth@9.3.2/dist/otpauth.umd.min.js"></script>
+<!-- OTPAuth (TOTP 2FA) -- hectorm/otpauth 9.3.2, MIT -->
+<!-- Auto-hospedado en vendor/ — antes se cargaba desde cdn.jsdelivr.net,
+     lo que dejaba la generación/verificación de códigos TOTP dependiente
+     de la red: sin conexión, ni crear el secreto ni validar un código ya
+     configurado funcionaban, aunque el resto de la app (incluida la
+     tarjeta y el PIN) sí trabaja sin conexión. Copia local byte a byte
+     de la 9.3.2 servida por jsdelivr, verificada contra el hash (sha256)
+     que jsdelivr publica para ese mismo archivo -- misma licencia MIT sin
+     modificar (banner de licencia conservado dentro del propio archivo). -->
+<script src="/vendor/otpauth/otpauth.umd.min.js" integrity="sha384-pL2lL8dpeXKbZABP3/eX4t3hzTdOskY6Xnw8o+L40SOL3d+PDicSw2QHGxxrjDWA"></script>
 
 <script>
 // =================== VERIFICACIÓN DE REGISTRO ===================

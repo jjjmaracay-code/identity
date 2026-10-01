@@ -1,3 +1,16 @@
+// v28: OTPAuth y QRCode.js (pantalla de alta de 2FA/TOTP) pasan a
+// autohospedarse en vendor/ -- antes se cargaban desde cdn.jsdelivr.net y
+// cdnjs.cloudflare.com respectivamente, cayendo en la rama "cache primero"
+// genérica del handler de fetch (ver más abajo) por ser de otro origen: sin
+// visita previa con red que los cacheara, no podían generarse ni validarse
+// códigos TOTP sin conexión, a diferencia del resto de la app. Mismas
+// versiones exactas (qrcodejs 1.0.0, otpauth 9.3.2), copia byte a byte
+// verificada contra el hash SRI que publican cdnjs/jsdelivr para cada
+// archivo, misma licencia MIT sin modificar. No se toca la CSP: ambos
+// pasan a servirse desde 'self', ya permitido. Se añaden ambos al precache
+// para que la activación de 2FA funcione sin conexión desde la primera
+// instalación, igual que el resto del cascarón de la app.
+//
 // v27: IDENTIFLY BUSINESS -- "Abrir tarjeta" y la vista previa se
 // muestran dentro de la app con "Volver al editor" (antes la tarjeta
 // podía abrirse en la misma ventana de la app instalada sin regreso),
@@ -239,7 +252,7 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const APP_VERSION = '27';
+const APP_VERSION = '28';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -253,6 +266,8 @@ const CACHE_URLS = [
   '/icons/icon-512.png',
   '/assets/logo-wings.png',
   '/vendor/qr-code-styling/qr-code-styling.js',
+  '/vendor/qrcodejs/qrcode.min.js',
+  '/vendor/otpauth/otpauth.umd.min.js',
   '/storage-wipe.js',
   '/i18n/loader.js',
   '/i18n/es.json',
