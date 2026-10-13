@@ -5114,12 +5114,32 @@ function computeDisplayNameAndJob() {
 // abajo para reapplyCardNameAndJob(), aquí extendido a renderCard()).
 let _lastCardMediaKey;
 
+// Iniciales para #photo-placeholder cuando no hay foto/vídeo: máximo 2
+// letras (primera letra de las dos primeras palabras del nombre),
+// mayúsculas. Sin nombre, cadena vacía -- el placeholder se queda visualmente
+// igual que antes (bloque vacío), nunca un icono ni un emoji.
+function _inicialesDeNombre(name) {
+  if (!name) return '';
+  const partes = String(name).trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return '';
+  const primera = partes[0][0] || '';
+  const segunda = partes.length > 1 ? (partes[1][0] || '') : '';
+  return (primera + segunda).toUpperCase();
+}
+
 function renderCard() {
   const { name, job } = computeDisplayNameAndJob();
 
   document.getElementById('card-name').textContent = name;
   document.getElementById('card-job').textContent  = job;
   document.getElementById('qr-name').textContent   = name;
+
+  // Fuera del guard de mediaKey de abajo a propósito: un cambio de
+  // nombre sin cambiar la foto/vídeo también debe actualizar las
+  // iniciales la próxima vez que se guarde el perfil. textContent (nunca
+  // innerHTML) -- a salvo de XSS aunque el nombre contenga HTML/scripts.
+  const placeholderIniciales = document.getElementById('photo-placeholder');
+  if (placeholderIniciales) placeholderIniciales.textContent = _inicialesDeNombre(name);
 
   const media = profileData.media;
   const mediaKey = media && media.src ? media.type + ':' + media.src : null;
