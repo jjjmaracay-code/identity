@@ -252,7 +252,25 @@
 // servidor. Se añade tambien el archivo auto-hospedado al precache para
 // que estè disponible desde el primer arranque, no solo tras la
 // primera visita online.
-const APP_VERSION = '28';
+// v29: el handler de 'fetch' interceptaba también peticiones cross-origin
+// (p.ej. https://fonts.googleapis.com/css2?family=Inter) en el bloque
+// catch-all de más abajo ("resto: imágenes, vídeos, librerías de CDN").
+// Ese bloque intenta fetch(event.request) dentro del propio Service
+// Worker para poder cachear la respuesta -- pero la CSP del sitio
+// (connect-src 'self', ver _headers) nunca permite esa llamada para un
+// origen distinto, sin importar el tipo de recurso (script, estilo,
+// fuente...): CSP trata ese fetch() programático como "connect",
+// independientemente de si la petición original era un <link> o un
+// <script>. El resultado era que respondWith() se rechazaba con
+// NetworkError para cualquier recurso cross-origin aún no cacheado, en
+// vez de dejar que el navegador lo resolviera él mismo de forma nativa
+// (sujeto solo a script-src/style-src/font-src, que sí permiten esos
+// orígenes). Se añade un return temprano para cualquier petición de
+// origen distinto a self.location.origin, antes de cualquier
+// respondWith -- el Service Worker nunca ha podido cachear esos
+// recursos con éxito bajo esta CSP, así que esto no quita ninguna
+// capacidad offline que funcionara hoy.
+const APP_VERSION = '29';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -384,6 +402,12 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const pathname = url.pathname;
   const mismoOrigen = url.origin === self.location.origin;
+
+  // Cross-origin (fonts.googleapis.com, CDNs, etc.): nunca interceptar.
+  // Ver nota v29 de cabecera -- bajo la CSP actual (connect-src 'self')
+  // este Service Worker no puede cachear estos recursos con éxito de
+  // todos modos, y dejarlo pasar evita el NetworkError en respondWith().
+  if (!mismoOrigen) return;
 
   // Tarjetas públicas de Business (/c/{id}) y toda la API: siempre red,
   // nunca caché (ver nota de v15). Debe ir antes que cualquier otra regla.
