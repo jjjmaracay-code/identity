@@ -200,6 +200,9 @@
   "index.recover_access.enter_6_digits": "Geben Sie den 6-stelligen Code ein.",
   "index.recover_access.verifying_button": "Wird überprüft...",
   "index.recover_access.wrong_code": "Falscher oder abgelaufener Code. Tippen Sie auf \"Code erneut senden\", um es erneut zu versuchen.",
+  "index.recover_access.email_invalid": "Geben Sie eine gültige E-Mail-Adresse ein.",
+  "index.recover_access.sent_neutral": "Wenn die E-Mail registriert ist, erhalten Sie in Kürze einen Code.",
+  "index.recover_access.offline_notice": "Für die Verknüpfung Ihres Kaufs benötigen Sie eine Verbindung — Ihr lokales Profil funktioniert weiterhin unverändert.",
 
   "index.consent.header_tagline": "IDENTIFLY · Datenschutz und Datenverarbeitung",
   "index.consent.title": "Ihre Rechte und unsere Verpflichtung",
@@ -236,6 +239,7 @@
 
   "index.pin.no_identity_text": "Auf diesem Gerät ist keine Identität gespeichert. Wenn Sie bereits eine Identität auf einem anderen Gerät erstellt haben, kann IDENTIFLY sie hier nicht wiederherstellen, da die Daten nur lokal und nicht auf einem Server gespeichert werden.",
   "index.pin.no_identity_button": "Ich möchte hier eine neue Identität erstellen",
+  "index.pin.link_purchase_link": "Ich habe bereits einen Plan bezahlt — meinen Kauf verknüpfen",
   "index.pin.brand_html": "IDENTIFLY<sup style=\"font-size:0.4em;margin-left:2px;\">™</sup>",
   "index.pin.tagline": "Sichere Identitätsregistrierung",
   "index.pin.create_password_label": "Erstellen Sie Ihr Zugangspasswort",
@@ -319,6 +323,7 @@
   "index.edit.trial_text": "Sie haben 30 Tage kostenlos mit allen Funktionen aktiv. Nach diesem Zeitraum werden Sie gebeten, einen Plan auszuwählen, um IDENTIFLY weiter zu nutzen.",
   "index.edit.trial_view_plans": "Pläne ansehen — ab 2,99 €/Monat",
   "index.edit.trial_install_link": "Wie installiere ich die App auf meinem Handy?",
+  "index.edit.link_purchase_link": "Ich habe bereits einen Plan bezahlt — meinen Kauf verknüpfen",
   "index.update.button": "App aktualisieren",
   "index.update.version_label": "Version",
   "index.update.offline_toast": "Keine Verbindung. Verbinde dich mit dem Internet, um zu aktualisieren.",

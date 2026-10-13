@@ -85,7 +85,7 @@ export async function onRequestPost(context) {
     // El token se devuelve para que el cliente lo guarde en su propio
     // localStorage — es lo que permite después a check-plan.js verificar
     // el plan de este email sin exponerlo a nadie más (ver check-plan.js).
-    return new Response(JSON.stringify({ ok: true, token, plan }), {
+    return new Response(JSON.stringify({ ok: true, token, plan, registeredAt }), {
       status: 200, headers: { 'Content-Type': 'application/json' }
     });
 

@@ -200,6 +200,9 @@
   "index.recover_access.enter_6_digits": "Enter the 6-digit code.",
   "index.recover_access.verifying_button": "Verifying...",
   "index.recover_access.wrong_code": "Incorrect or expired code. Tap \"Resend code\" to try again.",
+  "index.recover_access.email_invalid": "Enter a valid email.",
+  "index.recover_access.sent_neutral": "If the email is registered, you'll receive a code shortly.",
+  "index.recover_access.offline_notice": "You need a connection to link your purchase — your local profile keeps working with no changes.",
 
   "index.consent.header_tagline": "IDENTIFLY · Privacy and Data Protection",
   "index.consent.title": "Your rights and our commitment",
@@ -236,6 +239,7 @@
 
   "index.pin.no_identity_text": "This device has no saved identity. If you already created an identity on another device, IDENTIFLY can't recover it here, because data is stored locally only, not on a server.",
   "index.pin.no_identity_button": "I want to create a new identity here",
+  "index.pin.link_purchase_link": "I already paid for a plan — link my purchase",
   "index.pin.brand_html": "IDENTIFLY<sup style=\"font-size:0.4em;margin-left:2px;\">™</sup>",
   "index.pin.tagline": "Secure identity registration",
   "index.pin.create_password_label": "Create your access password",
@@ -319,6 +323,7 @@
   "index.edit.trial_text": "You have 30 days free with all features active. After that period you'll be asked to choose a plan to keep using IDENTIFLY.",
   "index.edit.trial_view_plans": "View plans — from €2.99/month",
   "index.edit.trial_install_link": "How do I install the app on my phone?",
+  "index.edit.link_purchase_link": "I already paid for a plan — link my purchase",
   "index.update.button": "Update app",
   "index.update.version_label": "Version",
   "index.update.offline_toast": "You are offline. Connect to the internet to update.",

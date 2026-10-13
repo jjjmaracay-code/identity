@@ -200,6 +200,9 @@
   "index.recover_access.enter_6_digits": "Introduce el código de 6 dígitos.",
   "index.recover_access.verifying_button": "Verificando...",
   "index.recover_access.wrong_code": "Código incorrecto o caducado. Pulsa \"Reenviar código\" para probar de nuevo.",
+  "index.recover_access.email_invalid": "Introduce un email válido.",
+  "index.recover_access.sent_neutral": "Si el email está registrado, recibirás un código en breve.",
+  "index.recover_access.offline_notice": "Necesitas conexión para vincular tu compra — tu perfil local sigue funcionando sin cambios.",
 
   "index.consent.header_tagline": "IDENTIFLY · Privacidad y Protección de Datos",
   "index.consent.title": "Tus derechos y nuestro compromiso",
@@ -236,6 +239,7 @@
 
   "index.pin.no_identity_text": "Este dispositivo no tiene ninguna identidad guardada. Si ya creaste una identidad en otro dispositivo, IDENTIFLY no puede recuperarla aquí porque los datos se guardan solo localmente, no en un servidor.",
   "index.pin.no_identity_button": "Quiero crear una identidad nueva aquí",
+  "index.pin.link_purchase_link": "Ya pagué un plan — vincular mi compra",
   "index.pin.brand_html": "IDENTIFLY<sup style=\"font-size:0.4em;margin-left:2px;\">™</sup>",
   "index.pin.tagline": "Registro seguro de identidad",
   "index.pin.create_password_label": "Crea tu contraseña de acceso",
@@ -319,6 +323,7 @@
   "index.edit.trial_text": "Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.",
   "index.edit.trial_view_plans": "Ver planes — desde 2.99€/mes",
   "index.edit.trial_install_link": "¿Cómo instalar la app en mi móvil?",
+  "index.edit.link_purchase_link": "Ya pagué un plan — vincular mi compra",
   "index.update.button": "Actualizar aplicación",
   "index.update.version_label": "Versión",
   "index.update.offline_toast": "Sin conexión. Conéctate a internet para actualizar.",

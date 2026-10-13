@@ -2845,6 +2845,9 @@
       <span data-i18n="index.recover_access.intro_prefix">Este dispositivo no tiene un acceso válido para</span> <strong id="recover-access-email" style="color:#fff;"></strong>. <span data-i18n="index.recover_access.intro_suffix">Verifica tu email para recuperarlo — puedes hacerlo las veces que necesites.</span>
     </div>
 
+    <input type="email" id="recover-access-email-input" autocomplete="email" placeholder="tu@email.com"
+      style="display:none;width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(170,255,0,0.3);background:#111;color:#fff;text-align:center;font-size:14px;font-family:'Inter',sans-serif;margin-bottom:18px;">
+
     <div id="recover-access-step1">
       <button type="button" id="btn-recover-send-code"
         style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(170,255,0,0.3);" data-i18n="index.recover_access.send_button">
@@ -3129,6 +3132,7 @@
       Este dispositivo no tiene ninguna identidad guardada. Si ya creaste una identidad en otro dispositivo, IDENTIFLY no puede recuperarla aquí porque los datos se guardan solo localmente, no en un servidor.
     </div>
     <button id="btn-no-identity-register" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;" data-i18n="index.pin.no_identity_button">Quiero crear una identidad nueva aquí</button>
+    <a href="#" id="link-vincular-compra-no-identity" style="display:block;margin-top:10px;font-size:10.5px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:0.5px;text-decoration:underline;cursor:pointer;" data-i18n="index.pin.link_purchase_link">Ya pagué un plan — vincular mi compra</a>
   </div>
   <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly"/>
   <div class="pin-brand pin-enter-anim" style="animation-delay:0.4s" aria-label="Aidentiflay" data-i18n-html="index.pin.brand_html">IDENTIFLY<sup style="font-size:0.4em;margin-left:2px;">™</sup></div>
@@ -3430,6 +3434,7 @@
     <div id="trial-bubble-text" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;" data-i18n="index.edit.trial_text">Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.</div>
     <button onclick="window.location.href='/paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.edit.trial_view_plans">Ver planes — desde 2.99€/mes</button>
     <a href="/install.html" style="display:block;text-align:center;margin-top:10px;font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;" data-i18n="index.edit.trial_install_link">¿Cómo instalar la app en mi móvil?</a>
+    <a href="#" id="link-vincular-compra-edit" style="display:block;text-align:center;margin-top:8px;font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:underline;cursor:pointer;" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</a>
   </div>
 
   <div class="edit-tabs-bar" id="edit-tabs-bar">
@@ -4359,10 +4364,33 @@ function _trialBloqueadoLocal() {
 // reclamarlo por la vía automática. Reutiliza el mismo backend que el
 // registro normal: send-email.js para el código, register-complete.js
 // para verificarlo y devolver el token + plan real ya existentes.
+// Devuelve el email efectivo para este flujo: el ya conocido
+// (_reg.email) si lo hay, o lo que el usuario acaba de escribir en el
+// input manual cuando mostrarRecuperarAcceso() no recibió ninguno.
+function _recoverAccessEmail() {
+  const input = document.getElementById('recover-access-email-input');
+  if (input && input.style.display !== 'none') return input.value.trim();
+  return _reg.email || '';
+}
+
 function mostrarRecuperarAcceso(email) {
   const ov = document.getElementById('recover-access-ov');
   if (!ov) return;
-  document.getElementById('recover-access-email').textContent = email;
+  const emailStrong = document.getElementById('recover-access-email');
+  const emailInput = document.getElementById('recover-access-email-input');
+  // Defensa propia: si no hay email conocido (en vez de confiar en que
+  // quien llame siempre lo tenga), se pide escribirlo aquí mismo.
+  if (email) {
+    emailStrong.textContent = email;
+    emailStrong.style.display = '';
+    emailInput.style.display = 'none';
+    emailInput.value = '';
+  } else {
+    emailStrong.textContent = '';
+    emailStrong.style.display = 'none';
+    emailInput.style.display = 'block';
+    emailInput.value = '';
+  }
   document.getElementById('recover-access-step1').style.display = 'block';
   document.getElementById('recover-access-step2').style.display = 'none';
   const msg = document.getElementById('recover-access-msg');
@@ -4376,6 +4404,31 @@ function ocultarRecuperarAcceso() {
   if (ov) ov.style.display = 'none';
 }
 
+// Punto de entrada opcional "Ya pagué un plan — vincular mi compra":
+// nunca se dispara solo (ni al arrancar ni en ningún otro momento sin
+// que el propio usuario pulse el enlace), así que no añade ninguna
+// dependencia de red al arranque ni al uso habitual -- la app local
+// sigue funcionando exactamente igual si nunca se pulsa. Reutiliza
+// mostrarRecuperarAcceso('') ya existente; el aviso de conexión es la
+// única comprobación de red, y solo bloquea ABRIR el formulario, nunca
+// el resto de la app.
+document.getElementById('link-vincular-compra-no-identity')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (!navigator.onLine) {
+    showToast(t('index.recover_access.offline_notice'));
+    return;
+  }
+  mostrarRecuperarAcceso('');
+});
+document.getElementById('link-vincular-compra-edit')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (!navigator.onLine) {
+    showToast(t('index.recover_access.offline_notice'));
+    return;
+  }
+  mostrarRecuperarAcceso('');
+});
+
 function _mostrarMensajeRecuperarAcceso(texto, esError) {
   const msg = document.getElementById('recover-access-msg');
   msg.textContent = texto;
@@ -4383,7 +4436,19 @@ function _mostrarMensajeRecuperarAcceso(texto, esError) {
   msg.style.display = 'block';
 }
 
+// Formato básico, mismo criterio que el resto de la app (p.ej.
+// paywall.html) -- no pretende ser una validación RFC completa, solo
+// atrapar errores de escritura obvios antes de llamar al servidor.
+function _emailTieneFormatoValido(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 document.getElementById('btn-recover-send-code')?.addEventListener('click', async () => {
+  const email = _recoverAccessEmail();
+  if (!_emailTieneFormatoValido(email)) {
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.email_invalid'), true);
+    return;
+  }
   const btn = document.getElementById('btn-recover-send-code');
   btn.disabled = true;
   btn.textContent = t('index.recover_access.sending_button');
@@ -4391,7 +4456,7 @@ document.getElementById('btn-recover-send-code')?.addEventListener('click', asyn
     const res = await fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: _reg.email })
+      body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: email })
     });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
@@ -4400,26 +4465,34 @@ document.getElementById('btn-recover-send-code')?.addEventListener('click', asyn
       btn.textContent = t('index.recover_access.send_button');
       return;
     }
+    // Mensaje neutro: send-email.js nunca comprueba si la cuenta existe
+    // antes de enviar, así que esta pantalla tampoco debe revelarlo --
+    // mismo texto exista o no esa cuenta.
     document.getElementById('recover-access-step1').style.display = 'none';
     document.getElementById('recover-access-step2').style.display = 'block';
-    document.getElementById('recover-access-msg').style.display = 'none';
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.sent_neutral'), false);
   } catch (_) {
-    _mostrarMensajeRecuperarAcceso(t('index.recover_access.network_error'), true);
+    // Mismo aviso que al pulsar "Vincular mi compra" sin conexión (ver
+    // esos listeners más arriba): navigator.onLine puede decir que hay
+    // red y no haberla de verdad -- este catch es la red de seguridad
+    // real para ese caso, y el perfil local sigue intacto igualmente.
+    _mostrarMensajeRecuperarAcceso(t('index.recover_access.offline_notice'), true);
     btn.disabled = false;
     btn.textContent = t('index.recover_access.send_button');
   }
 });
 
 document.getElementById('btn-recover-resend')?.addEventListener('click', async () => {
+  const email = _recoverAccessEmail();
   const btn = document.getElementById('btn-recover-resend');
   btn.disabled = true;
   try {
     const res = await fetch('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: _reg.email })
+      body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: email })
     });
-    if (res.ok) _mostrarMensajeRecuperarAcceso(t('index.recover_access.resent_prefix') + ' ' + _reg.email + '.', false);
+    if (res.ok) _mostrarMensajeRecuperarAcceso(t('index.recover_access.sent_neutral'), false);
     else _mostrarMensajeRecuperarAcceso(t('index.recover_access.resend_error'), true);
   } catch (_) {
     _mostrarMensajeRecuperarAcceso(t('index.recover_access.network_error_short'), true);
@@ -4434,6 +4507,7 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
     _mostrarMensajeRecuperarAcceso(t('index.recover_access.enter_6_digits'), true);
     return;
   }
+  const email = _recoverAccessEmail();
   const btn = document.getElementById('btn-recover-verify');
   btn.disabled = true;
   btn.textContent = t('index.recover_access.verifying_button');
@@ -4441,12 +4515,34 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
     const res = await fetch('/api/register-complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: _reg.email, name: _reg.name || '', code })
+      body: JSON.stringify({ email, name: _reg.name || '', code })
     });
     const data = await res.json().catch(() => null);
     if (res.ok && data?.token) {
       localStorage.setItem('identity_access_token', data.token);
       if (data.plan) localStorage.setItem('identity_plan', data.plan);
+      // Si el email no estaba ya en identity_registration (se tuvo que
+      // escribir en el input de esta misma pantalla), se persiste ahora
+      // para que esta pantalla no vuelva a pedirlo. Solo se añade/corrige
+      // el campo email (y timestamp si faltaba del todo) -- se conservan
+      // intactos el resto de campos (name, phoneCountryCode, language...)
+      // y, sobre todo, identity_data/identity_pin/los salts/la foto, que
+      // viven en claves de localStorage totalmente distintas y esta
+      // función nunca toca.
+      if (!_reg.email) {
+        let current;
+        try { current = JSON.parse(localStorage.getItem('identity_registration') || '{}'); } catch (_) { current = {}; }
+        current.email = email;
+        // Fecha de registro REAL del servidor (register-complete.js la
+        // devuelve ahora, ver registeredAt más arriba en ese archivo) --
+        // nunca "ahora", para no reiniciar el trial de alguien que ya se
+        // registró hace tiempo en otro dispositivo y solo está
+        // vinculando esta instalación nueva a su compra. new Date() solo
+        // como último recurso si el servidor no la devolviera por algún
+        // motivo.
+        if (!current.timestamp) current.timestamp = data.registeredAt || new Date().toISOString();
+        localStorage.setItem('identity_registration', JSON.stringify(current));
+      }
       // Recarga completa: reejecuta todo el flujo normal de arranque (ya
       // con el token guardado), en vez de duplicar aquí la lógica de
       // check-plan/paywall que _verificarTrialServidor() ya resuelve.
