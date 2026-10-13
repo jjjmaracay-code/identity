@@ -230,6 +230,18 @@
       outline: none;
       margin-bottom: 16px;
     }
+
+    /* El autocompletado de Chrome/Edge pinta sus propios campos con un
+       fondo azulado y texto oscuro que ignora el tema de la app -- se
+       neutraliza con un box-shadow interior del mismo color que
+       .modal-input ya usa de fondo. */
+    .modal-input:-webkit-autofill,
+    .modal-input:-webkit-autofill:hover,
+    .modal-input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px rgba(170,255,0,0.04) inset;
+      -webkit-text-fill-color: #fff;
+      caret-color: #fff;
+    }
     .btn-notify {
       width: 100%;
       padding: 14px;

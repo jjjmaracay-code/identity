@@ -1362,6 +1362,26 @@
     color: #fff;
   }
 
+  /* El autocompletado de Chrome/Edge pinta sus propios campos con un
+     fondo azulado y texto oscuro que ignora el tema de la app -- se
+     neutraliza con un box-shadow interior del mismo color que cada
+     campo ya usa de fondo (no hay forma estándar de simplemente
+     "desactivar" el autofill, solo de repintarlo encima). */
+  .field-input:-webkit-autofill,
+  .field-input:-webkit-autofill:hover,
+  .field-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px rgba(170,255,0,0.06) inset;
+    -webkit-text-fill-color: #fff;
+    caret-color: #fff;
+  }
+  #recover-access-email-input:-webkit-autofill,
+  #recover-access-email-input:-webkit-autofill:hover,
+  #recover-access-email-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #111 inset;
+    -webkit-text-fill-color: #fff;
+    caret-color: #fff;
+  }
+
   /* Ayuda de prefijo/ejemplo para campos de redes sociales -- una línea
      de texto aparte, no un prefijo pegado dentro del input, para que en
      móvil no le quite ancho de escritura al campo (un prefijo largo como
@@ -3188,7 +3208,6 @@
   <div class="pin-brand pin-enter-anim" style="animation-delay:0.4s" aria-label="Aidentiflay" data-i18n-html="index.pin.brand_html">IDENTIFLY<sup style="font-size:0.4em;margin-left:2px;">™</sup></div>
   <div class="pin-enter-anim" style="font-size:11px;font-weight:300;color:#aaff00;text-shadow:0 0 10px #aaff00,0 0 25px rgba(170,255,0,0.6);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-top:-20px;margin-bottom:10px;animation-delay:0.5s" data-i18n="index.pin.tagline">Registro seguro de identidad</div>
   <div class="pin-label pin-enter-anim" style="animation-delay:0.6s" id="pin-label-text" data-i18n="index.pin.create_password_label">Crea tu contraseña de acceso</div>
-  <div class="pin-sublabel pin-enter-anim" id="pin-sublabel-text" style="animation-delay:0.6s" data-i18n="index.pin.password_requirements">Mínimo 8 caracteres · 1 número · 1 símbolo</div>
 
   <div class="pin-dots-wrap pin-enter-anim" style="animation-delay:0.85s">
     <div class="pin-dots empty" id="pin-dots-display">· · · · · · · ·</div>
@@ -3200,7 +3219,6 @@
     <span class="pwd-req" id="p-sym" data-i18n="index.common.req_sym">Al menos 1 símbolo</span>
     <span class="pwd-req" id="p-up" data-i18n="index.common.req_upper">Al menos 1 mayúscula</span>
   </div>
-  <div class="pwd-hint-static pin-enter-anim" id="pin-hint-static" style="animation-delay:0.85s;text-align:center;" data-i18n="index.common.pwd_static_hint">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
   <div class="qwerty-wrap pin-enter-anim" style="animation-delay:0.85s">
     <div id="qwerty-kbd-pin"></div>
@@ -3882,7 +3900,7 @@
         </div>
         <div class="toggle-right">
           <label class="toggle-switch"><input type="checkbox" id="t-totp"><span class="toggle-slider"></span></label>
-          <div class="toggle-status off" id="s-totp" data-i18n="index.privacy.status_off">Bloqueado</div>
+          <div class="toggle-status off" id="s-totp" data-i18n="index.twofa.status_off">Opcional</div>
         </div>
       </div>
       <div id="totp-setup-area" style="display:none;">
@@ -5006,8 +5024,6 @@ if (!isFirstTime) {
   window.i18nReady.finally(() => { pinHint.textContent = t('index.pin.enter_password_hint'); });
   const lbl = document.getElementById('pin-label-text');
   if (lbl) window.i18nReady.finally(() => { lbl.textContent = t('index.pin.access_password_label'); });
-  const sub = document.getElementById('pin-sublabel-text');
-  if (sub) sub.style.display = 'none';
   const str = document.getElementById('pin-strength');
   if (str) str.style.display = 'none';
   const noAccountLink = document.getElementById('link-no-account');
@@ -8119,7 +8135,7 @@ document.getElementById('t-totp').addEventListener('change', (e) => {
       area.style.display = 'block';
       lbl.textContent = t('index.twofa.status_pending'); lbl.className = 'toggle-status off';
     } else {
-      lbl.textContent = t('index.privacy.status_on'); lbl.className = 'toggle-status on';
+      lbl.textContent = t('index.twofa.status_on'); lbl.className = 'toggle-status on';
       twoFAConfig.totp = true;
       localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
     }
@@ -8127,7 +8143,7 @@ document.getElementById('t-totp').addEventListener('change', (e) => {
     localStorage.removeItem(TOTP_KEY);
     twoFAConfig.totp = false;
     localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
-    lbl.textContent = t('index.privacy.status_off'); lbl.className = 'toggle-status off';
+    lbl.textContent = t('index.twofa.status_off'); lbl.className = 'toggle-status off';
     area.style.display = 'none';
     showToast(t('index.twofa.disabled_toast'));
   }
@@ -8152,7 +8168,7 @@ document.getElementById('btn-close-totp').addEventListener('click', () => {
   document.getElementById('screen-totp-setup').classList.remove('open');
   if (!twoFAConfig.totp) {
     document.getElementById('t-totp').checked = false;
-    document.getElementById('s-totp').textContent = t('index.privacy.status_off');
+    document.getElementById('s-totp').textContent = t('index.twofa.status_off');
     document.getElementById('s-totp').className = 'toggle-status off';
     document.getElementById('totp-setup-area').style.display = 'none';
   }
@@ -8166,7 +8182,7 @@ document.getElementById('btn-confirm-totp').addEventListener('click', async () =
     localStorage.setItem(TOTP_KEY, encrypted);
     twoFAConfig.totp = true;
     localStorage.setItem(TWOFA_KEY, JSON.stringify(twoFAConfig));
-    document.getElementById('s-totp').textContent = t('index.privacy.status_on');
+    document.getElementById('s-totp').textContent = t('index.twofa.status_on');
     document.getElementById('s-totp').className = 'toggle-status on';
     document.getElementById('totp-setup-area').style.display = 'none';
     document.getElementById('screen-totp-setup').classList.remove('open');
@@ -8210,7 +8226,7 @@ document.getElementById('btn-verify-totp').addEventListener('click', () => {
 function init2FAToggles() {
   const ta = twoFAConfig.totp && !!localStorage.getItem(TOTP_KEY);
   document.getElementById('t-totp').checked = ta;
-  document.getElementById('s-totp').textContent = ta ? t('index.privacy.status_on') : t('index.privacy.status_off');
+  document.getElementById('s-totp').textContent = ta ? t('index.twofa.status_on') : t('index.twofa.status_off');
   document.getElementById('s-totp').className = 'toggle-status ' + (ta ? 'on' : 'off');
 }
 

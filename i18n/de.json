@@ -398,6 +398,8 @@
   "index.twofa.totp_sublabel": "Google Authenticator / Authy",
   "index.twofa.setup_button": "Authentifikator einrichten",
   "index.twofa.status_pending": "Ausstehend",
+  "index.twofa.status_on": "Aktiv",
+  "index.twofa.status_off": "Optional",
   "index.twofa.disabled_toast": "TOTP deaktiviert",
   "index.twofa.enter_6_digits": "6 Ziffern eingeben",
   "index.twofa.activated_toast": "✓ TOTP aktiviert",
