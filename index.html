@@ -1363,22 +1363,96 @@
   }
 
   /* El autocompletado de Chrome/Edge pinta sus propios campos con un
-     fondo azulado y texto oscuro que ignora el tema de la app -- se
-     neutraliza con un box-shadow interior del mismo color que cada
-     campo ya usa de fondo (no hay forma estándar de simplemente
-     "desactivar" el autofill, solo de repintarlo encima). */
+     fondo blanco/azulado que ignora el tema de la app -- no hay forma
+     estándar de "desactivar" el autofill, solo de repintarlo encima con
+     un box-shadow interior. La primera versión de este arreglo usaba el
+     mismo rgba semitransparente que el fondo normal del campo (p.ej.
+     rgba(170,255,0,0.06)) -- pero ese rgba se compone sobre lo que haya
+     debajo, y Chrome pinta su propio blanco opaco debajo del shadow, así
+     que el resultado seguía siendo texto claro sobre un fondo casi
+     blanco (bug real visto en nombre/apellidos). Aquí cada color es ya
+     el EQUIVALENTE SÓLIDO (hex opaco, sin alpha) de mezclar ese mismo
+     rgba sobre el fondo real de su tarjeta/pantalla -- #080808 para los
+     campos de #screen-edit -- para que no se note ninguna diferencia
+     con un campo sin autocompletar. transition:background-color 9999s
+     evita que Chrome llegue a repintar su propio fondo antes de que
+     nuestro shadow lo tape. Se repite la regla con :autofill sin
+     prefijo (spec moderna) aparte de :-webkit-autofill porque mezclar
+     prefijos vendor y estándar en una misma lista de selectores invalida
+     la regla completa en motores que no reconocen uno de los dos. */
   .field-input:-webkit-autofill,
   .field-input:-webkit-autofill:hover,
-  .field-input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px rgba(170,255,0,0.06) inset;
+  .field-input:-webkit-autofill:focus,
+  .field-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #121708 inset;
+    -webkit-text-fill-color: #e8e8e8;
+    caret-color: #e8e8e8;
+    transition: background-color 9999s ease-out 0s;
+  }
+  .field-input:autofill {
+    box-shadow: 0 0 0 1000px #121708 inset;
+    color: #e8e8e8;
+    caret-color: #e8e8e8;
+  }
+  select.field-input:-webkit-autofill,
+  select.field-input:-webkit-autofill:hover,
+  select.field-input:-webkit-autofill:focus,
+  select.field-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #111 inset;
     -webkit-text-fill-color: #fff;
+    caret-color: #fff;
+    transition: background-color 9999s ease-out 0s;
+  }
+  select.field-input:autofill {
+    box-shadow: 0 0 0 1000px #111 inset;
+    color: #fff;
     caret-color: #fff;
   }
   #recover-access-email-input:-webkit-autofill,
   #recover-access-email-input:-webkit-autofill:hover,
-  #recover-access-email-input:-webkit-autofill:focus {
+  #recover-access-email-input:-webkit-autofill:focus,
+  #recover-access-email-input:-webkit-autofill:active,
+  #recover-access-code:-webkit-autofill,
+  #recover-access-code:-webkit-autofill:hover,
+  #recover-access-code:-webkit-autofill:focus,
+  #recover-access-code:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 1000px #111 inset;
     -webkit-text-fill-color: #fff;
+    caret-color: #fff;
+    transition: background-color 9999s ease-out 0s;
+  }
+  #recover-access-email-input:autofill,
+  #recover-access-code:autofill {
+    box-shadow: 0 0 0 1000px #111 inset;
+    color: #fff;
+    caret-color: #fff;
+  }
+  .totp-verify-input:-webkit-autofill,
+  .totp-verify-input:-webkit-autofill:hover,
+  .totp-verify-input:-webkit-autofill:focus,
+  .totp-verify-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #101408 inset;
+    -webkit-text-fill-color: #AAFF00;
+    caret-color: #AAFF00;
+    transition: background-color 9999s ease-out 0s;
+  }
+  .totp-verify-input:autofill {
+    box-shadow: 0 0 0 1000px #101408 inset;
+    color: #AAFF00;
+    caret-color: #AAFF00;
+  }
+  #import-textarea:-webkit-autofill,
+  #import-textarea:-webkit-autofill:hover,
+  #import-textarea:-webkit-autofill:focus,
+  #import-textarea:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #0a0a0a inset;
+    -webkit-text-fill-color: #fff;
+    caret-color: #fff;
+    transition: background-color 9999s ease-out 0s;
+  }
+  #import-textarea:autofill {
+    box-shadow: 0 0 0 1000px #0a0a0a inset;
+    color: #fff;
     caret-color: #fff;
   }
 

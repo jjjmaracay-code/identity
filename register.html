@@ -238,15 +238,45 @@
   }
 
   /* El autocompletado de Chrome/Edge pinta sus propios campos con un
-     fondo azulado y texto oscuro que ignora el tema de la app -- se
-     neutraliza con un box-shadow interior del mismo color que .field-input
-     ya usa de fondo (no hay forma estándar de "desactivar" el autofill,
-     solo de repintarlo encima). */
+     fondo blanco/azulado que ignora el tema de la app -- la primera
+     versión de este arreglo usaba el mismo rgba semitransparente que el
+     fondo normal del campo, pero ese rgba se compone sobre el blanco
+     opaco que Chrome pinta debajo del shadow, así que seguía saliendo
+     texto claro sobre un fondo casi blanco (bug real visto en
+     nombre/apellidos). #1d2410 es el equivalente SÓLIDO de mezclar ese
+     mismo rgba sobre #111111 (el fondo real de .form-card) -- no hay
+     diferencia visible con un campo sin autocompletar.
+     transition:background-color 9999s evita que Chrome llegue a
+     repintar su propio fondo antes de que el shadow lo tape. :autofill
+     sin prefijo va en una regla aparte porque mezclar el prefijo vendor
+     y el estándar en la misma lista de selectores invalida la regla
+     completa en motores que no reconocen uno de los dos. */
   .field-input:-webkit-autofill,
   .field-input:-webkit-autofill:hover,
-  .field-input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px rgba(170,255,0,0.08) inset;
+  .field-input:-webkit-autofill:focus,
+  .field-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #1d2410 inset;
     -webkit-text-fill-color: #fff;
+    caret-color: #fff;
+    transition: background-color 9999s ease-out 0s;
+  }
+  .field-input:autofill {
+    box-shadow: 0 0 0 1000px #1d2410 inset;
+    color: #fff;
+    caret-color: #fff;
+  }
+  select.field-input:-webkit-autofill,
+  select.field-input:-webkit-autofill:hover,
+  select.field-input:-webkit-autofill:focus,
+  select.field-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #111 inset;
+    -webkit-text-fill-color: #fff;
+    caret-color: #fff;
+    transition: background-color 9999s ease-out 0s;
+  }
+  select.field-input:autofill {
+    box-shadow: 0 0 0 1000px #111 inset;
+    color: #fff;
     caret-color: #fff;
   }
 
