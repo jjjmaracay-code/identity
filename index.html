@@ -1351,6 +1351,17 @@
 
   .field-input::placeholder { color: rgba(255,255,255,0.4); font-weight: 300; }
 
+  /* El <select> hereda color claro de .field-input (var(--text)), pero
+     su menú desplegable de <option> lo pinta el sistema operativo con
+     fondo blanco por defecto -- texto claro sobre blanco, casi
+     ilegible. select.field-input (0,1,1) pesa más que .field-input
+     (0,1,0), así que esto gana sin tocar el resto de campos de texto
+     que también usan esa misma clase. */
+  select.field-input, select.field-input option {
+    background-color: #111;
+    color: #fff;
+  }
+
   /* Ayuda de prefijo/ejemplo para campos de redes sociales -- una línea
      de texto aparte, no un prefijo pegado dentro del input, para que en
      móvil no le quite ancho de escritura al campo (un prefijo largo como
@@ -1815,6 +1826,24 @@
     cursor: pointer;
     white-space: nowrap;
     letter-spacing: 1px;
+  }
+
+  /* .btn-install-close no tenía ninguna regla propia -- salía con el
+     <button> por defecto del navegador (fondo blanco, borde gris),
+     fuera de lugar en la app. padding vertical 9px (1px menos que
+     .btn-install) para compensar el borde de 1px que .btn-install no
+     tiene y que este sí: mismo alto final que el botón "Instalar" sin
+     tocar su CSS. */
+  .btn-install-close {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid rgba(170,255,0,0.4);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
   }
 
   /* =================== PANTALLA CONSENTIMIENTO =================== */
@@ -2689,6 +2718,23 @@
   .pin-enter-anim {
     opacity: 0;
     animation: pin-fade-in 0.45s ease forwards;
+  }
+
+  /* .pin-first-time (texto "Primera vez — crea tu contraseña") no tenía
+     ninguna regla de color propia en ningún sitio -- heredaba el negro
+     por defecto del navegador sobre el fondo casi negro de #screen-pin,
+     prácticamente invisible. No está dentro de .qwerty-wrap ni usa
+     position:absolute/fixed (es un <div> normal, en flujo normal justo
+     después del teclado en el DOM), así que un teclado más alto solo lo
+     empuja hacia abajo -- nunca lo tapa -- y #screen-pin ya tiene
+     overflow-y:auto para esos casos. */
+  .pin-first-time {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
   }
 
   @keyframes neon-flicker {
@@ -4181,7 +4227,7 @@
 <div class="install-banner" id="install-banner">
   <div class="install-banner-text" data-i18n="index.install_banner.text">Instala IDENTIFLY en tu pantalla de inicio para acceso rápido</div>
   <button class="btn-install" id="btn-install-do" data-i18n="index.install_banner.install_button">Instalar</button>
-  <button class="btn-install-close" id="btn-install-close">✕</button>
+  <button class="btn-install-close" id="btn-install-close" aria-label="Cerrar">✕</button>
 </div>
 
 <!-- QRCode.js (davidshimjs/qrcodejs 1.0.0, MIT) -->
@@ -8863,9 +8909,6 @@ if (_trustedUntil && Date.now() < _trustedUntil) {
 
 <!-- Service Worker -->
 <script>
-// Debe coincidir con APP_VERSION de sw.js y con el ?v= de business.js/css.
-window.IDENTIFLY_APP_VERSION = '27';
-
 // true si recargar ahora perdería algo: cambios de Business sin guardar,
 // o un perfil que no se pudo guardar (p. ej. una red social inválida).
 // El perfil y el diseñador de QR se guardan aquí mismo antes de decidir,
@@ -8994,8 +9037,34 @@ window.identiflyActualizarApp = async function () {
 
 (() => {
   const num = document.getElementById('app-update-version-num');
-  if (num) num.textContent = window.IDENTIFLY_APP_VERSION;
   document.getElementById('btn-app-update')?.addEventListener('click', () => window.identiflyActualizarApp());
+  if (!num) return;
+
+  // Antes esto leía window.IDENTIFLY_APP_VERSION, una constante duplicada
+  // a mano que debía mantenerse sincronizada con APP_VERSION de sw.js --
+  // en la práctica se desincronizó (se quedó en '27' con sw.js ya en
+  // v29/v30 real). Única fuente de verdad ahora: se le pregunta
+  // DIRECTAMENTE al Service Worker activo su propio CACHE_NAME
+  // ('identity-vNN'), el mismo mecanismo que ya usa sw-diagnostico.html
+  // -- nunca se vuelve a duplicar el número de versión a mano en ningún
+  // otro sitio. Si no hay Service Worker controlando esta página, o no
+  // responde a tiempo, o devuelve algo que no encaja en el patrón
+  // esperado, se queda en '—'.
+  num.textContent = '—';
+  if (!(navigator.serviceWorker && navigator.serviceWorker.controller)) return;
+
+  function handler(e) {
+    if (!(e.data && e.data.tipo === 'IDENTIFLY_VERSION')) return;
+    clearTimeout(timer);
+    navigator.serviceWorker.removeEventListener('message', handler);
+    const m = /^identity-v(\d+)$/.exec(e.data.cacheName || '');
+    if (m) num.textContent = m[1];
+  }
+  const timer = setTimeout(() => {
+    navigator.serviceWorker.removeEventListener('message', handler);
+  }, 1500);
+  navigator.serviceWorker.addEventListener('message', handler);
+  navigator.serviceWorker.controller.postMessage('IDENTIFLY_QUE_VERSION');
 })();
 </script>
 

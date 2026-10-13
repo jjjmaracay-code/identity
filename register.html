@@ -226,6 +226,17 @@
 
   .field-input::placeholder { color: rgba(255,255,255,0.2); }
 
+  /* El <select> hereda color claro de .field-input, pero su menú
+     desplegable de <option> lo pinta el sistema operativo con fondo
+     blanco por defecto -- texto claro sobre blanco, casi ilegible.
+     select.field-input (0,1,1) pesa más que .field-input (0,1,0), así
+     que esto gana sin tocar el resto de campos de texto que también
+     usan esa misma clase. */
+  select.field-input, select.field-input option {
+    background-color: #111;
+    color: #fff;
+  }
+
   .field-input:disabled {
     opacity: 0.6;
     cursor: not-allowed;
