@@ -357,9 +357,16 @@
 
   </div>
 
+  <!-- "Ya pagué un plan" -- mismo estilo secundario que index.html, i18n
+       solo para este botón y su aviso offline (ver el bloque de script
+       de i18n más abajo); el resto de esta página sigue en español fijo
+       como hasta ahora. Reutiliza la clave index.edit.link_purchase_link,
+       ya traducida a los 5 idiomas, para no duplicar texto. -->
+  <button type="button" id="link-vincular-compra-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 24px;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
+
   <div class="footer-note">
-    Tus datos permanecen exclusivamente en tu dispositivo.<br>
-    Ningún servidor almacena tu información personal — RGPD Art. 5
+    Tu perfil y tus datos de contacto se guardan solo en tu dispositivo.<br>
+    Para gestionar tu suscripción guardamos únicamente tu email y tu plan.
   </div>
 
   <!-- MODAL -->
@@ -376,6 +383,9 @@
     </div>
   </div>
 
+  <!-- Cargado solo por el botón "Ya pagué un plan" de más abajo (ver su
+       comentario) -- el resto de esta página no usa i18n. -->
+  <script src="/i18n/loader.js"></script>
   <script>
     // Mostrar días restantes o estado del trial
     const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
@@ -466,6 +476,24 @@
         console.error('Error verificando pago:', err);
       }
     })();
+
+    // "Ya pagué un plan — vincular mi compra": navega a index.html con
+    // ?vincular=1. Ese parámetro (ver index.html/_verificarTrialServidor)
+    // SOLO evita que la verificación de trial rebote de vuelta aquí y
+    // abre la recuperación de acceso ya existente -- nunca concede ningún
+    // plan por sí mismo, así que no abre ningún atajo del paywall. Espera
+    // a que cargue el diccionario de idioma (window.i18nReady, ver
+    // i18n/loader.js) antes de aplicar el texto del botón y de tener
+    // t() disponible para el aviso offline.
+    window.i18nReady.finally(() => {
+      document.getElementById('link-vincular-compra-paywall')?.addEventListener('click', () => {
+        if (!navigator.onLine) {
+          alert(t('index.recover_access.offline_notice'));
+          return;
+        }
+        window.location.href = '/?vincular=1';
+      });
+    });
   </script>
 
 </body>

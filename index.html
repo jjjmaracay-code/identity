@@ -4228,12 +4228,53 @@
 // identity_plan='free' nunca volvía a cambiar. Ahora bloquea cuando han
 // pasado 30+ días Y el plan local NO es de pago (pro/lifetime) — incluye
 // tanto identity_plan sin definir como valiendo 'free'.
+// Punto de entrada "Ya pagué un plan" llegado desde paywall.html
+// (/?vincular=1): se detecta y se retira de la URL con
+// history.replaceState ANTES DE NADA MÁS en este script -- así un
+// refresco posterior de esta misma pestaña nunca reactiva el flujo por
+// accidente, y la URL que el usuario pueda compartir/guardar nunca lleva
+// el parámetro. Solo decide si _verificarTrialServidor() abre la
+// recuperación en vez de rebotar a paywall.html -- nunca concede ningún
+// plan por sí mismo (ver _bloqueadoRedirigirOVincular() más abajo).
+const _vincularCompra = new URLSearchParams(location.search).get('vincular') === '1';
+if (_vincularCompra) {
+  const _uSinVincular = new URL(location.href);
+  _uSinVincular.searchParams.delete('vincular');
+  history.replaceState(null, '', _uSinVincular.pathname + _uSinVincular.search + _uSinVincular.hash);
+}
+
 const _reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
 const PLANES_PAGO = ['pro', 'lifetime'];
 function _trialBloqueadoLocal() {
   if (!_reg.timestamp) return false;
   const _days = Math.floor((Date.now() - new Date(_reg.timestamp)) / (1000*60*60*24));
   return _days >= 30 && !PLANES_PAGO.includes(localStorage.getItem('identity_plan'));
+}
+
+// Abre la recuperación SIEMPRE que se llegó aquí desde paywall.html
+// (?vincular=1), tenga o no el trial bloqueado -- caso real: trial
+// todavía activo, el usuario entra a "Ver planes" por curiosidad y pulsa
+// "Ya pagué". _verificarTrialServidor() de más abajo nunca ejecuta
+// ningún redirect en ese caso (no hay nada que bloquear), así que sin
+// esto el botón no haría nada. mostrarRecuperarAcceso (función
+// declarada más abajo) ya está disponible aquí por hoisting; se dispara
+// tras DOMContentLoaded para no depender de en qué punto del documento
+// esté este <script>.
+if (_vincularCompra) {
+  document.addEventListener('DOMContentLoaded', () => mostrarRecuperarAcceso(_reg.email || ''), { once: true });
+}
+
+// Mismo punto de bloqueo que antes (_trialBloqueadoLocal() o el
+// servidor), pero sin redirigir a paywall.html cuando se llegó aquí
+// desde su botón "Ya pagué" (bucle, ver auditoría previa): el bloque de
+// arriba ya se encarga de abrir la recuperación en ese caso,
+// incondicionalmente, así que aquí no hay nada más que hacer. No
+// concede ningún plan -- solo decide qué pantalla mostrar; el
+// desbloqueo real sigue dependiendo exclusivamente de
+// check-plan.js/register-complete.js en el servidor.
+function _bloqueadoRedirigirOVincular() {
+  if (_vincularCompra) return;
+  window.location.href = '/paywall.html';
 }
 
 // Red de seguridad para la verificación fire-and-forget de register.html:
@@ -4275,7 +4316,10 @@ function _trialBloqueadoLocal() {
 // redirección igualmente se aplica — es una zona de dinero real, se
 // prioriza corrección sobre evitar el pequeño salto de pantalla.
 (async function _verificarTrialServidor() {
-  if (!_reg.timestamp || !_reg.email) return; // sin registro, nada que verificar aquí
+  // Sin registro local, nada que verificar aquí -- el caso "?vincular=1
+  // sin _reg.email" ya lo abre, incondicionalmente, el bloque de
+  // DOMContentLoaded de más arriba.
+  if (!_reg.timestamp || !_reg.email) return;
 
   let token = localStorage.getItem('identity_access_token');
 
@@ -4310,7 +4354,7 @@ function _trialBloqueadoLocal() {
     }
     // Fallo de red real (no hubo respuesta del servidor) — único recurso
     // disponible esta vez: cálculo local.
-    if (_trialBloqueadoLocal()) window.location.href = '/paywall.html';
+    if (_trialBloqueadoLocal()) _bloqueadoRedirigirOVincular();
     return;
   }
 
@@ -4328,7 +4372,7 @@ function _trialBloqueadoLocal() {
       localStorage.setItem('identity_plan_verified', JSON.stringify({
         bloqueado: data.bloqueado, plan: data.plan, verifiedAt: Date.now()
       }));
-      if (data.bloqueado) { window.location.href = '/paywall.html'; return; }
+      if (data.bloqueado) { _bloqueadoRedirigirOVincular(); return; }
       // Si el usuario ya está en la pantalla de edición cuando esta
       // verificación (que empezó al cargar la página) por fin resuelve,
       // refresca la insignia/burbuja con el dato real en cuanto llega.
@@ -4341,7 +4385,7 @@ function _trialBloqueadoLocal() {
     // El servidor respondió pero rechazó el token (reclamado por otra
     // sesión, dato corrupto, etc.) — sin veredicto de servidor fiable
     // esta vez, cálculo local como recurso.
-    if (_trialBloqueadoLocal()) window.location.href = '/paywall.html';
+    if (_trialBloqueadoLocal()) _bloqueadoRedirigirOVincular();
 
   } catch (_) {
     // Fallo de red real (no una respuesta explícita del servidor):
@@ -4355,9 +4399,9 @@ function _trialBloqueadoLocal() {
     const cacheValido = veredictoCacheado && (Date.now() - veredictoCacheado.verifiedAt) < 24 * 3600 * 1000;
 
     if (cacheValido) {
-      if (veredictoCacheado.bloqueado) window.location.href = '/paywall.html';
+      if (veredictoCacheado.bloqueado) _bloqueadoRedirigirOVincular();
     } else if (_trialBloqueadoLocal()) {
-      window.location.href = '/paywall.html';
+      _bloqueadoRedirigirOVincular();
     }
   }
 })();
