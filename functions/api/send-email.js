@@ -1,3 +1,5 @@
+import { isDisposableDomain } from '../_shared/disposable-domains.js';
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -6,6 +8,24 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// Mismo mensaje genérico para un dominio desechable bloqueado y para un
+// fallo real de envío (ver más abajo) -- así, visto desde fuera, rechazar
+// un dominio desechable es indistinguible de un fallo transitorio del
+// proveedor de email, en vez de confirmarle a quien prueba dominios que
+// encontró uno bloqueado.
+const GENERIC_SEND_FAILURE_MSG = 'No se pudo enviar el código, inténtalo más tarde';
+
+// Hash de la IP (nunca se guarda en claro) -- mismo patrón de WebCrypto que
+// ya usa stripe-webhook.js para HMAC, aquí con SHA-256 simple + un salt de
+// servidor (env.IP_HASH_SALT, secreto de Cloudflare) para que el hash no se
+// pueda revertir ni correlacionar con otros usos de la misma IP fuera de
+// esta app.
+async function hashIp(ip, salt) {
+  const data = new TextEncoder().encode(`${salt}:${ip}`);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export async function onRequestPost(context) {
@@ -30,6 +50,18 @@ export async function onRequestPost(context) {
     if (template !== 'verification' && !code) {
       return new Response(JSON.stringify({ error: 'Falta code' }), {
         status: 400, headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Dominios de email desechables (lista estática, ver
+    // functions/_shared/disposable-domains.js para fuente y licencia) --
+    // nunca reciben ningún código, para ninguna plantilla: si no pueden
+    // completar register-complete.js, tampoco deberían poder recibir un
+    // código de recuperación de una cuenta que nunca llegó a existir. Mismo
+    // mensaje genérico que un fallo real de envío (ver GENERIC_SEND_FAILURE_MSG).
+    if (isDisposableDomain(to_email)) {
+      return new Response(JSON.stringify({ error: GENERIC_SEND_FAILURE_MSG }), {
+        status: 500, headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -58,6 +90,36 @@ export async function onRequestPost(context) {
 
     rl.count++; rl.dayCount++;
     await env.PLANS_KV.put(rlKey, JSON.stringify(rl), { expirationTtl: LONG_WINDOW });
+
+    // Rate limiting por IP, además del límite por email de arriba — el
+    // límite por email ya acota los envíos hacia UN destinatario, pero no
+    // evita que una sola IP cicle por muchos emails distintos (probar
+    // dominios desechables, acosar bandejas ajenas, agotar el cupo de
+    // Resend). Umbral más laxo que el de email porque una IP puede ser
+    // compartida (oficina, CGNAT): 8 envíos/10min y 25 envíos/24h dejan
+    // cómodas a varias personas registrándose a la vez desde la misma IP,
+    // y acotan a un script muy por debajo de lo necesario para abusar del
+    // cupo de envío a escala.
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const ipHash = await hashIp(ip, env.IP_HASH_SALT);
+    const rlIpKey = 'ratelimit:ip:send-email:' + ipHash;
+    const SHORT_WINDOW_IP = 600, SHORT_LIMIT_IP = 8;
+    const LONG_WINDOW_IP = 86400, LONG_LIMIT_IP = 25;
+
+    const rlIpRaw = await env.PLANS_KV.get(rlIpKey);
+    const rlIp = rlIpRaw ? JSON.parse(rlIpRaw) : { count: 0, windowStart: now, dayCount: 0, dayStart: now };
+
+    if (now - rlIp.windowStart >= SHORT_WINDOW_IP) { rlIp.count = 0; rlIp.windowStart = now; }
+    if (now - rlIp.dayStart >= LONG_WINDOW_IP) { rlIp.dayCount = 0; rlIp.dayStart = now; }
+
+    if (rlIp.count >= SHORT_LIMIT_IP || rlIp.dayCount >= LONG_LIMIT_IP) {
+      return new Response(JSON.stringify({ error: 'rate_limited', retryAfter: SHORT_WINDOW_IP }), {
+        status: 429, headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    rlIp.count++; rlIp.dayCount++;
+    await env.PLANS_KV.put(rlIpKey, JSON.stringify(rlIp), { expirationTtl: LONG_WINDOW_IP });
 
     // Ya NO se bloquea el re-registro de emails ya existentes aquí. Antes
     // esta era la única barrera real contra reclamar una cuenta ajena;
@@ -169,7 +231,7 @@ export async function onRequestPost(context) {
       // interno, etc.) se queda en el log del servidor -- al cliente solo
       // un mensaje genérico, igual para cualquier fallo de envío.
       console.error('Resend error:', result);
-      return new Response(JSON.stringify({ error: 'No se pudo enviar el código, inténtalo más tarde' }), {
+      return new Response(JSON.stringify({ error: GENERIC_SEND_FAILURE_MSG }), {
         status: 500, headers: { 'Content-Type': 'application/json' }
       });
     }
