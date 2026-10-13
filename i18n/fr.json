@@ -186,6 +186,7 @@
   "index.recover_access.title": "Récupérez votre accès",
   "index.recover_access.intro_prefix": "Cet appareil n'a pas d'accès valide pour",
   "index.recover_access.intro_suffix": "Vérifiez votre e-mail pour le récupérer — vous pouvez le faire autant de fois que nécessaire.",
+  "index.recover_access.intro_unknown_email": "Saisissez l'e-mail avec lequel vous avez payé.",
   "index.recover_access.send_button": "Envoyer le code à mon e-mail",
   "index.recover_access.code_placeholder": "Code à 6 chiffres",
   "index.recover_access.verify_button": "Vérifier le code",

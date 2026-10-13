@@ -270,7 +270,13 @@
 // respondWith -- el Service Worker nunca ha podido cachear esos
 // recursos con éxito bajo esta CSP, así que esto no quita ninguna
 // capacidad offline que funcionara hoy.
-const APP_VERSION = '29';
+// v30: lote de pulido sin cambios de caché nuevos en sí -- sube la versión
+// solo para que activate() purgue la v29 y los dispositivos que ya la
+// tuvieran cacheada reciban el index.html actualizado (textos de
+// recuperación de acceso, iniciales del placeholder de foto) y los 5
+// diccionarios /i18n/*.json con la clave nueva
+// index.recover_access.intro_unknown_email.
+const APP_VERSION = '30';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

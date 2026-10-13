@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="IDENTIFLY">
 <meta name="theme-color" content="#aaff00">
@@ -2841,8 +2842,11 @@
 <div id="recover-access-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
   <div style="background:#0a0a0a;border:1.5px solid rgba(170,255,0,0.3);border-radius:20px;padding:28px 24px;max-width:380px;width:100%;font-family:'Inter',sans-serif;">
     <div style="font-size:14px;font-weight:900;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;text-align:center;margin-bottom:10px;" data-i18n="index.recover_access.title">Recupera tu acceso</div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:22px;line-height:1.6;">
+    <div id="recover-access-intro-known" style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:22px;line-height:1.6;">
       <span data-i18n="index.recover_access.intro_prefix">Este dispositivo no tiene un acceso válido para</span> <strong id="recover-access-email" style="color:#fff;"></strong>. <span data-i18n="index.recover_access.intro_suffix">Verifica tu email para recuperarlo — puedes hacerlo las veces que necesites.</span>
+    </div>
+    <div id="recover-access-intro-unknown" style="display:none;font-size:12px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:22px;line-height:1.6;" data-i18n="index.recover_access.intro_unknown_email">
+      Introduce el email con el que pagaste.
     </div>
 
     <input type="email" id="recover-access-email-input" autocomplete="email" placeholder="tu@email.com"
@@ -4378,18 +4382,26 @@ function mostrarRecuperarAcceso(email) {
   if (!ov) return;
   const emailStrong = document.getElementById('recover-access-email');
   const emailInput = document.getElementById('recover-access-email-input');
+  const introKnown = document.getElementById('recover-access-intro-known');
+  const introUnknown = document.getElementById('recover-access-intro-unknown');
   // Defensa propia: si no hay email conocido (en vez de confiar en que
-  // quien llame siempre lo tenga), se pide escribirlo aquí mismo.
+  // quien llame siempre lo tenga), se pide escribirlo aquí mismo -- y la
+  // frase introductoria deja de decir "no tiene un acceso válido para ."
+  // (vacío, sin sentido) y pasa a pedir el email directamente.
   if (email) {
     emailStrong.textContent = email;
     emailStrong.style.display = '';
     emailInput.style.display = 'none';
     emailInput.value = '';
+    introKnown.style.display = '';
+    introUnknown.style.display = 'none';
   } else {
     emailStrong.textContent = '';
     emailStrong.style.display = 'none';
     emailInput.style.display = 'block';
     emailInput.value = '';
+    introKnown.style.display = 'none';
+    introUnknown.style.display = 'block';
   }
   document.getElementById('recover-access-step1').style.display = 'block';
   document.getElementById('recover-access-step2').style.display = 'none';
@@ -5101,7 +5113,10 @@ function computeDisplayNameAndJob() {
   // más abajo.
   const name = profileData.name || regName || tOrFallback('index.main.default_name', 'Tu Nombre');
   const job  = profileData.job  || tOrFallback('index.main.default_job', 'Tu título profesional');
-  return { name, job };
+  // regName también se devuelve aparte de `name`: _inicialesDeNombre() lo
+  // necesita para no caer en el texto de ejemplo "Tu Nombre" cuando el
+  // perfil no tiene nombre propio pero sí hay un nombre real de registro.
+  return { name, job, regName };
 }
 
 // Clave del último medio (foto/vídeo) ya aplicado a la tarjeta -- evita
@@ -5128,7 +5143,7 @@ function _inicialesDeNombre(name) {
 }
 
 function renderCard() {
-  const { name, job } = computeDisplayNameAndJob();
+  const { name, job, regName } = computeDisplayNameAndJob();
 
   document.getElementById('card-name').textContent = name;
   document.getElementById('card-job').textContent  = job;
@@ -5138,8 +5153,13 @@ function renderCard() {
   // nombre sin cambiar la foto/vídeo también debe actualizar las
   // iniciales la próxima vez que se guarde el perfil. textContent (nunca
   // innerHTML) -- a salvo de XSS aunque el nombre contenga HTML/scripts.
+  // A propósito profileData.name || regName (los valores REALES del
+  // perfil y del registro), nunca la constante `name` de arriba -- esa ya
+  // incluye como último recurso el texto de ejemplo "Tu Nombre", que no
+  // debe convertirse en las iniciales "TN" cuando el usuario aún no ha
+  // escrito nada en su perfil ni completado el registro.
   const placeholderIniciales = document.getElementById('photo-placeholder');
-  if (placeholderIniciales) placeholderIniciales.textContent = _inicialesDeNombre(name);
+  if (placeholderIniciales) placeholderIniciales.textContent = _inicialesDeNombre(profileData.name || regName);
 
   const media = profileData.media;
   const mediaKey = media && media.src ? media.type + ':' + media.src : null;

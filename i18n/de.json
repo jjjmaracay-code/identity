@@ -186,6 +186,7 @@
   "index.recover_access.title": "Zugang wiederherstellen",
   "index.recover_access.intro_prefix": "Dieses Gerät hat keinen gültigen Zugang für",
   "index.recover_access.intro_suffix": "Bestätigen Sie Ihre E-Mail, um ihn wiederherzustellen — Sie können dies so oft tun, wie Sie möchten.",
+  "index.recover_access.intro_unknown_email": "Geben Sie die E-Mail-Adresse ein, mit der Sie bezahlt haben.",
   "index.recover_access.send_button": "Code an meine E-Mail senden",
   "index.recover_access.code_placeholder": "6-stelliger Code",
   "index.recover_access.verify_button": "Code bestätigen",

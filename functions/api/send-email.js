@@ -165,7 +165,11 @@ export async function onRequestPost(context) {
     const result = await resendRes.json();
 
     if (!resendRes.ok) {
-      return new Response(JSON.stringify({ error: result.message || 'Error de Resend' }), {
+      // El detalle de Resend (puede incluir el propio email, motivo
+      // interno, etc.) se queda en el log del servidor -- al cliente solo
+      // un mensaje genérico, igual para cualquier fallo de envío.
+      console.error('Resend error:', result);
+      return new Response(JSON.stringify({ error: 'No se pudo enviar el código, inténtalo más tarde' }), {
         status: 500, headers: { 'Content-Type': 'application/json' }
       });
     }
