@@ -176,12 +176,29 @@ export async function onRequestPost(context) {
     if (email) {
       const emailKey = email.toLowerCase();
       const existing = await leerRegistroPago(env, emailKey);
+      // Un evento con forma de cancelación/borrado (el propio tipo
+      // 'customer.subscription.deleted', o un 'updated' cuyo status ya es
+      // 'canceled') que llega sin registro existente no debe CREAR uno
+      // nuevo desde cero -- caso real: delete-account.js ya borró
+      // {emailKey} por petición del usuario (RGPD art. 17), y Stripe
+      // todavía entrega el evento de cancelación de la suscripción que se
+      // canceló como parte de ese mismo borrado (o llega tarde/reintentado
+      // después). Sin esta comprobación, este webhook resucitaría un
+      // registro de pago para una cuenta que el usuario pidió eliminar
+      // por completo. Si en el futuro el mismo email vuelve a pagar,
+      // checkout.session.completed (la rama de arriba) lo crea de la
+      // forma normal -- este criterio solo evita crear un registro a
+      // partir de un evento que, por sí mismo, no aporta nada que
+      // "actualizar" si no había nada que actualizar.
+      const esEventoDeCancelacion = event.type === 'customer.subscription.deleted' || sub.status === 'canceled';
       // Nunca se toca un registro 'lifetime' desde un evento de
       // suscripción -- no debería ocurrir (lifetime no crea
       // suscripciones), pero es una comprobación barata que evita
       // cualquier cruce accidental de datos.
       if (existing?.plan === 'lifetime') {
         // no-op
+      } else if (!existing && esEventoDeCancelacion) {
+        // no-op -- ver comentario de arriba
       } else if (!esEventoObsoleto(existing, eventCreated)) {
         await env.PLANS_KV.put(emailKey, JSON.stringify({
           plan: 'pro',
