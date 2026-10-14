@@ -4970,7 +4970,13 @@ function getVoicesReady() {
 // filtro por idioma base, prioridad: 1) una voz con el BCP-47 EXACTO
 // pedido (p.ej. "zh-CN"); 2) si no hay, cualquier otra voz del mismo
 // idioma base, prefiriendo la que el navegador marca como voz por
-// defecto (voice.default); 3) si no hay ninguna, null.
+// defecto (voice.default); 3) si no hay ninguna, null. DENTRO de cada
+// uno de esos tres niveles se prefiere siempre una voz local
+// (voice.localService === true) sobre una remota -- las voces remotas
+// (servidas por red, típicamente las únicas disponibles para varios
+// idiomas en Chrome/Google) son las que fallan en silencio con textos
+// largos (ver el trocado en chunks más abajo, la otra mitad de este
+// mismo arreglo).
 // "zh" es un caso aparte: zh-HK es cantonés, no chino mandarín -- el
 // texto que se lee siempre es chino simplificado (zh-CN), así que una
 // voz zh-HK leería ese texto con una pronunciación de otra lengua. Se
@@ -4984,20 +4990,133 @@ function pickVoiceForLang(voices, bcp47) {
     const vLang = v.lang && v.lang.toLowerCase();
     return !!vLang && vLang.startsWith(base) && !excluded.includes(vLang);
   });
-  const exact = candidates.find(v => v.lang.toLowerCase() === target);
-  if (exact) return exact;
-  const defaultVoice = candidates.find(v => v.default);
-  if (defaultVoice) return defaultVoice;
-  return candidates[0] || null;
+  if (!candidates.length) return null;
+
+  const preferLocal = (list) => {
+    if (!list.length) return null;
+    const local = list.filter(v => v.localService);
+    return local.length ? local[0] : list[0];
+  };
+
+  const exact = candidates.filter(v => v.lang.toLowerCase() === target);
+  if (exact.length) return preferLocal(exact);
+
+  const defaults = candidates.filter(v => v.default);
+  if (defaults.length) return preferLocal(defaults);
+
+  return preferLocal(candidates);
 }
 
-// Detiene cualquier lectura en curso y repinta el botón con el texto
-// por defecto del idioma activo -- se llama al cambiar de idioma desde
-// el selector de esta misma pantalla (antes el botón se quedaba
-// mostrando "Pausar"/sonando en el idioma anterior, ver commit) y
-// también sirve de estado inicial normal del botón.
+// Trocea el texto en fragmentos de menos de maxLen caracteres: primero
+// por frases (puntuación final habitual, incluidos el "।"/"॥" hindi y
+// la puntuación china/japonesa de ancho completo), y si una frase sola
+// supera maxLen, por palabras dentro de ella -- o por caracteres si el
+// idioma no usa espacios entre palabras (chino, japonés), ya que
+// lastIndexOf(' ', maxLen) no encuentra ninguno y cae al corte duro.
+// Esto es la otra mitad del arreglo: antes se encolaba todo el texto
+// en UNA sola SpeechSynthesisUtterance larga, y las voces remotas
+// servidas por red (las únicas disponibles para varios idiomas en
+// Chrome) fallaban en silencio con textos largos -- el botón pasaba a
+// "Pausa" pero no sonaba nada.
+function splitIntoSpeechChunks(text, maxLen) {
+  const sentences = text.match(/[^.!?。！？।॥]+[.!?。！？।॥]*/g) || [text];
+  const chunks = [];
+  for (const raw of sentences) {
+    const s = raw.trim();
+    if (!s) continue;
+    if (s.length <= maxLen) { chunks.push(s); continue; }
+    let rest = s;
+    while (rest.length > maxLen) {
+      let cut = rest.lastIndexOf(' ', maxLen);
+      if (cut <= 0) cut = maxLen;
+      chunks.push(rest.slice(0, cut).trim());
+      rest = rest.slice(cut).trim();
+    }
+    if (rest) chunks.push(rest);
+  }
+  return chunks;
+}
+
+// Cola de fragmentos pendientes de leer -- pausar/reanudar/detener
+// actúan sobre speechSynthesis directamente (pausa/retoma la utterance
+// que esté sonando en ese momento, el navegador se encarga), así que
+// solo hace falta que speakNextChunk() encole el siguiente fragmento
+// cuando el actual termine (onend), nunca por adelantado.
+let speechChunks = [];
+let speechChunkIndex = 0;
+
+// Fallo real de un fragmento (evento 'error' que no sea
+// 'canceled'/'interrupted', o el vigilante de speakNextChunk() más
+// abajo): para TODA la cola, incluido cualquier residuo que Chrome
+// pudiera tener aún en la suya, y deja el botón desactivado -- nunca
+// debe quedarse en "Pausa" sin sonar.
+function handleSpeechFailure() {
+  window.speechSynthesis?.cancel();
+  speechChunks = [];
+  speechChunkIndex = 0;
+  btnListenTerms.textContent = t('index.consent.voice_unavailable_lang');
+  btnListenTerms.disabled = true;
+}
+
+function speakNextChunk(voice, lang) {
+  if (speechChunkIndex >= speechChunks.length) {
+    btnListenTerms.textContent = t('index.consent.listen_button');
+    // Lectura completada: equivale a haber leído todo, sin necesidad de scroll
+    scrollIndicator?.classList.add('hidden');
+    return;
+  }
+  const utterance = new SpeechSynthesisUtterance(speechChunks[speechChunkIndex]);
+  utterance.lang = lang;
+  utterance.voice = voice;
+
+  // Evita que el vigilante de abajo y onend/onerror actúen dos veces
+  // sobre el mismo fragmento (p.ej. si el vigilante ya dio por fallido
+  // el fragmento y luego, de todos modos, llega un onerror tardío).
+  let settled = false;
+
+  // Vigilante: hay voces remotas que ni siquiera llegan a avisar con
+  // un evento 'error' -- simplemente nunca arrancan a sonar, y el
+  // botón se queda en "Pausa" para siempre sin que onerror se entere.
+  // Si en 5s no se dispara onstart para este fragmento, se trata
+  // exactamente igual que un fallo real (mismo camino que onerror).
+  const watchdog = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    handleSpeechFailure();
+  }, 5000);
+
+  utterance.onstart = () => { clearTimeout(watchdog); };
+  utterance.onend = () => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(watchdog);
+    speechChunkIndex++;
+    speakNextChunk(voice, lang);
+  };
+  utterance.onerror = (e) => {
+    if (settled) return;
+    clearTimeout(watchdog);
+    // 'canceled'/'interrupted' los provoca nuestro propio
+    // synth.cancel() (al parar, cambiar de idioma o empezar de nuevo)
+    // -- no es un fallo real del sintetizador, y quien llamó a
+    // cancel() ya deja el botón en el estado correcto por su cuenta.
+    if (e.error === 'canceled' || e.error === 'interrupted') { settled = true; return; }
+    settled = true;
+    handleSpeechFailure();
+  };
+  window.speechSynthesis.speak(utterance);
+}
+
+// Detiene cualquier lectura en curso (toda la cola, no solo el
+// fragmento actual) y repinta el botón con el texto por defecto del
+// idioma activo -- se llama al cambiar de idioma desde el selector de
+// esta misma pantalla (antes el botón se quedaba mostrando
+// "Pausar"/sonando en el idioma anterior, ver commit) y también sirve
+// de estado inicial normal del botón.
 function resetListenTermsButton() {
   window.speechSynthesis?.cancel();
+  speechChunks = [];
+  speechChunkIndex = 0;
   btnListenTerms.disabled = false;
   btnListenTerms.textContent = t('index.consent.listen_button');
 }
@@ -5010,7 +5129,9 @@ btnListenTerms.addEventListener('click', async () => {
     return;
   }
 
-  // Pausar / reanudar si ya hay una lectura en curso
+  // Pausar / reanudar -- actúan sobre el fragmento que esté sonando en
+  // ese momento de la cola completa (ver speakNextChunk); el navegador
+  // lo retoma exactamente donde se quedó.
   if (synth.speaking && !synth.paused) {
     synth.pause();
     btnListenTerms.textContent = t('index.consent.listen_button');
@@ -5036,6 +5157,19 @@ btnListenTerms.addEventListener('click', async () => {
     btnListenTerms.disabled = true;
     return;
   }
+  // Para diagnosticar en el navegador qué voz exacta se eligió --
+  // sobre todo si es local o remota (localService), que es lo que
+  // distingue el caso que falla en silencio.
+  console.info('[Escuchar términos] voz elegida:', voice.name, '| lang:', voice.lang, '| localService:', voice.localService);
+
+  // Vacía cualquier resto de un intento anterior -- nuestra cola de
+  // fragmentos Y cualquier utterance que Chrome pudiera tener todavía
+  // en la suya -- ANTES de construir la lectura nueva. Encadenar
+  // speak() justo después de cancel() sin este vaciado explícito antes
+  // puede dejar a Chrome atascado con un residuo del intento anterior.
+  synth.cancel();
+  speechChunks = [];
+  speechChunkIndex = 0;
 
   // Leer todos los bloques de términos EN EL IDIOMA ACTIVO -- su texto
   // ya sale traducido (data-i18n-html, ver applyI18n), así que ahora
@@ -5044,20 +5178,8 @@ btnListenTerms.addEventListener('click', async () => {
     .map(el => el.textContent.replace(/\s+/g, ' ').trim())
     .join('. ');
 
-  const utterance = new SpeechSynthesisUtterance(fullText);
-  utterance.lang = targetLang;
-  utterance.voice = voice;
-
-  const resetButton = () => { btnListenTerms.textContent = t('index.consent.listen_button'); };
-  utterance.onend = () => {
-    resetButton();
-    // Lectura completada: equivale a haber leído todo, sin necesidad de scroll
-    scrollIndicator?.classList.add('hidden');
-  };
-  utterance.onerror = resetButton;
-
-  synth.cancel();
-  synth.speak(utterance);
+  speechChunks = splitIntoSpeechChunks(fullText, 200);
+  speakNextChunk(voice, targetLang);
   btnListenTerms.textContent = t('index.consent.pause_button_active');
 });
 
