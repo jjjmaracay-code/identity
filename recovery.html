@@ -30,7 +30,7 @@
   body {
     background: var(--bg);
     min-height: 100vh;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'Noto Sans Devanagari', 'Noto Sans SC', 'Noto Sans JP', system-ui, -apple-system, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -81,6 +81,20 @@
     font-weight: 900;
     text-shadow: 0 0 10px #ff4444, 0 0 25px rgba(255,68,68,0.6);
     margin-bottom: 8px;
+  }
+
+  /* El letter-spacing/uppercase de marca rompe el devanagari (hindi) y
+     afea el CJK -- ver el mismo bloque en index.html para el porqué
+     completo. document.documentElement.lang lo fija i18n/loader.js.
+     .rec-brand (el logotipo IDENTIFLY de esta página) es la única
+     excepción: conserva su espaciado de marca en los 12 idiomas. */
+  html:lang(hi) *, html:lang(zh) *, html:lang(ja) * {
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+  html:lang(hi) .rec-brand, html:lang(zh) .rec-brand, html:lang(ja) .rec-brand {
+    letter-spacing: 10px !important;
+    text-transform: uppercase !important;
   }
 
   .rec-tagline {

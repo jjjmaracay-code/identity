@@ -34,7 +34,7 @@
     background: var(--bg);
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'Noto Sans Devanagari', 'Noto Sans SC', 'Noto Sans JP', system-ui, -apple-system, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -89,6 +89,20 @@
     font-weight: 900;
     text-shadow: 0 0 10px #aaff00, 0 0 25px rgba(170,255,0,0.6);
     margin-bottom: 8px;
+  }
+
+  /* El letter-spacing/uppercase de marca rompe el devanagari (hindi) y
+     afea el CJK -- ver el mismo bloque en index.html para el porqué
+     completo. document.documentElement.lang lo fija i18n/loader.js.
+     .reg-brand (el logotipo IDENTIFLY de esta página) es la única
+     excepción: conserva su espaciado de marca en los 12 idiomas. */
+  html:lang(hi) *, html:lang(zh) *, html:lang(ja) * {
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+  html:lang(hi) .reg-brand, html:lang(zh) .reg-brand, html:lang(ja) .reg-brand {
+    letter-spacing: 10px !important;
+    text-transform: uppercase !important;
   }
 
   .reg-tagline {
@@ -851,11 +865,18 @@
       <div class="field-wrap">
         <div class="field-label" data-i18n="register.step1.language_label">Idioma</div>
         <select class="field-input" id="r-language">
-          <option value="es">🇪🇸 Español</option>
-          <option value="en">🇬🇧 English</option>
-          <option value="fr">🇫🇷 Français</option>
-          <option value="pt">🇵🇹 Português</option>
-          <option value="de">🇩🇪 Deutsch</option>
+          <option value="es">Español</option>
+          <option value="ca">Català</option>
+          <option value="eu">Euskara</option>
+          <option value="gl">Galego</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="pt">Português</option>
+          <option value="hi">हिन्दी</option>
+          <option value="zh">简体中文</option>
+          <option value="ru">Русский</option>
+          <option value="ja">日本語</option>
         </select>
         <div class="field-hint" data-i18n="register.step1.language_hint">Se fijará como idioma de tu cuenta tras el registro</div>
       </div>
@@ -1499,8 +1520,11 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
       body: JSON.stringify({ template: 'verification', to_name: name, to_email: email })
     });
     if (!sendRes.ok) {
-      const errData = await sendRes.json().catch(() => ({}));
-      showToast(errData.error || t('register.step1.send_error'));
+      // Nunca se muestra errData.error en crudo (p.ej. "rate_limited",
+      // o cualquier detalle interno que el servidor llegara a incluir) --
+      // 429 tiene su propio mensaje claro; cualquier otro fallo usa el
+      // genérico ya existente.
+      showToast(sendRes.status === 429 ? t('common.too_many_attempts') : t('register.step1.send_error'));
       btn.disabled = false;
       btn.textContent = t('register.step1.submit_button');
       return;
@@ -1553,8 +1577,9 @@ document.getElementById('btn-resend').addEventListener('click', async () => {
       body: JSON.stringify({ template: 'verification', to_name: step1Data.name, to_email: step1Data.email })
     });
     if (!sendRes.ok) {
-      const errData = await sendRes.json().catch(() => ({}));
-      showToast(errData.error || t('register.step2.resend_error'));
+      // Mismo criterio que en el envío del paso 1: nunca errData.error en
+      // crudo, 429 con su propio mensaje claro.
+      showToast(sendRes.status === 429 ? t('common.too_many_attempts') : t('register.step2.resend_error'));
     } else {
       showToast(t('register.step2.resend_success'));
     }
@@ -1602,6 +1627,16 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
       // problema de red (ver más abajo): se deja avanzar y se reintenta
       // en segundo plano desde index.html.
       networkOrServerError = true;
+    } else if (res.status === 429) {
+      // Límite de peticiones, no un código incorrecto -- antes caía en
+      // la rama genérica de abajo y mostraba "Código incorrecto o
+      // caducado", engañoso cuando el código podía ser correcto.
+      codeBuffer = '';
+      updateCodeDisplay();
+      showToast(t('common.too_many_attempts'));
+      btn.textContent = t('register.step2.submit_button');
+      checkStep2Ready();
+      return;
     } else {
       // 4xx: el servidor SÍ recibió la petición y el código es
       // incorrecto o caducó — rechazo explícito, no hay avance posible.
@@ -1818,6 +1853,12 @@ function showToast(msg) {
     const btnSkip = document.getElementById('tour-btn-skip');
     if (btnNext) btnNext.addEventListener('click', nextStep);
     if (btnSkip) btnSkip.addEventListener('click', finish);
+    // Mismo motivo que en index.html: btn-skip solo se traducía vía el
+    // barrido inicial de applyI18n(document), que puede correr sobre un
+    // DOM aún incompleto si window.i18nReady resuelve mientras el HTML
+    // todavía se está parseando. Fijarlo aquí explícitamente, igual que
+    // showStep() ya hace con btn-next, no depende de ese orden de carga.
+    if (btnSkip) window.i18nReady.finally(() => { btnSkip.textContent = t('register.tour.skip_button'); });
     window.regTour.init();
   }
 

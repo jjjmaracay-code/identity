@@ -276,7 +276,13 @@
 // recuperación de acceso, iniciales del placeholder de foto) y los 5
 // diccionarios /i18n/*.json con la clave nueva
 // index.recover_access.intro_unknown_email.
-const APP_VERSION = '30';
+// v31: fase de 12 idiomas -- añade ca/eu/gl/hi/zh/ru/ja a CACHE_URLS (los
+// 7 diccionarios nuevos) junto a los 5 ya existentes. Sube la versión
+// para que activate() purgue la v30: un dispositivo que ya tuviera un
+// idioma cacheado desde antes de esta fase seguiría sirviendo ese
+// diccionario viejo (sin las claves eliminadas en esta misma fase, ver
+// commit) para siempre sin este cambio de versión, igual que en v10-v12.
+const APP_VERSION = '31';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -299,6 +305,13 @@ const CACHE_URLS = [
   '/i18n/fr.json',
   '/i18n/pt.json',
   '/i18n/de.json',
+  '/i18n/ca.json',
+  '/i18n/eu.json',
+  '/i18n/gl.json',
+  '/i18n/hi.json',
+  '/i18n/zh.json',
+  '/i18n/ru.json',
+  '/i18n/ja.json',
   '/business.css?v=' + APP_VERSION,
   '/business.js?v=' + APP_VERSION,
 ];

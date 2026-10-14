@@ -58,7 +58,7 @@
     background: var(--bg);
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', 'Noto Sans Devanagari', 'Noto Sans SC', 'Noto Sans JP', system-ui, -apple-system, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -146,6 +146,26 @@
     user-select: none;
     position: relative;
     z-index: 101;
+  }
+
+  /* El letter-spacing/uppercase "neón" de marca que usa el resto de la
+     app rompe visualmente el devanagari (hindi) -- separa las letras
+     dentro de una misma palabra, afectando a conjuntos que deben leerse
+     unidos -- y afea el CJK (chino/japonés) sin necesidad.
+     document.documentElement.lang lo fija i18n/loader.js en cada carga
+     o cambio de idioma. !important porque gran parte del espaciado de
+     este archivo
+     está en estilos inline, que si no ganarían siempre. El logotipo
+     IDENTIFLY (.pin-brand) es la ÚNICA excepción a propósito: es la
+     marca, no texto a traducir, y conserva su espaciado en los 12
+     idiomas. */
+  html:lang(hi) *, html:lang(zh) *, html:lang(ja) * {
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+  html:lang(hi) .pin-brand, html:lang(zh) .pin-brand, html:lang(ja) .pin-brand {
+    letter-spacing: 10px !important;
+    text-transform: uppercase !important;
   }
 
   .pin-label {
@@ -3694,11 +3714,18 @@
       <div class="field-wrap">
         <div class="field-label" data-i18n="index.step1.language_label">Idioma</div>
         <select class="field-input" id="f-language">
-          <option value="es">🇪🇸 Español</option>
-          <option value="en">🇬🇧 English</option>
-          <option value="fr">🇫🇷 Français</option>
-          <option value="pt">🇵🇹 Português</option>
-          <option value="de">🇩🇪 Deutsch</option>
+          <option value="es">Español</option>
+          <option value="ca">Català</option>
+          <option value="eu">Euskara</option>
+          <option value="gl">Galego</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="pt">Português</option>
+          <option value="hi">हिन्दी</option>
+          <option value="zh">简体中文</option>
+          <option value="ru">Русский</option>
+          <option value="ja">日本語</option>
         </select>
       </div>
       <div class="field-wrap">
@@ -4651,8 +4678,10 @@ document.getElementById('btn-recover-send-code')?.addEventListener('click', asyn
       body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: email })
     });
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      _mostrarMensajeRecuperarAcceso(errData.error || t('index.recover_access.send_error'), true);
+      // Nunca se muestra errData.error en crudo (p.ej. "rate_limited") --
+      // 429 tiene su propio mensaje claro; cualquier otro fallo usa el
+      // genérico ya existente.
+      _mostrarMensajeRecuperarAcceso(res.status === 429 ? t('common.too_many_attempts') : t('index.recover_access.send_error'), true);
       btn.disabled = false;
       btn.textContent = t('index.recover_access.send_button');
       return;
@@ -4685,7 +4714,7 @@ document.getElementById('btn-recover-resend')?.addEventListener('click', async (
       body: JSON.stringify({ template: 'verification', to_name: _reg.name || '', to_email: email })
     });
     if (res.ok) _mostrarMensajeRecuperarAcceso(t('index.recover_access.sent_neutral'), false);
-    else _mostrarMensajeRecuperarAcceso(t('index.recover_access.resend_error'), true);
+    else _mostrarMensajeRecuperarAcceso(res.status === 429 ? t('common.too_many_attempts') : t('index.recover_access.resend_error'), true);
   } catch (_) {
     _mostrarMensajeRecuperarAcceso(t('index.recover_access.network_error_short'), true);
   }
@@ -4741,7 +4770,10 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
       window.location.reload();
       return;
     }
-    _mostrarMensajeRecuperarAcceso(t('index.recover_access.wrong_code'), true);
+    // 429: límite de peticiones, no un código incorrecto -- antes caía
+    // igual que cualquier otro fallo y mostraba "Código incorrecto o
+    // caducado", engañoso cuando el código podía ser correcto.
+    _mostrarMensajeRecuperarAcceso(res.status === 429 ? t('common.too_many_attempts') : t('index.recover_access.wrong_code'), true);
     btn.disabled = false;
     btn.textContent = t('index.recover_access.verify_button');
   } catch (_) {
@@ -8865,6 +8897,18 @@ if (document.readyState === 'loading') {
     const btnSkip = document.getElementById('tour-btn-skip');
     if (btnNext) btnNext.addEventListener('click', nextStep);
     if (btnSkip) btnSkip.addEventListener('click', finish);
+    // btn-skip no se vuelve a tocar en ningún otro sitio tras la carga
+    // (a diferencia de btn-next, que showStep() ya reescribe con t() en
+    // cada paso) -- su único data-i18n="register.tour.skip_button" del
+    // HTML dependía de que el barrido inicial de applyI18n(document)
+    // llegara a este bloque, que vive al final del documento: si
+    // window.i18nReady resolvía mientras el HTML aún se seguía
+    // parseando, ese barrido corría sobre un DOM todavía incompleto y
+    // este botón se quedaba en el texto literal del HTML (español),
+    // mientras btn-next sí se traducía correctamente más tarde. Fijarlo
+    // aquí explícitamente, igual que ya hace btn-next, no depende de
+    // ese orden de carga.
+    if (btnSkip) window.i18nReady.finally(() => { btnSkip.textContent = t('register.tour.skip_button'); });
     window.idxTour.init();
   }
 

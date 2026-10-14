@@ -28,7 +28,12 @@
 // que la página arranque igual, con las claves crudas como fallback, si ningún
 // diccionario llegara a cargar por cualquier motivo.
 (function () {
-  var SUPPORTED_LANGS = ['es', 'en', 'fr', 'pt', 'de'];
+  // 12 idiomas (fase 3): es/ca/eu/gl/en/fr/de/pt/hi/zh/ru/ja -- zh es
+  // siempre chino SIMPLIFICADO. La detección usa los 2 primeros
+  // caracteres de navigator.language en minúsculas, lo que ya cubre
+  // "es-ES"->es, "pt-BR"->pt, "zh-TW"/"zh-HK"/"zh-CN"->zh,
+  // "en-US"->en, "fr-CA"->fr, "de-AT"->de, etc. sin lógica aparte.
+  var SUPPORTED_LANGS = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja'];
   var DICT = {};
 
   function detectLanguage() {
@@ -38,16 +43,25 @@
         return reg.language;
       }
     } catch (e) {}
-    var navLangs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'es'];
+    var navLangs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
     for (var i = 0; i < navLangs.length; i++) {
       var code = String(navLangs[i] || '').slice(0, 2).toLowerCase();
       if (SUPPORTED_LANGS.indexOf(code) !== -1) return code;
     }
-    return 'es';
+    // Cualquier idioma del navegador que no esté entre los 12 soportados
+    // cae en inglés -- antes caía en español, pero español ya es uno de
+    // los 12 idiomas explícitos de la lista, no un "idioma por defecto
+    // universal" para hablantes de otros idiomas no soportados.
+    return 'en';
   }
 
   var LANG = detectLanguage();
   window.currentLanguage = LANG;
+  // document.documentElement.lang es lo que hace coincidir los selectores
+  // CSS :lang(hi)/:lang(zh)/:lang(ja) (ver letter-spacing/text-transform
+  // en el <style> de cada página) -- sin esto :lang() nunca coincide con
+  // nada, porque el <html lang="..."> del documento nunca cambiaba.
+  try { document.documentElement.lang = LANG; } catch (e) {}
 
   window.t = function (key) {
     return Object.prototype.hasOwnProperty.call(DICT, key) ? DICT[key] : key;
@@ -93,6 +107,7 @@
       .then(function (dict) {
         DICT = dict || {};
         window.currentLanguage = lang;
+        try { document.documentElement.lang = lang; } catch (e) {}
         applyI18n(document);
         return DICT;
       });
@@ -109,6 +124,7 @@
       if (dict) return dict;
       if (LANG === 'es') return {};
       window.currentLanguage = 'es';
+      try { document.documentElement.lang = 'es'; } catch (e) {}
       return fetch('/i18n/es.json')
         .then(function (res) { return res.ok ? res.json() : {}; })
         .catch(function () { return {}; });
