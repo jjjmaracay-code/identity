@@ -1,3 +1,5 @@
+import { hashTrialFingerprint, trialFingerprintKey } from '../_shared/trial-fingerprint.js';
+
 // Comparación en tiempo constante (mismo patrón que check-plan.js /
 // stripe-webhook.js) — evita que una diferencia de tiempo de respuesta
 // filtre por cuántos caracteres iniciales coincide un código adivinado.
@@ -29,7 +31,9 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    const { email, name, code } = await request.json();
+    // "name" ya no se lee del body -- ver minimización de datos más abajo,
+    // donde tampoco se escribe en reg:{email}.
+    const { email, code } = await request.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Falta email' }), {
@@ -136,17 +140,45 @@ export async function onRequestPost(context) {
     const existingRaw = await env.PLANS_KV.get('reg:' + emailKey);
     const existing = existingRaw ? JSON.parse(existingRaw) : null;
 
+    // Huella anti-reabuso del periodo de prueba (ver
+    // functions/_shared/trial-fingerprint.js): si este email ya borró su
+    // cuenta antes, delete-account.js dejó esta huella. Se comprueba
+    // ANTES de fijar registeredAt -- ese campo es lo que
+    // functions/_shared/plan-access.js (getPlanStatus/computePaidActive,
+    // usado por check-plan.js) usa en el SERVIDOR para decidir si el
+    // trial sigue vigente. Es la fuente de verdad real: el cliente
+    // también recibe trialUsed (ver más abajo) para no mostrar una
+    // cuenta atrás de 30 días que el servidor nunca va a honrar, pero
+    // aunque el cliente manipulara su propio localStorage, el servidor
+    // seguiría bloqueando el acceso desde el primer momento.
+    let trialUsed = false;
+    try {
+      const trialHash = await hashTrialFingerprint(email, env.IP_HASH_SALT);
+      trialUsed = !!(await env.PLANS_KV.get(trialFingerprintKey(trialHash)));
+    } catch (_) { trialUsed = false; }
+
     // El cliente reintenta esta llamada hasta 3 veces si falla la red —
     // si ya existe un registro para este email se conservan registeredAt
     // y token originales sin pisarlos, o cada reintento alargaría el
     // trial y regeneraría un token distinto al que el cliente ya pueda
-    // tener guardado.
-    const registeredAt = existing?.registeredAt || new Date().toISOString();
+    // tener guardado. Si trialUsed es true, registeredAt se fija a una
+    // fecha ya muy pasada (época Unix) para que
+    // diasTranscurridos >= TRIAL_DAYS sea cierto desde ya en
+    // getPlanStatus() -- el servidor nunca concede un trial nuevo a esta
+    // cuenta, sin importar cuántas veces se reintente el registro.
+    const registeredAt = trialUsed
+      ? new Date(0).toISOString()
+      : (existing?.registeredAt || new Date().toISOString());
     const token = existing?.token || crypto.randomUUID();
 
+    // Minimización de datos: "name" ya no se guarda (nunca se lee en
+    // ningún otro punto del backend -- era puramente decorativo). Un
+    // registro antiguo que SÍ tenga "name" de antes de este cambio lo
+    // pierde en el primer put() posterior (reintento, nuevo dispositivo
+    // con el mismo email...) -- no hace falta una migración aparte.
     await env.PLANS_KV.put(
       'reg:' + emailKey,
-      JSON.stringify({ name: name || existing?.name || '', registeredAt, token })
+      JSON.stringify({ registeredAt, token })
     );
 
     // Herencia de plan por email: IDENTIFLY es local-first (el perfil
@@ -172,7 +204,7 @@ export async function onRequestPost(context) {
     // El token se devuelve para que el cliente lo guarde en su propio
     // localStorage — es lo que permite después a check-plan.js verificar
     // el plan de este email sin exponerlo a nadie más (ver check-plan.js).
-    return new Response(JSON.stringify({ ok: true, token, plan, registeredAt }), {
+    return new Response(JSON.stringify({ ok: true, token, plan, registeredAt, trialUsed }), {
       status: 200, headers: { 'Content-Type': 'application/json' }
     });
 

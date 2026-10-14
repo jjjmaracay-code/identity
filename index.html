@@ -3093,10 +3093,29 @@
           <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
           <polyline points="9 12 11 14 15 10"/>
         </svg>
-        <span data-i18n="index.consent.who_we_are_title">Quiénes somos y qué hacemos</span>
+        <span data-i18n="index.consent.who_we_are_title">Quiénes somos</span>
       </div>
       <div class="consent-block-text" data-i18n-html="index.consent.who_we_are_text">
-        <strong>IDENTIFLY</strong> es una aplicación de tarjeta de contacto digital. Tus datos personales se almacenan <strong>exclusivamente en tu dispositivo</strong> mediante localStorage. No los enviamos, vendemos ni cedemos a terceros bajo ninguna circunstancia.
+        <strong>IDENTIFLY</strong> es una aplicación de tarjeta de contacto digital. Responsable del tratamiento: <strong>Jhonatan David Maracay Ortiz</strong> (Hydra Apex Labs). Contacto para privacidad: <strong>privacidad@identifly.app</strong>.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
+        </svg>
+        <span data-i18n="index.consent.data_processed_title">Qué datos tratamos y dónde</span>
+      </div>
+      <div class="consent-block-text" data-i18n-html="index.consent.data_processed_text">
+        <strong>En tu dispositivo:</strong> tu tarjeta (foto, nombre, teléfonos, redes y datos de contacto), tu contraseña (protegida mediante hash, nunca en texto plano) y tus preferencias. Solo salen de tu dispositivo cuando tú decides compartirlos por QR o enlace.<br><br>
+        <strong>En nuestros servidores:</strong> únicamente tu email y tu plan, para gestionar tu cuenta, la verificación y la suscripción. Por seguridad, tu dirección IP se guarda transformada de forma irreversible (nunca en claro) durante un máximo de 24 horas para limitar abusos.<br><br>
+        <strong>Pagos:</strong> los gestiona Stripe. Nunca vemos ni guardamos los datos de tu tarjeta bancaria.<br><br>
+        <strong>Tarjeta Business:</strong> si la publicas, su contenido se guarda en nuestros servidores para que pueda verse por su enlace público, hasta que borres tu cuenta.<br><br>
+        <strong>Escaneo de documentos (opcional):</strong> se realiza íntegramente en tu dispositivo. El archivo no se envía a ningún servidor.<br><br>
+        Los enlaces de compartir caducan a los 30 días.
       </div>
     </div>
 
@@ -3108,10 +3127,37 @@
           <line x1="3" y1="10" x2="21" y2="10"/>
           <line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="13" y2="18"/>
         </svg>
-        <span data-i18n="index.consent.legal_basis_title">Base legal — RGPD Art. 6 y 7</span>
+        <span data-i18n="index.consent.legal_basis_title">Base legal</span>
       </div>
       <div class="consent-block-text" data-i18n-html="index.consent.legal_basis_text">
-        El tratamiento de tus datos se basa en tu <strong>consentimiento explícito</strong> (Art. 6.1.a RGPD). Tienes derecho a retirar este consentimiento en cualquier momento sin que ello afecte a la licitud del tratamiento previo. Conforme al <strong>Art. 7 RGPD</strong>, este consentimiento es libre, específico, informado e inequívoco.
+        La gestión de tu cuenta y de tu suscripción es necesaria para prestarte el servicio (<strong>Art. 6.1.b RGPD</strong>). La facturación se conserva por obligación legal (<strong>Art. 6.1.c</strong>). Las medidas antiabuso (como la huella que evita reutilizar el periodo de prueba) se basan en nuestro interés legítimo en proteger el servicio (<strong>Art. 6.1.f</strong>).
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span data-i18n="index.consent.providers_title">Proveedores</span>
+      </div>
+      <div class="consent-block-text" data-i18n-html="index.consent.providers_text">
+        <strong>Cloudflare</strong> (alojamiento), <strong>Resend</strong> (envío de emails) y <strong>Stripe</strong> (pagos). Algunos tratan datos fuera de la UE, en EE. UU., con las garantías del RGPD (Marco de Privacidad de Datos UE-EE. UU. o cláusulas contractuales tipo).
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span data-i18n="index.consent.retention_title">Conservación</span>
+      </div>
+      <div class="consent-block-text" data-i18n-html="index.consent.retention_text">
+        Tus datos de cuenta se conservan mientras tengas cuenta y se eliminan de nuestros servidores en cuanto la borras. Los datos de facturación se conservan el plazo que exige la ley. Los códigos de verificación caducan a los 10 minutos.<br><br>
+        Si borras tu cuenta, guardamos durante 24 meses una huella irreversible de tu email, que no permite identificarte, solo para evitar que el periodo de prueba se use más de una vez.
       </div>
     </div>
 
@@ -3123,16 +3169,39 @@
           <circle cx="18" cy="8" r="2" fill="#AAFF00" stroke="none" opacity="0.4"/>
           <line x1="18" y1="6" x2="18" y2="10"/><line x1="16" y1="8" x2="20" y2="8"/>
         </svg>
-        <span data-i18n="index.consent.rights_title">Tus derechos — RGPD Arts. 15–22</span>
+        <span data-i18n="index.consent.rights_title">Tus derechos</span>
       </div>
       <div class="consent-block-text" data-i18n-html="index.consent.rights_text">
-        <strong>Art. 15 — Acceso:</strong> Puedes consultar todos tus datos en cualquier momento desde la pantalla de configuración.<br><br>
-        <strong>Art. 16 — Rectificación:</strong> Puedes modificar tus datos cuando quieras.<br><br>
-        <strong>Art. 17 — Supresión ("derecho al olvido"):</strong> Puedes eliminar todos tus datos borrando los datos del navegador o desinstalando la app.<br><br>
-        <strong>Art. 18 — Limitación:</strong> Puedes bloquear qué datos se incluyen en tu QR mediante los interruptores de permisos.<br><br>
-        <strong>Art. 20 — Portabilidad:</strong> Tus datos están en tu dispositivo y son exportables en formato vCard estándar a través del QR.<br><br>
-        <strong>Art. 21 — Oposición:</strong> Puedes oponerte al uso de cualquier dato desactivando su permiso individualmente.<br><br>
-        <strong>Art. 22 — Decisiones automatizadas:</strong> IDENTIFLY no toma decisiones automatizadas sobre tu persona ni realiza perfilado.
+        Acceso, rectificación, supresión, limitación, portabilidad y oposición. Puedes borrar tu cuenta tú mismo desde la app en cualquier momento; para lo demás, escríbenos a <strong>privacidad@identifly.app</strong>. Si no estás conforme, puedes reclamar ante la Agencia Española de Protección de Datos (<strong>www.aepd.es</strong>).
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.618 5.984A11 11 0 0 0 3.382 5.984"/>
+          <path d="M12 2v2"/><circle cx="12" cy="14" r="8"/>
+          <path d="M12 10v4l3 2"/>
+        </svg>
+        <span data-i18n="index.consent.min_age_title">Edad mínima</span>
+      </div>
+      <div class="consent-block-text" data-i18n="index.consent.min_age_text">
+        Debes tener al menos 14 años para usar IDENTIFLY.
+      </div>
+    </div>
+
+    <div class="consent-block">
+      <div class="consent-block-title">
+        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        <span data-i18n="index.consent.plans_title">Planes y pagos</span>
+      </div>
+      <div class="consent-block-text" data-i18n-html="index.consent.plans_text">
+        El plan <strong>Pro</strong> mensual se renueva automáticamente. Puedes cancelarlo cuando quieras: no se te cobrará la siguiente cuota y mantendrás el acceso hasta el final del periodo ya pagado. No se reembolsan periodos ya pagados. Si borras tu cuenta, la suscripción se cancela y el acceso termina en ese momento, sin reembolso.<br><br>
+        El plan <strong>Lifetime</strong> es un pago único y se pierde al borrar la cuenta. Al pagar, aceptas que el servicio empiece de inmediato y reconoces que pierdes el derecho de desistimiento de 14 días.<br><br>
+        La verificación en dos pasos (2FA) es <strong>gratuita</strong> para todos.
       </div>
     </div>
 
@@ -3152,7 +3221,7 @@
         Comparativa con un PIN de 4 dígitos numéricos:<br>
         — PIN 4 numérico: 10.000 combinaciones → roto en <strong>10 segundos</strong> a 1.000 intentos/seg.<br>
         — Contraseña IDENTIFLY: combinaciones astronómicamente mayores → protección radicalmente superior.<br><br>
-        Este nivel cumple y supera los requisitos de medidas técnicas adecuadas establecidos en el <strong>Art. 32 RGPD</strong>. Ningún dato se transmite a servidores externos — tu contraseña nunca sale de tu dispositivo.
+        Este nivel cumple y supera los requisitos de medidas técnicas adecuadas establecidos en el <strong>Art. 32 RGPD</strong>. Tu contraseña nunca sale de tu dispositivo: se guarda protegida y no se envía a ningún servidor.
       </div>
     </div>
 
@@ -3178,49 +3247,12 @@
           <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
           <path d="M9 12l2 2 4-4"/>
         </svg>
-        <span data-i18n="index.consent.twofa_title">Doble factor de autenticación (2FA) — Nivel militar</span>
+        <span data-i18n="index.consent.twofa_title">Verificación en dos pasos (2FA)</span>
       </div>
-      <div class="consent-block-text" data-i18n-html="index.consent.twofa_text">
-        IDENTIFLY ofrece <strong>autenticación de doble factor opcional</strong> que añade una segunda capa de seguridad matemáticamente verificable:<br><br>
-
-        <strong>Factor 1 — Contraseña (algo que sabes)</strong><br>
-        689 mil millones de combinaciones → 21.000 años para romperla.<br><br>
-
-        <strong>Factor 2A — TOTP (algo que tienes)</strong><br>
-        Código de 6 dígitos que cambia cada 30 segundos. El atacante tendría que conocer tu contraseña Y tener tu móvil en ese preciso instante de 30 segundos. Probabilidad de ataque exitoso por fuerza bruta: 1 en 10⁶ cada 30 segundos = <strong>prácticamente imposible</strong>.<br><br>
-
-        <strong>Factor 2B — Biométrico (algo que eres)</strong><br>
-        Face ID / huella dactilar vía WebAuthn/FIDO2. Estándar utilizado por bancos, gobiernos y servicios de defensa. La probabilidad de falsa aceptación del Face ID de Apple es de <strong>1 en 1000000</strong> (0,0001%).<br><br>
-
-        <strong>Con los tres factores simultáneos:</strong><br>
-        Contraseña × TOTP × Biométrico = probabilidad de acceso no autorizado ≈ <strong>1 en 689 cuadrillones</strong><br>
-        <br><br>
-
-        Este nivel de protección <strong>supera los requisitos de seguridad del Art. 32 RGPD</strong> para datos personales de categoría especial y es equivalente al estándar NIST SP 800-63B Nivel de Garantía 3 (AAL3), el más alto definido por el Instituto Nacional de Estándares de EE.UU.
+      <div class="consent-block-text" data-i18n="index.consent.twofa_text">
+        IDENTIFLY ofrece verificación en dos pasos opcional y gratuita: además de tu contraseña, se te pedirá un código de 6 dígitos que cambia cada 30 segundos en tu app autenticadora (Google Authenticator, Authy...). Así, aunque alguien conociera tu contraseña, no podría entrar sin tu móvil.
       </div>
     </div>
-    <div class="consent-block">
-      <div class="consent-block-title">
-        <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        </svg>
-        <span data-i18n="index.consent.deletion_title">Derecho al olvido y baja voluntaria — Art. 17 RGPD</span>
-      </div>
-      <div class="consent-block-text" data-i18n-html="index.consent.deletion_text">
-        Conforme al <strong>Art. 17 RGPD</strong>, tienes derecho a la supresión de todos tus datos personales en cualquier momento, sin necesidad de justificación.<br><br>
-        IDENTIFLY pone a tu disposición un <strong>botón rojo de baja voluntaria</strong> accesible desde la pantalla de configuración que elimina de forma inmediata e irreversible:<br><br>
-        — Tu perfil completo (nombre, teléfono, email, dirección, redes)<br>
-        — Tu contraseña de acceso.<br>
-        — Tu configuración de doble factor (TOTP y biométrico)<br>
-        — Tu diseño de QR personalizado.<br>
-        — Todos tus permisos y preferencias.<br><br>
-        Dado que todos los datos residen <strong>únicamente en tu dispositivo</strong>, la eliminación es instantánea y total. No existe ninguna copia en servidores externos.
-      </div>
-    </div>
-
     <div class="consent-block">
       <div class="consent-block-title">
         <svg class="consent-icon" viewBox="0 0 24 24" fill="none" stroke="#AAFF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -3290,7 +3322,8 @@
         — <strong>RGPD (UE) 2016/679</strong> — Reglamento General de Protección de Datos.<br><br>
         — <strong>LOPD-GDD (LO 3/2018)</strong> — Ley Orgánica de Protección de Datos y Garantía de los Derechos Digitales.<br><br>
         — <strong>LSSI-CE</strong> — Ley de Servicios de la Sociedad de la Información.<br><br>
-        — <strong>Código Penal Español</strong> — Arts. 197-201 relativos a delitos contra la intimidad y el secreto de las comunicaciones.
+        — <strong>Código Penal Español</strong> — Arts. 197-201 relativos a delitos contra la intimidad y el secreto de las comunicaciones.<br><br>
+        Este texto se ofrece traducido a varios idiomas por accesibilidad; en caso de discrepancia, <strong>prevalece la versión en español</strong>.
       </div>
     </div>
 
@@ -3325,7 +3358,7 @@
 <div id="screen-pin">
   <div id="screen-no-identity" style="display:none;width:100%;max-width:300px;background:rgba(170,255,0,0.06);border:1px solid rgba(170,255,0,0.3);border-radius:14px;padding:16px 18px;margin:0 auto 18px;text-align:center;font-family:'Inter',sans-serif;">
     <div style="font-size:11.5px;font-weight:500;letter-spacing:0.3px;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:12px;" data-i18n="index.pin.no_identity_text">
-      Este dispositivo no tiene ninguna identidad guardada. Si ya creaste una identidad en otro dispositivo, IDENTIFLY no puede recuperarla aquí porque los datos se guardan solo localmente, no en un servidor.
+      Este dispositivo no tiene ninguna identidad guardada. Tu tarjeta se guarda solo en el dispositivo donde la creaste, así que no podemos recuperarla aquí. Si ya pagaste un plan, puedes vincular tu compra.
     </div>
     <button id="btn-no-identity-register" style="width:100%;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;" data-i18n="index.pin.no_identity_button">Quiero crear una identidad nueva aquí</button>
     <button type="button" id="link-vincular-compra-no-identity" style="display:block;width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;" data-i18n="index.pin.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
@@ -3673,6 +3706,7 @@
       Si tienes un documento personal (DNI, pasaporte, tarjeta de visita) puedes subirlo y el sistema intentará rellenar automáticamente tus datos. Recuerda revisar y completar los campos que queden vacíos — tú tienes siempre la última palabra sobre tu información.
     </div>
     <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;" data-i18n="index.edit.ocr_button">Extraer datos de documento</div>
+    <div style="font-size:9.5px;color:rgba(255,255,255,0.35);font-family:'Inter',sans-serif;line-height:1.5;letter-spacing:0.3px;margin-top:6px;text-align:center;" data-i18n="index.edit.ocr_local_notice">Se procesa en tu dispositivo: el archivo no se envía a ningún servidor.</div>
     <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx" style="display:none">
   </div>
 
@@ -4056,7 +4090,7 @@
   <div class="delete-account-section" id="sec-cuenta">
     <div class="delete-account-label" data-i18n="index.delete.zone_label">Zona de eliminación de datos</div>
     <div class="delete-account-info" data-i18n-html="index.delete.zone_info_html">
-      Conforme al <strong>Art. 17 RGPD</strong> (derecho al olvido), puedes eliminar todos tus datos de IDENTIFLY en cualquier momento. Esta acción es <strong>irreversible</strong>.
+      Borra tu tarjeta de este dispositivo y tu cuenta de nuestros servidores. Si tienes un plan activo, se cancelará sin reembolso. Esta acción es <strong>irreversible</strong>.
     </div>
     <button class="btn-delete-account" id="btn-delete-account">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
@@ -6029,7 +6063,29 @@ async function extractDocxText(file) {
   return result.value || '';
 }
 
+// Tesseract.js (el script principal -- distinto de worker.min.js y del
+// núcleo .wasm.js, que solo son RUTAS dentro de TESSERACT_OPTS para que
+// Tesseract.recognize() las use una vez que la librería ya está
+// cargada) -- bug preexistente en origin/main (confirmado: tampoco
+// estaba en origin/main antes de este lote) donde Tesseract.recognize()
+// se llamaba aquí y en extractTextLocally() sin que esta librería se
+// hubiera cargado nunca, dando "Tesseract is not defined". Pasaba
+// desapercibido porque el camino principal (Gemini) casi siempre tenía
+// éxito antes de llegar a este fallback; ahora que el escaneo es 100%
+// local (ver I.2 de este mismo lote), es el único camino para imágenes
+// y PDFs escaneados, así que el bug bloqueaba el escaneo por completo.
+let _tesseractPromise = null;
+function loadTesseract() {
+  if (!_tesseractPromise) {
+    _tesseractPromise = (typeof Tesseract === 'undefined')
+      ? loadScript('/vendor/tesseract/tesseract.min.js')
+      : Promise.resolve();
+  }
+  return _tesseractPromise;
+}
+
 async function ocrCanvases(canvases) {
+  await loadTesseract();
   let combined = '';
   for (const canvas of canvases) {
     const { data } = await Tesseract.recognize(canvas, 'spa+eng', TESSERACT_OPTS);
@@ -6092,42 +6148,6 @@ document.getElementById('btn-ocr-doc').addEventListener('click', () => {
   document.getElementById('ocr-file-input').click();
 });
 
-// Convierte un File a base64 puro (sin el prefijo data:...;base64,) por
-// trozos, para no reventar la pila con String.fromCharCode.apply en
-// archivos grandes.
-async function fileToBase64(file) {
-  const buf = await file.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
-  }
-  return btoa(binary);
-}
-
-// Extrae datos de contacto vía /api/extract-document (Gemini, en
-// servidor — la clave de API nunca toca el cliente, ver ese archivo).
-// Devuelve null si el servicio no dio nada aprovechable — incluye el
-// caso de un .docx, que Gemini no admite como inlineData (el servidor
-// responde bad_request) y que el fallback local sí sabe leer vía
-// mammoth.js — el llamador decide entonces si usa el fallback.
-async function extractViaGemini(file) {
-  const dataBase64 = await fileToBase64(file);
-  const res = await fetch('/api/extract-document', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      mimeType: file.type,
-      dataBase64,
-      email: _reg.email || null,
-      token: localStorage.getItem('identity_access_token') || null
-    })
-  });
-  const data = await res.json();
-  if (!data.ok) return null;
-  return Object.keys(data.extracted || {}).length ? data.extracted : null;
-}
 
 // Fallback 100% local (sin red ni CDN externo): decide la estrategia
 // según el tipo de archivo y devuelve el texto crudo, ya pasado por el
@@ -6145,6 +6165,7 @@ async function extractTextLocally(file) {
       text = await ocrCanvases(canvases);
     }
   } else {
+    await loadTesseract();
     const { data } = await Tesseract.recognize(file, 'spa+eng', TESSERACT_OPTS);
     text = data.text || '';
   }
@@ -6170,26 +6191,11 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
   showToast(t('index.import.processing_toast'));
 
   try {
-    let extracted = null;
-    try {
-      extracted = await extractViaGemini(file);
-    } catch (err) {
-      console.error('OCR (Gemini):', err);
-    }
-
-    if (extracted) {
-      // Igual que "pegar texto": se muestra el modal de revisión y el
-      // usuario confirma qué aplicar — nunca se escribe directo en el
-      // formulario sin que lo vea antes.
-      openImportModal();
-      renderImportResults(extracted);
-      return;
-    }
-
-    // Fallback local: sin red, límite diario agotado o error del
-    // servicio de IA — se usa el pipeline local 100% auto-hospedado (ver
-    // arriba) para que el usuario nunca se quede sin nada.
-    showToast(t('index.import.ai_unavailable_toast'));
+    // Escaneo 100% local -- el archivo nunca sale del dispositivo (ver
+    // pipeline auto-hospedado arriba: pdf.js/mammoth.js/Tesseract.js +
+    // extractData()). Antes se intentaba primero /api/extract-document
+    // (Gemini); ese endpoint se retiró (responde 410, ver
+    // functions/api/extract-document.js) y este es ahora el único camino.
     const text = await extractTextLocally(file);
     const extractedLocal = extractData(text);
     const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extractedLocal[k]);

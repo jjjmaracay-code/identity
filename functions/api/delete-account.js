@@ -21,6 +21,8 @@
 // el email en claro en la clave. No lleva salt (a diferencia del hash de
 // IP de Fase 0): el token ya es un UUID de alta entropía que solo conoce
 // quien lo tenía guardado -- un salt añadiría cero resistencia real aquí.
+import { hashTrialFingerprint, trialFingerprintKey, TRIAL_FINGERPRINT_TTL_SECONDS } from '../_shared/trial-fingerprint.js';
+
 function timingSafeEqual(a, b) {
   if (a.length !== b.length) return false;
   let diff = 0;
@@ -219,7 +221,14 @@ export async function onRequestPost(context) {
     // token responda igual que este borrado real. Los datos de
     // facturación de Stripe NO se tocan -- obligación legal de
     // conservación, viven en Stripe, no en nuestro KV.
+    //
+    // trial_used: huella anti-reabuso del periodo de prueba (ver
+    // functions/_shared/trial-fingerprint.js) -- sin ella, borrar la
+    // cuenta y volver a registrarse con el mismo email reiniciaría el
+    // trial indefinidamente. Es irreversible (SHA-256), no es el email
+    // en claro, y vive 24 meses.
     const marcaHash = await hashDeletedMarker(emailKey, token);
+    const trialHash = await hashTrialFingerprint(email, env.IP_HASH_SALT);
     await Promise.all([
       env.PLANS_KV.delete('reg:' + emailKey),
       env.PLANS_KV.delete(emailKey),
@@ -227,6 +236,7 @@ export async function onRequestPost(context) {
       env.PLANS_KV.delete('ratelimit:' + emailKey),
       env.PLANS_KV.delete('ocrlimit:acct:' + emailKey),
       env.PLANS_KV.put('deleted:' + marcaHash, '1', { expirationTtl: 7 * 24 * 3600 }),
+      env.PLANS_KV.put(trialFingerprintKey(trialHash), '1', { expirationTtl: TRIAL_FINGERPRINT_TTL_SECONDS }),
     ]);
 
     return ok();

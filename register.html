@@ -1658,11 +1658,19 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   // Todo correcto (o red caída, ver nota abajo) — guardar registro
   clearInterval(timerInterval);
 
+  // timestamp es la fecha que index.html/paywall.html usan para calcular
+  // los días de prueba restantes (30 - días desde timestamp). Si el
+  // servidor avisa de que este email ya usó su periodo de prueba antes
+  // (data.trialUsed, ver register-complete.js y la huella anti-reabuso
+  // en functions/_shared/trial-fingerprint.js), se fija a una fecha ya
+  // muy pasada para que esa cuenta salga directamente como "finalizado" en vez
+  // de calcular 30 días nuevos -- sin inventar un camino de "sin trial"
+  // aparte del que ya existe.
   const registration = {
     name:      step1Data.name,
     email:     step1Data.email,
     verified:  true,
-    timestamp: new Date().toISOString(),
+    timestamp: data?.trialUsed ? new Date(0).toISOString() : new Date().toISOString(),
     phoneCountryCode: step1Data.phoneCountryCode,
     phoneNumber:      step1Data.phoneNumber,
     language:  step1Data.language,

@@ -54,8 +54,12 @@ export async function onRequestPost(context) {
   if (reg.registeredAt !== registeredAt) return genericReject();
 
   const token = crypto.randomUUID();
-  reg.token = token;
-  await env.PLANS_KV.put('reg:' + emailKey, JSON.stringify(reg));
+  // Reconstruido explícito, no "reg.token = token" + reescribir reg tal
+  // cual -- así un registro antiguo que todavía tuviera "name" (de antes
+  // de la minimización de datos, ver register-complete.js) no lo arrastra
+  // para siempre. registeredAt es el único otro campo que de verdad se
+  // usa en algún sitio (ver comprobación de arriba y el trial).
+  await env.PLANS_KV.put('reg:' + emailKey, JSON.stringify({ registeredAt: reg.registeredAt, token }));
 
   return new Response(JSON.stringify({ ok: true, token }), {
     status: 200, headers: { 'Content-Type': 'application/json' }

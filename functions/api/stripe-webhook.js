@@ -134,7 +134,17 @@ export async function onRequestPost(context) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const email = session.customer_email || session.metadata?.email;
+    // metadata.account_email y client_reference_id los fija
+    // create-checkout.js y NUNCA son visibles ni editables en la página
+    // de pago de Stripe -- a diferencia de customer_email/
+    // customer_details.email, que Stripe Checkout precarga pero deja
+    // que quien paga edite libremente antes de confirmar. El plan se
+    // asigna SIEMPRE según el email del registro (uno de estos dos
+    // campos de confianza) cuando están presentes; solo se cae al
+    // comportamiento antiguo (customer_email/metadata.email) en una
+    // sesión creada ANTES de este cambio, que no los tiene.
+    const email = session.metadata?.account_email || session.client_reference_id
+      || session.customer_email || session.metadata?.email;
     const plan = session.metadata?.plan;
 
     if (email && plan) {

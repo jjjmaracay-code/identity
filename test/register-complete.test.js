@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { onRequestPost } from '../functions/api/register-complete.js';
+import { hashTrialFingerprint, trialFingerprintKey } from '../functions/_shared/trial-fingerprint.js';
+import { getPlanStatus, TRIAL_DAYS } from '../functions/_shared/plan-access.js';
 
 // Simula la validación real de Cloudflare KV: `expiration` (timestamp
 // absoluto) debe ser un número finito al menos 60 segundos en el futuro,
@@ -171,4 +173,64 @@ test('el contador sube correctamente cuando la expiration es válida', async () 
   const dataOk = await resOk.json();
   assert.equal(resOk.status, 200);
   assert.equal(dataOk.ok, true);
+});
+
+// Huella anti-reabuso del trial (ver functions/_shared/trial-fingerprint.js
+// y delete-account.js): comprueba que el SERVIDOR -- no solo lo que
+// register.html muestra -- deniega el trial a una cuenta que ya lo usó
+// antes y borró su cuenta. getPlanStatus() es la misma función que usa
+// check-plan.js en producción; probarla aquí directamente confirma que
+// el bloqueo es real incluso si el cliente manipulara su propia fecha
+// local.
+test('huella de trial existente -> el registro no concede trial (el SERVIDOR lo deniega, no solo el cliente)', async () => {
+  const env = makeEnv();
+  const email = 'ya-uso-trial@example.com';
+  const emailKey = email.toLowerCase();
+
+  // Simula que delete-account.js ya dejó esta huella en un borrado previo.
+  const trialHash = await hashTrialFingerprint(email, env.IP_HASH_SALT);
+  await env.PLANS_KV.put(trialFingerprintKey(trialHash), '1', { expirationTtl: 60 * 24 * 3600 });
+
+  await seedVerifyCode(env, email, '777777');
+  const res = await onRequestPost({ request: makeRequest({ email, code: '777777' }, '192.0.2.70'), env });
+  const data = await res.json();
+  assert.equal(res.status, 200);
+  assert.equal(data.ok, true);
+  assert.equal(data.trialUsed, true, 'la respuesta debe avisar al cliente de que no hay trial');
+
+  // El registeredAt guardado debe ser una fecha ya muy pasada (época
+  // Unix), no "ahora mismo".
+  const reg = JSON.parse(await env.PLANS_KV.get('reg:' + emailKey));
+  assert.equal(reg.registeredAt, new Date(0).toISOString());
+
+  // La prueba real: getPlanStatus() (la misma función de
+  // functions/_shared/plan-access.js que usa check-plan.js) debe
+  // devolver bloqueado:true DESDE YA, sin que el cliente haya tocado
+  // nada -- esto es lo que de verdad impide el acceso, no el aviso al
+  // cliente.
+  const status = await getPlanStatus(env, emailKey);
+  assert.equal(status.paidActive, false);
+  assert.ok(status.diasTranscurridos >= TRIAL_DAYS, `diasTranscurridos (${status.diasTranscurridos}) debería ser >= TRIAL_DAYS (${TRIAL_DAYS})`);
+  assert.equal(status.bloqueado, true, 'el servidor debe bloquear el acceso de inmediato, no conceder 30 días nuevos');
+});
+
+test('email que nunca usó el trial -> registro normal, trial completo de verdad', async () => {
+  const env = makeEnv();
+  const email = 'primera-vez@example.com';
+  const emailKey = email.toLowerCase();
+  // Sin huella trial_used para este email -- caso normal.
+
+  await seedVerifyCode(env, email, '888888');
+  const res = await onRequestPost({ request: makeRequest({ email, code: '888888' }, '192.0.2.71'), env });
+  const data = await res.json();
+  assert.equal(res.status, 200);
+  assert.equal(data.ok, true);
+  assert.equal(data.trialUsed, false);
+
+  const reg = JSON.parse(await env.PLANS_KV.get('reg:' + emailKey));
+  assert.notEqual(reg.registeredAt, new Date(0).toISOString());
+
+  const status = await getPlanStatus(env, emailKey);
+  assert.equal(status.diasTranscurridos, 0);
+  assert.equal(status.bloqueado, false, 'una cuenta recién registrada sin huella debe tener su trial completo');
 });

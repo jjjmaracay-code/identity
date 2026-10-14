@@ -302,7 +302,23 @@
 // cuenta (401 no_verificado). Sube la versión para que activate()
 // purgue la v32 y los dispositivos que ya la tuvieran cacheada reciban
 // index.html actualizado, igual que en v30-v32.
-const APP_VERSION = '33';
+// v34: lote de textos legales veraces -- reescribe la pantalla de
+// consentimiento (quiénes somos, qué datos tratamos y dónde, base
+// legal, proveedores, conservación, derechos, edad mínima, planes y
+// pagos), corrige el aviso "sin identidad" y la zona de borrado, quita
+// las afirmaciones de "biometría/nivel militar" del bloque 2FA (la app
+// nunca tuvo WebAuthn/Face ID), minimiza datos (deja de guardar "name"
+// en el registro), protege el email del checkout frente a Stripe
+// Checkout (metadata.account_email/client_reference_id en vez de
+// customer_email, editable por quien paga), añade la casilla de
+// renuncia al desistimiento de 14 días antes de pagar, añade la huella
+// anti-reabuso del periodo de prueba (servidor Y cliente) y elimina
+// Gemini del escaneo de documentos -- ahora 100% local, sin llamar a
+// /api/extract-document (responde 410). Sube la versión para que
+// activate() purgue la v33 y los dispositivos que ya la tuvieran
+// cacheada reciban index.html/paywall.html actualizados, igual que en
+// v30-v33.
+const APP_VERSION = '34';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
