@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "All your data has been deleted",
 
   "index.delete_confirm.title": "Are you sure?",
-  "index.delete_confirm.text_html": "This action will permanently and irreversibly delete <strong style=\"color:rgba(255,120,120,0.8);\">all your data</strong> from IDENTIFLY:<br><br>\n        — Your profile and personal data<br>\n        — Your access password.<br>\n        — Your 2FA settings<br>\n        — Your custom QR design.<br>\n        — All your permissions",
+  "index.delete_confirm.text_html": "This action will permanently and irreversibly delete <strong style=\"color:rgba(255,120,120,0.8);\">all your data</strong> from IDENTIFLY:<br><br>\n        — Your profile and personal data<br>\n        — Your access password.<br>\n        — Your 2FA settings<br>\n        — Your custom QR design.<br>\n        — All your permissions<br><br>\n        If you have a paid plan, it will be canceled immediately and you'll lose access, with no refund for the period already paid. A Lifetime plan is lost permanently.",
   "index.delete_confirm.confirm_button": "Yes, delete everything — Confirm deletion",
   "index.delete_confirm.cancel_button": "Cancel — Keep my data",
+  "index.delete_confirm.deleting_button": "Deleting...",
+  "index.delete_confirm.offline_toast": "You need a connection to delete your data from the server. Try again with a connection.",
+  "index.delete_confirm.server_error_toast": "The deletion could not be completed. Try again later.",
+  "index.delete_confirm.unverified_title": "We couldn't verify your account",
+  "index.delete_confirm.unverified_text": "We couldn't verify your account on the server. You can delete only this device's data and ask us to delete the server data at {email}",
+  "index.delete_confirm.delete_local_only_button": "Delete only this device",
 
   "index.qr_designer.title": "QR design",
   "index.qr_designer.apply_header_button": "✓ Apply",

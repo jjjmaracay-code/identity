@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "Todos os seus dados foram excluídos",
 
   "index.delete_confirm.title": "Tem certeza?",
-  "index.delete_confirm.text_html": "Esta ação excluirá <strong style=\"color:rgba(255,120,120,0.8);\">todos os seus dados</strong> do IDENTIFLY de forma permanente e irreversível:<br><br>\n        — Seu perfil e dados pessoais<br>\n        — Sua senha de acesso.<br>\n        — Sua configuração de 2FA<br>\n        — Seu design de QR personalizado.<br>\n        — Todas as suas permissões",
+  "index.delete_confirm.text_html": "Esta ação excluirá <strong style=\"color:rgba(255,120,120,0.8);\">todos os seus dados</strong> do IDENTIFLY de forma permanente e irreversível:<br><br>\n        — Seu perfil e dados pessoais<br>\n        — Sua senha de acesso.<br>\n        — Sua configuração de 2FA<br>\n        — Seu design de QR personalizado.<br>\n        — Todas as suas permissões<br><br>\n        Se você tiver um plano pago, ele será cancelado imediatamente e você perderá o acesso, sem reembolso do período já pago. Um plano Lifetime é perdido definitivamente.",
   "index.delete_confirm.confirm_button": "Sim, excluir tudo — Confirmar baixa",
   "index.delete_confirm.cancel_button": "Cancelar — Manter meus dados",
+  "index.delete_confirm.deleting_button": "Excluindo...",
+  "index.delete_confirm.offline_toast": "Você precisa de conexão para excluir seus dados do servidor. Tente novamente com conexão.",
+  "index.delete_confirm.server_error_toast": "Não foi possível concluir a exclusão. Tente novamente mais tarde.",
+  "index.delete_confirm.unverified_title": "Não foi possível verificar sua conta",
+  "index.delete_confirm.unverified_text": "Não conseguimos verificar sua conta no servidor. Você pode excluir apenas os dados deste dispositivo e nos pedir a exclusão no servidor em {email}",
+  "index.delete_confirm.delete_local_only_button": "Excluir apenas este dispositivo",
 
   "index.qr_designer.title": "Design do QR",
   "index.qr_designer.apply_header_button": "✓ Aplicar",

@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "Все ваши данные были удалены",
 
   "index.delete_confirm.title": "Вы уверены?",
-  "index.delete_confirm.text_html": "Это действие безвозвратно и навсегда удалит <strong style=\"color:rgba(255,120,120,0.8);\">все ваши данные</strong> в IDENTIFLY:<br><br>\n        — Ваш профиль и личные данные<br>\n        — Ваш пароль доступа.<br>\n        — Настройки 2FA<br>\n        — Персонализированный дизайн QR-кода.<br>\n        — Все ваши разрешения",
+  "index.delete_confirm.text_html": "Это действие безвозвратно и навсегда удалит <strong style=\"color:rgba(255,120,120,0.8);\">все ваши данные</strong> в IDENTIFLY:<br><br>\n        — Ваш профиль и личные данные<br>\n        — Ваш пароль доступа.<br>\n        — Настройки 2FA<br>\n        — Персонализированный дизайн QR-кода.<br>\n        — Все ваши разрешения<br><br>\n        Если у вас платный план, он будет немедленно отменён, и вы потеряете доступ без возврата средств за уже оплаченный период. План Lifetime теряется безвозвратно.",
   "index.delete_confirm.confirm_button": "Да, удалить всё — подтвердить отказ",
   "index.delete_confirm.cancel_button": "Отмена — сохранить мои данные",
+  "index.delete_confirm.deleting_button": "Удаление...",
+  "index.delete_confirm.offline_toast": "Для удаления ваших данных с сервера необходимо подключение к интернету. Повторите попытку с подключением.",
+  "index.delete_confirm.server_error_toast": "Не удалось завершить удаление. Повторите попытку позже.",
+  "index.delete_confirm.unverified_title": "Не удалось подтвердить вашу учётную запись",
+  "index.delete_confirm.unverified_text": "Мы не смогли подтвердить вашу учётную запись на сервере. Вы можете удалить только данные этого устройства и попросить нас удалить данные с сервера по адресу {email}",
+  "index.delete_confirm.delete_local_only_button": "Удалить только это устройство",
 
   "index.qr_designer.title": "Дизайн QR-кода",
   "index.qr_designer.apply_header_button": "✓ Применить",

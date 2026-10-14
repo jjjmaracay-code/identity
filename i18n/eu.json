@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "Zure datu guztiak ezabatu dira",
 
   "index.delete_confirm.title": "Ziur zaude?",
-  "index.delete_confirm.text_html": "Ekintza honek IDENTIFLYko <strong style=\"color:rgba(255,120,120,0.8);\">zure datu guztiak</strong> betiko eta atzera bota ezin den moduan ezabatuko ditu:<br><br>\n        — Zure profila eta datu pertsonalak<br>\n        — Zure sarbide-pasahitza.<br>\n        — Zure 2FA konfigurazioa<br>\n        — Zure QR diseinu pertsonalizatua.<br>\n        — Zure baimen guztiak",
+  "index.delete_confirm.text_html": "Ekintza honek IDENTIFLYko <strong style=\"color:rgba(255,120,120,0.8);\">zure datu guztiak</strong> betiko eta atzera bota ezin den moduan ezabatuko ditu:<br><br>\n        — Zure profila eta datu pertsonalak<br>\n        — Zure sarbide-pasahitza.<br>\n        — Zure 2FA konfigurazioa<br>\n        — Zure QR diseinu pertsonalizatua.<br>\n        — Zure baimen guztiak<br><br>\n        Ordainpeko plana baduzu, berehala bertan behera utziko da eta sarbidea galduko duzu, ordaindutako epealdiaren itzulketarik gabe. Lifetime plana betiko galduko duzu.",
   "index.delete_confirm.confirm_button": "Bai, dena ezabatu — Baja berretsi",
   "index.delete_confirm.cancel_button": "Utzi — Nire datuak mantendu",
+  "index.delete_confirm.deleting_button": "Ezabatzen...",
+  "index.delete_confirm.offline_toast": "Zerbitzariko zure datuak ezabatzeko konexioa behar duzu. Saiatu berriro konexioarekin.",
+  "index.delete_confirm.server_error_toast": "Ezin izan da ezabaketa osatu. Saiatu berriro geroago.",
+  "index.delete_confirm.unverified_title": "Ezin izan da zure kontua egiaztatu",
+  "index.delete_confirm.unverified_text": "Ezin izan dugu zure kontua zerbitzarian egiaztatu. Gailu honetako datuak bakarrik ezaba ditzakezu eta zerbitzariko ezabaketa eska diezagukezu {email} helbidean",
+  "index.delete_confirm.delete_local_only_button": "Ezabatu gailu hau bakarrik",
 
   "index.qr_designer.title": "QRaren diseinua",
   "index.qr_designer.apply_header_button": "✓ Aplikatu",

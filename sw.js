@@ -293,7 +293,16 @@
 // éxito de register.html. Sube la versión para que activate() purgue
 // la v31 y los dispositivos que ya la tuvieran cacheada reciban
 // index.html/register.html actualizados, igual que en v30-v31.
-const APP_VERSION = '32';
+// v33: conecta "Eliminar todos mis datos" con el borrado real en el
+// servidor (/api/delete-account) -- antes "Baja voluntaria" solo
+// borraba el dispositivo, dejando el email/plan/token huérfanos en
+// PLANS_KV para cualquier cuenta con identity_registration. Añade el
+// aviso de cancelación de plan de pago al texto de confirmación y el
+// camino de recuperación cuando el servidor no puede verificar la
+// cuenta (401 no_verificado). Sube la versión para que activate()
+// purgue la v32 y los dispositivos que ya la tuvieran cacheada reciban
+// index.html actualizado, igual que en v30-v32.
+const APP_VERSION = '33';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

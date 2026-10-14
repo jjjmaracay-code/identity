@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "Toutes vos données ont été supprimées",
 
   "index.delete_confirm.title": "Êtes-vous sûr ?",
-  "index.delete_confirm.text_html": "Cette action supprimera définitivement et de manière irréversible <strong style=\"color:rgba(255,120,120,0.8);\">toutes vos données</strong> d'IDENTIFLY :<br><br>\n        — Votre profil et vos données personnelles<br>\n        — Votre mot de passe d'accès.<br>\n        — Votre configuration 2FA<br>\n        — Votre design de QR personnalisé.<br>\n        — Toutes vos permissions",
+  "index.delete_confirm.text_html": "Cette action supprimera définitivement et de manière irréversible <strong style=\"color:rgba(255,120,120,0.8);\">toutes vos données</strong> d'IDENTIFLY :<br><br>\n        — Votre profil et vos données personnelles<br>\n        — Votre mot de passe d'accès.<br>\n        — Votre configuration 2FA<br>\n        — Votre design de QR personnalisé.<br>\n        — Toutes vos permissions<br><br>\n        Si vous avez un abonnement payant, il sera annulé immédiatement et vous perdrez l'accès, sans remboursement de la période déjà payée. Un plan Lifetime est perdu définitivement.",
   "index.delete_confirm.confirm_button": "Oui, tout supprimer — Confirmer la suppression",
   "index.delete_confirm.cancel_button": "Annuler — Conserver mes données",
+  "index.delete_confirm.deleting_button": "Suppression...",
+  "index.delete_confirm.offline_toast": "Une connexion est nécessaire pour supprimer vos données du serveur. Réessayez avec une connexion.",
+  "index.delete_confirm.server_error_toast": "La suppression n'a pas pu être effectuée. Réessayez plus tard.",
+  "index.delete_confirm.unverified_title": "Nous n'avons pas pu vérifier votre compte",
+  "index.delete_confirm.unverified_text": "Nous n'avons pas pu vérifier votre compte sur le serveur. Vous pouvez supprimer uniquement les données de cet appareil et nous demander la suppression côté serveur à {email}",
+  "index.delete_confirm.delete_local_only_button": "Supprimer uniquement cet appareil",
 
   "index.qr_designer.title": "Design du QR",
   "index.qr_designer.apply_header_button": "✓ Appliquer",

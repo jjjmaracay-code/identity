@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "您的所有数据已被删除",
 
   "index.delete_confirm.title": "您确定吗？",
-  "index.delete_confirm.text_html": "此操作将永久且不可撤销地删除您在IDENTIFLY中的<strong style=\"color:rgba(255,120,120,0.8);\">所有数据</strong>：<br><br>\n        — 您的个人资料和个人数据<br>\n        — 您的访问密码。<br>\n        — 您的2FA设置<br>\n        — 您自定义的QR码设计。<br>\n        — 您的所有权限设置",
+  "index.delete_confirm.text_html": "此操作将永久且不可撤销地删除您在IDENTIFLY中的<strong style=\"color:rgba(255,120,120,0.8);\">所有数据</strong>：<br><br>\n        — 您的个人资料和个人数据<br>\n        — 您的访问密码。<br>\n        — 您的2FA设置<br>\n        — 您自定义的QR码设计。<br>\n        — 您的所有权限设置<br><br>\n        如果您有付费套餐，将立即取消并失去访问权限，已支付的期限不予退款。Lifetime套餐将被永久失去。",
   "index.delete_confirm.confirm_button": "是，删除全部 — 确认注销",
   "index.delete_confirm.cancel_button": "取消 — 保留我的数据",
+  "index.delete_confirm.deleting_button": "正在删除...",
+  "index.delete_confirm.offline_toast": "需要联网才能删除服务器上的数据。请在联网后重试。",
+  "index.delete_confirm.server_error_toast": "删除未能完成，请稍后重试。",
+  "index.delete_confirm.unverified_title": "无法验证您的账户",
+  "index.delete_confirm.unverified_text": "我们无法在服务器上验证您的账户。您可以仅删除此设备上的数据，并通过 {email} 请求我们删除服务器数据",
+  "index.delete_confirm.delete_local_only_button": "仅删除此设备",
 
   "index.qr_designer.title": "QR码设计",
   "index.qr_designer.apply_header_button": "✓ 应用",

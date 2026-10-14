@@ -4079,19 +4079,35 @@
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
         <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
-      <div style="font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;" data-i18n="index.delete_confirm.title">¿Estás seguro?</div>
-      <div style="font-family:Inter,sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.6;" data-i18n-html="index.delete_confirm.text_html">
-        Esta acción eliminará <strong style="color:rgba(255,120,120,0.8);">todos tus datos</strong> de IDENTIFLY de forma permanente e irreversible:<br><br>
-        — Tu perfil y datos personales<br>
-        — Tu contraseña de acceso.<br>
-        — Tu configuración 2FA<br>
-        — Tu diseño de QR personalizado.<br>
-        — Todos tus permisos
+      <div id="delete-confirm-normal">
+        <div style="font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;" data-i18n="index.delete_confirm.title">¿Estás seguro?</div>
+        <div style="font-family:Inter,sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.6;" data-i18n-html="index.delete_confirm.text_html">
+          Esta acción eliminará <strong style="color:rgba(255,120,120,0.8);">todos tus datos</strong> de IDENTIFLY de forma permanente e irreversible:<br><br>
+          — Tu perfil y datos personales<br>
+          — Tu contraseña de acceso.<br>
+          — Tu configuración 2FA<br>
+          — Tu diseño de QR personalizado.<br>
+          — Todos tus permisos<br><br>
+          Si tienes un plan de pago, se cancelará de inmediato y perderás el acceso, sin reembolso del periodo pagado. Un plan Lifetime se pierde definitivamente.
+        </div>
+      </div>
+      <!-- Se muestra en vez del bloque de arriba cuando el servidor
+           responde 401 no_verificado al intentar el borrado (ver
+           btn-confirm-delete más abajo): no se borra nada todavía, se
+           ofrece borrar solo este dispositivo o cancelar. -->
+      <div id="delete-confirm-unverified" style="display:none;">
+        <div style="font-family:Inter,sans-serif;font-size:14px;font-weight:700;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;" data-i18n="index.delete_confirm.unverified_title">No se pudo verificar tu cuenta</div>
+        <div id="delete-confirm-unverified-text" style="font-family:Inter,sans-serif;font-size:12px;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.6;" data-i18n="index.delete_confirm.unverified_text">
+          No hemos podido verificar tu cuenta en el servidor. Puedes borrar solo los datos de este dispositivo y pedirnos el borrado del servidor en {email}
+        </div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <button id="btn-confirm-delete" style="width:100%;padding:14px;border-radius:10px;border:none;background:#cc0000;color:#fff;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.delete_confirm.confirm_button">
         Sí, eliminar todo — Confirmar baja
+      </button>
+      <button id="btn-delete-local-only" style="display:none;width:100%;padding:14px;border-radius:10px;border:none;background:#cc0000;color:#fff;font-family:Inter,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.delete_confirm.delete_local_only_button">
+        Borrar solo este dispositivo
       </button>
       <button id="btn-cancel-delete" style="width:100%;padding:14px;border-radius:10px;border:1px solid rgba(170,255,0,0.2);background:transparent;color:rgba(170,255,0,0.6);font-family:Inter,sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.delete_confirm.cancel_button">
         Cancelar — Mantener mis datos
@@ -8344,27 +8360,58 @@ document.getElementById('btn-install-close').addEventListener('click', () => {
 
 // =================== BAJA VOLUNTARIA ===================
 const deleteScreen = document.getElementById('screen-delete-confirm');
+const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+const btnDeleteLocalOnly = document.getElementById('btn-delete-local-only');
+const btnCancelDelete = document.getElementById('btn-cancel-delete');
+const deleteConfirmNormal = document.getElementById('delete-confirm-normal');
+const deleteConfirmUnverified = document.getElementById('delete-confirm-unverified');
+
+// Mismo email de contacto de privacidad que ya usan privacy.html:222 y
+// privacy.html:300 -- único sitio donde este flujo necesita mostrar un
+// email, para el aviso de 401 no_verificado más abajo.
+const PRIVACY_CONTACT_EMAIL = 'privacidad@identifly.app';
+
+// Vuelve el modal a su estado normal (petición inicial, no la oferta de
+// 401 no_verificado) -- se llama tanto al abrirlo como al cancelar,
+// para que un 401 de un intento anterior nunca se quede pegado la
+// siguiente vez que se abre.
+function resetDeleteConfirmModal() {
+  deleteConfirmNormal.style.display = '';
+  deleteConfirmUnverified.style.display = 'none';
+  btnConfirmDelete.style.display = '';
+  btnConfirmDelete.disabled = false;
+  btnConfirmDelete.textContent = t('index.delete_confirm.confirm_button');
+  btnDeleteLocalOnly.style.display = 'none';
+}
+
+function closeDeleteModal() {
+  deleteScreen.style.transform = 'scale(0.9)';
+  deleteScreen.style.opacity = '0';
+  deleteScreen.style.pointerEvents = 'none';
+}
 
 document.getElementById('btn-delete-account').addEventListener('click', () => {
+  resetDeleteConfirmModal();
   deleteScreen.style.transform = 'scale(1)';
   deleteScreen.style.opacity = '1';
   deleteScreen.style.pointerEvents = 'all';
 });
 
-document.getElementById('btn-cancel-delete').addEventListener('click', () => {
-  deleteScreen.style.transform = 'scale(0.9)';
-  deleteScreen.style.opacity = '0';
-  deleteScreen.style.pointerEvents = 'none';
+btnCancelDelete.addEventListener('click', () => {
+  closeDeleteModal();
+  resetDeleteConfirmModal();
 });
 
-document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
-  // El borrado real (IndexedDB, localStorage/sessionStorage completos,
-  // Cache Storage, Service Worker, sesión de servidor, push) vive en
-  // storage-wipe.js, compartido con "Borrar todo" de recovery.html —
-  // aquí solo se dispara y se maneja lo específico de esta pantalla
-  // (reset de estado en memoria + volver a consentimiento, en vez de
-  // navegar a otra página).
-  //
+// El borrado LOCAL real (IndexedDB, localStorage/sessionStorage
+// completos, Cache Storage, Service Worker, sesión de servidor, push)
+// vive en storage-wipe.js, compartido con "Borrar todo" de
+// recovery.html -- esto solo lo dispara y maneja lo específico de esta
+// pantalla (reset de estado en memoria + volver a consentimiento).
+// Nunca toca el servidor -- lo usan los tres caminos que terminan en
+// "borrado solo de este dispositivo": sin identity_registration, éxito
+// del borrado en el servidor (ya borrado allí, falta lo local) y la
+// elección explícita "Borrar solo este dispositivo" tras un 401.
+async function finishLocalWipeAndReturnToConsent() {
   // borrarTodoElAlmacenamiento() ya protege cada paso con timeout (ver
   // storage-wipe.js), así que no debería rechazar — pero este try/catch
   // es la última red: si algo inesperado lanza de todos modos, queda
@@ -8383,9 +8430,8 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
   twoFAConfig = { totp: false };
 
   // Cerrar todo y volver al consentimiento
-  deleteScreen.style.transform = 'scale(0.9)';
-  deleteScreen.style.opacity = '0';
-  deleteScreen.style.pointerEvents = 'none';
+  closeDeleteModal();
+  resetDeleteConfirmModal();
   document.getElementById('screen-edit').classList.remove('open');
   document.getElementById('screen-main').classList.remove('visible');
   document.getElementById('screen-pin').classList.remove('hidden');
@@ -8404,6 +8450,80 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
   document.getElementById('btn-consent-accept').classList.remove('active');
 
   showToast(t('index.delete.all_deleted_toast'));
+}
+
+// "Borrar solo este dispositivo" -- la elección explícita del usuario
+// tras un 401 no_verificado (ver más abajo): nunca llama al servidor,
+// solo el wipe local de siempre.
+btnDeleteLocalOnly.addEventListener('click', async () => {
+  await finishLocalWipeAndReturnToConsent();
+});
+
+document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+  const reg = JSON.parse(localStorage.getItem('identity_registration') || 'null');
+
+  // (a) Identidad solo local, sin registro en el servidor: como antes,
+  // borrado puramente local, nunca se llama a /api/delete-account.
+  if (!reg || !reg.email) {
+    await finishLocalWipeAndReturnToConsent();
+    return;
+  }
+
+  // (b) Con registro: hace falta conexión para poder borrar también del
+  // servidor -- no se borra nada local si eso fuera a dejar huérfanos
+  // los datos del servidor sin que el usuario lo sepa.
+  if (!navigator.onLine) {
+    showErrorToast(t('index.delete_confirm.offline_toast'));
+    return;
+  }
+
+  const email = reg.email;
+  // El token NUNCA se escribe en consola ni en ningún log -- solo viaja
+  // en el cuerpo de esta petición.
+  const token = localStorage.getItem('identity_access_token');
+
+  btnConfirmDelete.disabled = true;
+  btnConfirmDelete.textContent = t('index.delete_confirm.deleting_button');
+
+  let res, data;
+  try {
+    res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, token }),
+    });
+    data = await res.json().catch(() => ({}));
+  } catch (_) {
+    // Error de red: no se borra nada.
+    btnConfirmDelete.disabled = false;
+    btnConfirmDelete.textContent = t('index.delete_confirm.confirm_button');
+    showErrorToast(t('index.delete_confirm.server_error_toast'));
+    return;
+  }
+
+  if (res.ok) {
+    // (c) 200 ok: el servidor ya borró su parte -- ahora el wipe local.
+    await finishLocalWipeAndReturnToConsent();
+    return;
+  }
+
+  btnConfirmDelete.disabled = false;
+  btnConfirmDelete.textContent = t('index.delete_confirm.confirm_button');
+
+  if (res.status === 401 && data?.error === 'no_verificado') {
+    // No se borra nada todavía: se ofrece borrar solo este dispositivo
+    // o cancelar (ver resetDeleteConfirmModal() para volver atrás).
+    deleteConfirmNormal.style.display = 'none';
+    deleteConfirmUnverified.style.display = '';
+    document.getElementById('delete-confirm-unverified-text').textContent =
+      t('index.delete_confirm.unverified_text').replace('{email}', PRIVACY_CONTACT_EMAIL);
+    btnConfirmDelete.style.display = 'none';
+    btnDeleteLocalOnly.style.display = '';
+    return;
+  }
+
+  // 429, 500 o cualquier otro error del servidor: no se borra nada.
+  showErrorToast(t('index.delete_confirm.server_error_toast'));
 });
 
 // =================== 2FA SISTEMA ===================

@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "Alle Ihre Daten wurden gelöscht",
 
   "index.delete_confirm.title": "Sind Sie sicher?",
-  "index.delete_confirm.text_html": "Diese Aktion löscht <strong style=\"color:rgba(255,120,120,0.8);\">alle Ihre Daten</strong> von IDENTIFLY dauerhaft und unwiderruflich:<br><br>\n        — Ihr Profil und Ihre persönlichen Daten<br>\n        — Ihr Zugangspasswort.<br>\n        — Ihre 2FA-Einstellungen<br>\n        — Ihr individuelles QR-Design.<br>\n        — Alle Ihre Berechtigungen",
+  "index.delete_confirm.text_html": "Diese Aktion löscht <strong style=\"color:rgba(255,120,120,0.8);\">alle Ihre Daten</strong> von IDENTIFLY dauerhaft und unwiderruflich:<br><br>\n        — Ihr Profil und Ihre persönlichen Daten<br>\n        — Ihr Zugangspasswort.<br>\n        — Ihre 2FA-Einstellungen<br>\n        — Ihr individuelles QR-Design.<br>\n        — Alle Ihre Berechtigungen<br><br>\n        Falls Sie einen kostenpflichtigen Plan haben, wird dieser sofort gekündigt und Sie verlieren den Zugang, ohne Rückerstattung des bereits bezahlten Zeitraums. Ein Lifetime-Plan geht endgültig verloren.",
   "index.delete_confirm.confirm_button": "Ja, alles löschen — Kündigung bestätigen",
   "index.delete_confirm.cancel_button": "Abbrechen — Meine Daten behalten",
+  "index.delete_confirm.deleting_button": "Wird gelöscht...",
+  "index.delete_confirm.offline_toast": "Sie benötigen eine Verbindung, um Ihre Daten vom Server zu löschen. Versuchen Sie es erneut mit einer Verbindung.",
+  "index.delete_confirm.server_error_toast": "Die Löschung konnte nicht abgeschlossen werden. Versuchen Sie es später erneut.",
+  "index.delete_confirm.unverified_title": "Ihr Konto konnte nicht verifiziert werden",
+  "index.delete_confirm.unverified_text": "Wir konnten Ihr Konto auf dem Server nicht verifizieren. Sie können nur die Daten dieses Geräts löschen und uns unter {email} um die Löschung auf dem Server bitten",
+  "index.delete_confirm.delete_local_only_button": "Nur dieses Gerät löschen",
 
   "index.qr_designer.title": "QR-Design",
   "index.qr_designer.apply_header_button": "✓ Anwenden",

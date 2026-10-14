@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "Todos tus datos han sido eliminados",
 
   "index.delete_confirm.title": "¿Estás seguro?",
-  "index.delete_confirm.text_html": "Esta acción eliminará <strong style=\"color:rgba(255,120,120,0.8);\">todos tus datos</strong> de IDENTIFLY de forma permanente e irreversible:<br><br>\n        — Tu perfil y datos personales<br>\n        — Tu contraseña de acceso.<br>\n        — Tu configuración 2FA<br>\n        — Tu diseño de QR personalizado.<br>\n        — Todos tus permisos",
+  "index.delete_confirm.text_html": "Esta acción eliminará <strong style=\"color:rgba(255,120,120,0.8);\">todos tus datos</strong> de IDENTIFLY de forma permanente e irreversible:<br><br>\n        — Tu perfil y datos personales<br>\n        — Tu contraseña de acceso.<br>\n        — Tu configuración 2FA<br>\n        — Tu diseño de QR personalizado.<br>\n        — Todos tus permisos<br><br>\n        Si tienes un plan de pago, se cancelará de inmediato y perderás el acceso, sin reembolso del periodo pagado. Un plan Lifetime se pierde definitivamente.",
   "index.delete_confirm.confirm_button": "Sí, eliminar todo — Confirmar baja",
   "index.delete_confirm.cancel_button": "Cancelar — Mantener mis datos",
+  "index.delete_confirm.deleting_button": "Borrando...",
+  "index.delete_confirm.offline_toast": "Necesitas conexión para borrar tus datos del servidor. Inténtalo de nuevo con conexión.",
+  "index.delete_confirm.server_error_toast": "No se pudo completar el borrado. Inténtalo más tarde.",
+  "index.delete_confirm.unverified_title": "No se pudo verificar tu cuenta",
+  "index.delete_confirm.unverified_text": "No hemos podido verificar tu cuenta en el servidor. Puedes borrar solo los datos de este dispositivo y pedirnos el borrado del servidor en {email}",
+  "index.delete_confirm.delete_local_only_button": "Borrar solo este dispositivo",
 
   "index.qr_designer.title": "Diseño del QR",
   "index.qr_designer.apply_header_button": "✓ Aplicar",

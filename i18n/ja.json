@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "すべてのデータが削除されました",
 
   "index.delete_confirm.title": "本当によろしいですか？",
-  "index.delete_confirm.text_html": "この操作により、IDENTIFLYの<strong style=\"color:rgba(255,120,120,0.8);\">すべてのデータ</strong>が永久かつ取り消し不能な形で削除されます：<br><br>\n        — プロフィールと個人データ<br>\n        — アクセスパスワード。<br>\n        — 2FA設定<br>\n        — カスタマイズしたQRデザイン。<br>\n        — すべての権限設定",
+  "index.delete_confirm.text_html": "この操作により、IDENTIFLYの<strong style=\"color:rgba(255,120,120,0.8);\">すべてのデータ</strong>が永久かつ取り消し不能な形で削除されます：<br><br>\n        — プロフィールと個人データ<br>\n        — アクセスパスワード。<br>\n        — 2FA設定<br>\n        — カスタマイズしたQRデザイン。<br>\n        — すべての権限設定<br><br>\n        有料プランをご利用の場合、即座に解約され、既払いの期間分の返金なしでアクセスできなくなります。Lifetimeプランは完全に失われます。",
   "index.delete_confirm.confirm_button": "はい、すべて削除します — 利用停止を確定",
   "index.delete_confirm.cancel_button": "キャンセル — データを保持する",
+  "index.delete_confirm.deleting_button": "削除中...",
+  "index.delete_confirm.offline_toast": "サーバー上のデータを削除するには接続が必要です。接続してからもう一度お試しください。",
+  "index.delete_confirm.server_error_toast": "削除を完了できませんでした。後でもう一度お試しください。",
+  "index.delete_confirm.unverified_title": "アカウントを確認できませんでした",
+  "index.delete_confirm.unverified_text": "サーバー上であなたのアカウントを確認できませんでした。このデバイスのデータのみを削除し、{email} 宛にサーバー側の削除を依頼することができます",
+  "index.delete_confirm.delete_local_only_button": "このデバイスのみ削除",
 
   "index.qr_designer.title": "QRコードデザイン",
   "index.qr_designer.apply_header_button": "✓ 適用",

@@ -421,9 +421,15 @@
   "index.delete.all_deleted_toast": "Totes les teves dades han estat eliminades",
 
   "index.delete_confirm.title": "N'estàs segur?",
-  "index.delete_confirm.text_html": "Aquesta acció eliminarà <strong style=\"color:rgba(255,120,120,0.8);\">totes les teves dades</strong> d'IDENTIFLY de manera permanent i irreversible:<br><br>\n        — El teu perfil i dades personals<br>\n        — La teva contrasenya d'accés.<br>\n        — La teva configuració 2FA<br>\n        — El teu disseny de QR personalitzat.<br>\n        — Tots els teus permisos",
+  "index.delete_confirm.text_html": "Aquesta acció eliminarà <strong style=\"color:rgba(255,120,120,0.8);\">totes les teves dades</strong> d'IDENTIFLY de manera permanent i irreversible:<br><br>\n        — El teu perfil i dades personals<br>\n        — La teva contrasenya d'accés.<br>\n        — La teva configuració 2FA<br>\n        — El teu disseny de QR personalitzat.<br>\n        — Tots els teus permisos<br><br>\n        Si tens un pla de pagament, es cancel·larà immediatament i perdràs l'accés, sense reemborsament del període pagat. Un pla Lifetime es perd definitivament.",
   "index.delete_confirm.confirm_button": "Sí, eliminar-ho tot — Confirmar baixa",
   "index.delete_confirm.cancel_button": "Cancel·lar — Mantenir les meves dades",
+  "index.delete_confirm.deleting_button": "Eliminant...",
+  "index.delete_confirm.offline_toast": "Necessites connexió per eliminar les teves dades del servidor. Torna-ho a provar amb connexió.",
+  "index.delete_confirm.server_error_toast": "No s'ha pogut completar l'eliminació. Torna-ho a provar més tard.",
+  "index.delete_confirm.unverified_title": "No s'ha pogut verificar el teu compte",
+  "index.delete_confirm.unverified_text": "No hem pogut verificar el teu compte al servidor. Pots eliminar només les dades d'aquest dispositiu i demanar-nos l'eliminació del servidor a {email}",
+  "index.delete_confirm.delete_local_only_button": "Eliminar només aquest dispositiu",
 
   "index.qr_designer.title": "Disseny del QR",
   "index.qr_designer.apply_header_button": "✓ Aplicar",
