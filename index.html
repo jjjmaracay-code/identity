@@ -4874,17 +4874,19 @@ if (consentGiven) {
 // preseleccionada (ver detectLanguage() en el loader).
 //
 // window.setLanguage()/applyI18n() solo actualizan elementos
-// data-i18n* -- el teclado QWERTY de la pantalla del PIN escribe sus
-// etiquetas de acción (Limpiar/123/ABC) directamente en el DOM al
-// construirse (ver buildQwertyKbdPin() más abajo), así que hay que
-// repintarlo para que también reflejen el nuevo idioma. Mismo problema
-// que ya resolvía register.html en su propio selector de idioma.
+// data-i18n* -- el teclado QWERTY de la pantalla del PIN y el texto
+// del tour interactivo (paso 1, en esta misma pantalla) escriben su
+// contenido directamente en el DOM al construirse/mostrarse (ver
+// buildQwertyKbdPin() y refreshTourText() más abajo), así que hay que
+// repintarlos para que también reflejen el nuevo idioma. Mismo
+// problema que ya resolvía register.html en su propio selector.
 window.i18nReady.finally(() => {
   const consentLangSelect = document.getElementById('consent-language');
   if (consentLangSelect && window.currentLanguage) consentLangSelect.value = window.currentLanguage;
   consentLangSelect?.addEventListener('change', (e) => {
     window.setLanguage(e.target.value).then(() => {
       if (typeof renderQwertyKbdPin === 'function') renderQwertyKbdPin();
+      window.idxTour?.refreshText?.();
     });
   });
 });
@@ -5208,7 +5210,13 @@ function renderPinMode() {
     window.i18nReady.finally(() => { pinHint.textContent = t('index.pin.first_time_hint'); });
     if (lbl) window.i18nReady.finally(() => { lbl.textContent = t('index.pin.create_password_label'); });
     if (str) str.style.display = '';
-    if (noAccountLink) noAccountLink.style.display = 'none';
+    // noAccountLink: NO SE TOCA en modo "crear". Su visibilidad aquí la
+    // decide el bloque "sin identidad" (más arriba, según exista o no
+    // identity_registration) de forma independiente a isFirstTime --
+    // ponerlo a 'none' aquí pisaba ese 'block' cuando SÍ debía verse
+    // (p.ej. justo tras el aviso de "este dispositivo no tiene ninguna
+    // identidad guardada", o tras pulsar "Quiero crear una identidad
+    // nueva aquí"), ocultando el único camino de vuelta a registrarse.
   } else {
     window.i18nReady.finally(() => { pinHint.textContent = t('index.pin.enter_password_hint'); });
     if (lbl) window.i18nReady.finally(() => { lbl.textContent = t('index.pin.access_password_label'); });
@@ -8952,6 +8960,24 @@ if (document.readyState === 'loading') {
     }, 30);
   }
 
+  // Repinta SOLO los textos del paso actual (número, mensaje, botón
+  // siguiente/empezar) sin reposicionar la burbuja ni volver a resaltar
+  // nada -- igual que tour-btn-next/tour-btn-skip (que sí llevan
+  // data-i18n), tour-msg y tour-step-num deberían reflejar el idioma
+  // en vivo, pero su texto lo escribe directamente showStep() y
+  // window.setLanguage()/applyI18n() no los toca al no tener
+  // data-i18n. Se llama desde el selector de idioma de la pantalla de
+  // consentimiento tras cada cambio (el paso 1 del tour resalta
+  // precisamente un elemento de esa misma pantalla).
+  function refreshTourText() {
+    if (localStorage.getItem(TOUR_KEY)) return;
+    if (!STEPS[step] || !getEl(STEPS[step].sel)) return;
+    document.getElementById('tour-step-num').textContent = `${step + 1} / ${STEPS.length}`;
+    document.getElementById('tour-msg').textContent       = STEPS[step].msg;
+    const hasMore = STEPS.slice(step + 1).some(s => !!getEl(s.sel));
+    document.getElementById('tour-btn-next').textContent  = hasMore ? t('register.tour.next_button') : t('register.tour.start_button');
+  }
+
   function nextStep() {
     const bubble = document.getElementById('tour-bubble');
     bubble.classList.add('out');
@@ -8986,6 +9012,7 @@ if (document.readyState === 'loading') {
     init()   { if (!localStorage.getItem(TOUR_KEY)) setTimeout(() => showStep(0), 900); },
     onPin()  { if (!localStorage.getItem(TOUR_KEY) && STEPS[step]?.screen === 'pin')  setTimeout(() => showStep(step), 500); },
     onMain() { if (!localStorage.getItem(TOUR_KEY) && STEPS[step]?.screen === 'main') setTimeout(() => showStep(step), 700); },
+    refreshText: refreshTourText,
   };
 
   function _idxTourSetup() {
