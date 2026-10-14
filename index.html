@@ -2452,6 +2452,13 @@
     -webkit-overflow-scrolling: touch;
     padding: 0 20px 20px;
   }
+
+  /* Faltaba el selector de esta regla -- quedaban las declaraciones
+     sueltas tras el cierre de .consent-scroll de arriba, sin ningún "{"
+     que las abriera, así que el navegador las descartaba por completo
+     (CSS inválido) y .consent-title heredaba el color de texto por
+     defecto (negro) sobre el fondo casi negro de esta pantalla. */
+  .consent-title {
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 700;
@@ -4865,10 +4872,21 @@ if (consentGiven) {
 // identity_language_pref, así que si el usuario llega después a
 // register.html sin haber completado aún el registro, ya la encuentra
 // preseleccionada (ver detectLanguage() en el loader).
+//
+// window.setLanguage()/applyI18n() solo actualizan elementos
+// data-i18n* -- el teclado QWERTY de la pantalla del PIN escribe sus
+// etiquetas de acción (Limpiar/123/ABC) directamente en el DOM al
+// construirse (ver buildQwertyKbdPin() más abajo), así que hay que
+// repintarlo para que también reflejen el nuevo idioma. Mismo problema
+// que ya resolvía register.html en su propio selector de idioma.
 window.i18nReady.finally(() => {
   const consentLangSelect = document.getElementById('consent-language');
   if (consentLangSelect && window.currentLanguage) consentLangSelect.value = window.currentLanguage;
-  consentLangSelect?.addEventListener('change', (e) => { window.setLanguage(e.target.value); });
+  consentLangSelect?.addEventListener('change', (e) => {
+    window.setLanguage(e.target.value).then(() => {
+      if (typeof renderQwertyKbdPin === 'function') renderQwertyKbdPin();
+    });
+  });
 });
 
 // =================== DISPOSITIVO CONFIABLE (15 DÍAS) ===================
@@ -4952,6 +4970,11 @@ const PIN_KEY = 'identity_pin';
 const PIN_SALT_KEY = 'identity_pin_salt';
 
 let pinBuffer = '';
+// La expone buildQwertyKbdPin() más abajo -- permite repintar solo las
+// etiquetas del teclado (Limpiar/123/ABC) cuando cambia el idioma en
+// vivo, sin volver a registrar los listeners táctiles del contenedor
+// (eso sí duplicaría el manejo de touchstart/touchmove en cada cambio).
+let renderQwertyKbdPin = null;
 let isFirstTime = !localStorage.getItem(PIN_KEY);
 let profileData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 let photoDataUrl = profileData.photo || null;
@@ -5106,6 +5129,7 @@ window.i18nReady.finally(function buildQwertyKbdPin() {
   let _dragKey = null;
   let _touchStartX = 0, _touchStartY = 0;
   const DRAG_THRESHOLD = 15; // px — ignora micro-drift de un tap estático
+  renderQwertyKbdPin = render;
   render();
   container.addEventListener('touchstart', function(e) {
     var t = e.changedTouches[0];
@@ -8324,7 +8348,14 @@ document.getElementById('btn-setup-totp').addEventListener('click', () => {
   const screen = document.getElementById('screen-totp-setup');
   screen.classList.add('open');
   pendingTOTPSecret = generateTOTPSecret();
-  document.getElementById('totp-secret-display').textContent = formatSecret(pendingTOTPSecret);
+  const totpSecretDisplay = document.getElementById('totp-secret-display');
+  // Quita data-i18n ANTES de pintar el secreto real: si queda, una
+  // applyI18n() posterior (p.ej. al cambiar idioma en vivo desde el
+  // selector de la pantalla de consentimiento) sobrescribiría el
+  // secreto con el placeholder traducido "Generando..." mientras esta
+  // pantalla sigue abierta.
+  totpSecretDisplay.removeAttribute('data-i18n');
+  totpSecretDisplay.textContent = formatSecret(pendingTOTPSecret);
   const container = document.getElementById('totp-qr-container');
   container.innerHTML = '';
   const totp = getTOTPInstance(pendingTOTPSecret);

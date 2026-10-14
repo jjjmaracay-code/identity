@@ -282,7 +282,18 @@
 // idioma cacheado desde antes de esta fase seguiría sirviendo ese
 // diccionario viejo (sin las claves eliminadas en esta misma fase, ver
 // commit) para siempre sin este cambio de versión, igual que en v10-v12.
-const APP_VERSION = '31';
+// v32: lote pequeño -- selector de idioma en vivo en la pantalla de
+// consentimiento de index.html, estado correcto (título/checklist) de
+// la pantalla del PIN tras "Bloquear" o la baja voluntaria de cuenta,
+// placeholder del código de recuperación sin el letter-spacing de los
+// dígitos, teclado QWERTY de la pantalla del PIN retraducido al
+// cambiar de idioma en vivo, título "Tus derechos y nuestro
+// compromiso" con su color correcto (antes negro sobre negro, regla
+// CSS sin selector) y quita el toast redundante de la pantalla de
+// éxito de register.html. Sube la versión para que activate() purgue
+// la v31 y los dispositivos que ya la tuvieran cacheada reciban
+// index.html/register.html actualizados, igual que en v30-v31.
+const APP_VERSION = '32';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
