@@ -68,6 +68,7 @@ export class BusinessCardDO {
       case '/unpublish': return this.unpublish(body || {});
       case '/reactivate': return this.reactivate(body || {});
       case '/get': return this.get();
+      case '/delete': return this.delete();
       default: return json({ ok: false, error: 'ruta_no_encontrada' }, 404);
     }
   }
@@ -209,6 +210,30 @@ export class BusinessCardDO {
     if (!existing) return json({ ok: true, exists: false });
     await this._repararIndice(existing);
     return json({ ok: true, exists: true, record: existing });
+  }
+
+  // Borrado completo del propietario (RGPD art. 17, llamado desde
+  // delete-account.js) -- se llama siempre, incluso si esta cuenta nunca
+  // publicó nada: sin registro es un no-op idempotente, igual que el
+  // resto de métodos de este DO. Envuelto en blockConcurrencyWhile por el
+  // mismo motivo que publish/unpublish/reactivate (ver cabecera del
+  // archivo): evita que una publicación concurrente se intercale con
+  // este borrado.
+  //
+  // ORDEN IMPORTANTE: el índice público (BUSINESS_KV) se borra ANTES de
+  // this.state.storage.deleteAll() -- deleteAll() también borra
+  // 'lastPublishAt' y, sobre todo, 'record', que es de donde se lee el
+  // `id` necesario para saber qué entrada de BUSINESS_KV borrar. Si se
+  // invirtiera el orden, el id ya se habría perdido.
+  async delete() {
+    return this.state.blockConcurrencyWhile(async () => {
+      const existing = await this._record();
+      if (existing) {
+        await this.env.BUSINESS_KV.delete(PUBLIC_ID_INDEX_PREFIX + existing.id);
+      }
+      await this.state.storage.deleteAll();
+      return json({ ok: true });
+    });
   }
 }
 

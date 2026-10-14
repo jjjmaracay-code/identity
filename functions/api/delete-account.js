@@ -195,6 +195,24 @@ export async function onRequestPost(context) {
       }
     }
 
+    // Borrado de los datos de Business (Fase 0c): contenido de la
+    // tarjeta (Durable Object storage) + el índice público bizid: en
+    // BUSINESS_KV -- ver business-card-do.js:/delete. Se llama siempre,
+    // aunque esta cuenta nunca haya publicado nada (es un no-op barato e
+    // idempotente en ese caso). Si falla (incluida la propia llamada al
+    // binding de servicio), no se borra nada más -- mismo criterio que
+    // la cancelación de Stripe de arriba.
+    const doId = env.BUSINESS_DO.idFromName(emailKey);
+    const stub = env.BUSINESS_DO.get(doId);
+    let businessBorrado = false;
+    try {
+      const doRes = await stub.fetch('https://business-do/delete', { method: 'POST', body: '{}' });
+      businessBorrado = doRes.ok;
+    } catch (_) {
+      businessBorrado = false;
+    }
+    if (!businessBorrado) return genericFailure();
+
     // Borrar todas las claves de KV de este email (ver INFORME Fase 0b
     // para el inventario completo y lo que queda fuera de aquí) y dejar
     // la marca de borrado para que un reintento posterior con el mismo

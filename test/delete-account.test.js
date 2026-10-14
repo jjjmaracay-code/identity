@@ -9,8 +9,33 @@ class FakeKV {
   async delete(key) { this.store.delete(key); }
 }
 
-function makeEnv() {
-  return { PLANS_KV: new FakeKV(), IP_HASH_SALT: 'test-salt-only-for-tests', STRIPE_SECRET_KEY: 'sk_test_xxx' };
+// Fake binding de servicio hacia BusinessCardDO -- por defecto responde
+// ok a /delete (como si la cuenta nunca hubiera publicado nada, el caso
+// más común en estos tests). `fetchCalls` acumula cada llamada para que
+// los tests puedan comprobar que se llamó, y con qué método/ruta.
+function makeFakeBusinessDO({ falla = false } = {}) {
+  const fetchCalls = [];
+  return {
+    fetchCalls,
+    idFromName(name) { return name; },
+    get(id) {
+      return {
+        async fetch(url, opts) {
+          fetchCalls.push({ url, method: opts?.method });
+          return falla ? new Response('{}', { status: 500 }) : new Response(JSON.stringify({ ok: true }), { status: 200 });
+        },
+      };
+    },
+  };
+}
+
+function makeEnv({ businessDoFalla = false } = {}) {
+  return {
+    PLANS_KV: new FakeKV(),
+    IP_HASH_SALT: 'test-salt-only-for-tests',
+    STRIPE_SECRET_KEY: 'sk_test_xxx',
+    BUSINESS_DO: makeFakeBusinessDO({ falla: businessDoFalla }),
+  };
 }
 
 function makeRequest(body, ip = '203.0.113.30') {
@@ -288,4 +313,36 @@ test('tras un borrado real, un token DISTINTO para el mismo email no cuela (no_v
   const data2 = await res2.json();
   assert.equal(res2.status, 401);
   assert.equal(data2.error, 'no_verificado');
+});
+
+// =================== Fase 0c: borrado de datos de Business ===================
+
+test('se llama siempre a BUSINESS_DO /delete, incluso sin plan de pago', async () => {
+  const env = makeEnv();
+  const email = 'free-con-business@example.com';
+  await seedAccount(env, email, 'token-real');
+  globalThis.fetch = async () => new Response('{}', { status: 200 });
+
+  const res = await onRequestPost({ request: makeRequest({ email, token: 'token-real' }), env });
+  const data = await res.json();
+
+  assert.equal(res.status, 200);
+  assert.equal(data.ok, true);
+  assert.equal(env.BUSINESS_DO.fetchCalls.length, 1);
+  assert.equal(env.BUSINESS_DO.fetchCalls[0].method, 'POST');
+  assert.equal(env.BUSINESS_DO.fetchCalls[0].url, 'https://business-do/delete');
+});
+
+test('si BUSINESS_DO /delete falla, no se borra nada (ni KV ni la marca)', async () => {
+  const env = makeEnv({ businessDoFalla: true });
+  const email = 'business-do-falla@example.com';
+  await seedAccount(env, email, 'token-real');
+  globalThis.fetch = async () => new Response('{}', { status: 200 });
+
+  const res = await onRequestPost({ request: makeRequest({ email, token: 'token-real' }), env });
+  const data = await res.json();
+
+  assert.equal(res.status, 500);
+  assert.equal(data.error, 'No se pudo completar la solicitud, inténtalo más tarde');
+  assert.equal(await existeAlgunRastro(env, email), true, 'no debió borrarse nada si el borrado de Business falló');
 });
