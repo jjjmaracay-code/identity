@@ -1718,7 +1718,12 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   document.getElementById('line-2').classList.add('done');
   document.getElementById('step-label').textContent = t('register.step_label.done');
 
-  showToast(t('register.success.toast'));
+  // El toast "✓ Identidad verificada" quedaba aquí, justo al mostrar
+  // #screen-success -- se superponía al círculo del check y repetía
+  // literalmente el mismo texto que .success-title de esa misma
+  // pantalla (ver arriba). register.success.toast deja de usarse, pero
+  // la clave se conserva en los 12 i18n/*.json por si se necesita en
+  // otro punto del flujo más adelante.
 });
 
 // =================== ENTRAR A LA APP ===================

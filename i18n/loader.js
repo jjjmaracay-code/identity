@@ -43,6 +43,15 @@
         return reg.language;
       }
     } catch (e) {}
+    // Elección manual antes de registrarse (p.ej. desde el selector de la
+    // pantalla de consentimiento, o el propio selector de register.html
+    // antes de completar el registro) -- se guarda en setLanguage() de
+    // más abajo. Una vez existe identity_registration.language (cuenta ya
+    // registrada), esa es la fuente de verdad y esta queda ignorada.
+    try {
+      var pref = localStorage.getItem('identity_language_pref');
+      if (pref && SUPPORTED_LANGS.indexOf(pref) !== -1) return pref;
+    } catch (e) {}
     var navLangs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
     for (var i = 0; i < navLangs.length; i++) {
       var code = String(navLangs[i] || '').slice(0, 2).toLowerCase();
@@ -93,12 +102,19 @@
   window.applyI18n = applyI18n;
 
   // Cambio de idioma EN VIVO -- usado por el selector de idioma del Paso 1
-  // de register.html: el usuario debe ver el resto del formulario (Paso 2,
-  // toasts, validaciones) en el idioma que acaba de elegir, sin esperar a
-  // completar el registro. Recarga el diccionario y vuelve a aplicar
-  // data-i18n sobre todo el documento; el valor persistido en
-  // identity_registration.language se guarda aparte, al completar el
-  // registro (ver register.html).
+  // de register.html y por el nuevo selector de la pantalla de
+  // consentimiento de index.html (ver screen-consent): el usuario debe
+  // ver el resto del formulario/app (toasts, validaciones) en el idioma
+  // que acaba de elegir, sin esperar a completar el registro. Recarga el
+  // diccionario y vuelve a aplicar data-i18n sobre todo el documento.
+  // Además persiste la elección en identity_language_pref (ver
+  // detectLanguage() más arriba) para que, si el usuario llega después a
+  // register.html (u otra página) SIN haber completado aún el registro
+  // -- identity_registration.language todavía no existe -- su elección
+  // siga ahí preseleccionada en vez de recalcularse desde
+  // navigator.language. Una vez el registro se completa,
+  // identity_registration.language pasa a mandar (ver register.html) y
+  // esta clave queda sin efecto, aunque no se borra.
   window.setLanguage = function (lang) {
     if (SUPPORTED_LANGS.indexOf(lang) === -1) lang = 'es';
     return fetch('/i18n/' + lang + '.json')
@@ -108,6 +124,7 @@
         DICT = dict || {};
         window.currentLanguage = lang;
         try { document.documentElement.lang = lang; } catch (e) {}
+        try { localStorage.setItem('identity_language_pref', lang); } catch (e) {}
         applyI18n(document);
         return DICT;
       });

@@ -1447,6 +1447,14 @@
     color: #fff;
     caret-color: #fff;
   }
+  /* El letter-spacing:6px de #recover-access-code (ver su style= inline)
+     separa bien los dígitos ya escritos, pero aplica igual al texto de
+     ejemplo ("Código de 6 dígitos"), donde solo afea la lectura -- no
+     son dígitos sueltos, es una frase. ::placeholder con su propio
+     letter-spacing normal no toca el valor real escrito. */
+  #recover-access-code::placeholder {
+    letter-spacing: normal;
+  }
   .totp-verify-input:-webkit-autofill,
   .totp-verify-input:-webkit-autofill:hover,
   .totp-verify-input:-webkit-autofill:focus,
@@ -3049,6 +3057,23 @@
   <div class="consent-header">
     <img src="assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small"/>
     <div class="consent-tagline" data-i18n="index.consent.header_tagline">IDENTIFLY · Privacidad y Protección de Datos</div>
+    <div class="field-wrap" style="max-width:240px;margin:14px auto 0;">
+      <div class="field-label" data-i18n="index.step1.language_label">Idioma</div>
+      <select class="field-input" id="consent-language">
+        <option value="es">Español</option>
+        <option value="ca">Català</option>
+        <option value="eu">Euskara</option>
+        <option value="gl">Galego</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Português</option>
+        <option value="hi">हिन्दी</option>
+        <option value="zh">简体中文</option>
+        <option value="ru">Русский</option>
+        <option value="ja">日本語</option>
+      </select>
+    </div>
   </div>
 
   <div class="consent-scroll-wrap">
@@ -4834,6 +4859,18 @@ if (consentGiven) {
   requestAnimationFrame(() => { scConsent.style.transition = ''; });
 }
 
+// Selector de idioma de la pantalla de consentimiento: mismo mecanismo
+// que ya usa register.html (window.setLanguage, ver i18n/loader.js) --
+// cambia el idioma de toda la app al instante y persiste la elección en
+// identity_language_pref, así que si el usuario llega después a
+// register.html sin haber completado aún el registro, ya la encuentra
+// preseleccionada (ver detectLanguage() en el loader).
+window.i18nReady.finally(() => {
+  const consentLangSelect = document.getElementById('consent-language');
+  if (consentLangSelect && window.currentLanguage) consentLangSelect.value = window.currentLanguage;
+  consentLangSelect?.addEventListener('change', (e) => { window.setLanguage(e.target.value); });
+});
+
 // =================== DISPOSITIVO CONFIABLE (15 DÍAS) ===================
 const TRUST_KEY = 'identity_trusted_until';
 const trustDeviceCheck = document.getElementById('trust-device-check');
@@ -5126,14 +5163,35 @@ document.querySelectorAll('.domain-btn').forEach(btn => {
   });
 });
 
-if (!isFirstTime) {
-  window.i18nReady.finally(() => { pinHint.textContent = t('index.pin.enter_password_hint'); });
+// Antes esto era un bloque de una sola vez (if (!isFirstTime) {...}),
+// ejecutado solo en la carga inicial del script. isFirstTime puede
+// cambiar más tarde en la misma sesión -- al crear la contraseña con
+// éxito (ver pinEnterBtn más abajo) o al borrar la cuenta -- y la
+// pantalla del PIN puede volver a mostrarse SIN recargar la página
+// (botón "Bloquear", baja voluntaria de cuenta), dejando título y
+// checklist de requisitos congelados en el estado de la carga inicial
+// mientras la lógica (pinEnterBtn, updateDots) ya usa el valor
+// correcto de isFirstTime. renderPinMode() relee identity_pin EN ESE
+// MOMENTO y pinta título + checklist + lógica juntos; se llama aquí
+// para la carga inicial y de nuevo en cada punto que vuelve a mostrar
+// #screen-pin sin recargar.
+function renderPinMode() {
+  isFirstTime = !localStorage.getItem(PIN_KEY);
   const lbl = document.getElementById('pin-label-text');
-  if (lbl) window.i18nReady.finally(() => { lbl.textContent = t('index.pin.access_password_label'); });
   const str = document.getElementById('pin-strength');
-  if (str) str.style.display = 'none';
   const noAccountLink = document.getElementById('link-no-account');
-  if (noAccountLink) noAccountLink.style.display = 'block';
+  if (isFirstTime) {
+    window.i18nReady.finally(() => { pinHint.textContent = t('index.pin.first_time_hint'); });
+    if (lbl) window.i18nReady.finally(() => { lbl.textContent = t('index.pin.create_password_label'); });
+    if (str) str.style.display = '';
+    if (noAccountLink) noAccountLink.style.display = 'none';
+  } else {
+    window.i18nReady.finally(() => { pinHint.textContent = t('index.pin.enter_password_hint'); });
+    if (lbl) window.i18nReady.finally(() => { lbl.textContent = t('index.pin.access_password_label'); });
+    if (str) str.style.display = 'none';
+    if (noAccountLink) noAccountLink.style.display = 'block';
+  }
+  updateDots();
 }
 
 setTimeout(() => {
@@ -5253,6 +5311,11 @@ function doEnter() {
 }
 
 const pinEnterBtn = document.getElementById('pin-enter-btn');
+// Pinta el estado inicial de la pantalla del PIN -- va aquí, tras
+// declarar pinEnterBtn, porque renderPinMode() llama a updateDots(),
+// que lee pinEnterBtn (una const declarada más abajo en este mismo
+// script quedaría en zona muerta temporal si se llamara antes).
+renderPinMode();
 
 // Teclado numérico
 document.querySelectorAll('.pin-key[data-n]').forEach(btn => {
@@ -7045,6 +7108,7 @@ document.getElementById('btn-lock').addEventListener('click', () => {
   document.getElementById('screen-main').classList.remove('visible');
   document.getElementById('screen-pin').classList.remove('hidden');
   localStorage.removeItem(TRUST_KEY);
+  renderPinMode();
 });
 
 // =================== PANTALLA EDITAR ===================
@@ -8076,6 +8140,7 @@ document.getElementById('btn-confirm-delete').addEventListener('click', async ()
   document.getElementById('screen-edit').classList.remove('open');
   document.getElementById('screen-main').classList.remove('visible');
   document.getElementById('screen-pin').classList.remove('hidden');
+  renderPinMode();
   // storage-wipe.js ya borró identity_business_draft junto con el resto de
   // localStorage, pero si el editor/vista previa de Business seguía
   // "abierto" detrás de esta pantalla, su DOM ya renderizado (formulario,
