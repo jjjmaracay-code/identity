@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ शर्तें सुनें",
   "index.consent.pause_button_active": "⏸ रोकें",
   "index.consent.voice_unavailable": "वॉइस रीडिंग उपलब्ध नहीं है",
+  "index.consent.voice_unavailable_lang": "इस भाषा में ऑडियो उपलब्ध नहीं है",
   "index.consent.checkbox_html": "मैंने पढ़ा, सुना है, और गोपनीयता नीति, उपयोगकर्ता कर्तव्यों और उपयोग की सीमाओं को <strong>पूर्ण रूप से</strong> स्वीकार करता/करती हूं। मैं <strong>GDPR (EU) 2016/679</strong> और <strong>LOPD-GDD</strong> के अनुसार मेरे डेटा के प्रसंस्करण के लिए सहमति देता/देती हूं, और स्थापित सभी उपयोग नियमों का पालन करने का वचन देता/देती हूं।",
   "index.consent.accept_button": "मैंने सब कुछ पढ़ लिया — स्वीकार करें और प्रवेश करें",
 

@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ Escoltar termes",
   "index.consent.pause_button_active": "⏸ Pausar",
   "index.consent.voice_unavailable": "Lectura per veu no disponible",
+  "index.consent.voice_unavailable_lang": "Àudio no disponible en aquest idioma",
   "index.consent.checkbox_html": "He llegit, escoltat i accepto <strong>íntegrament</strong> la política de privacitat, els deures d'usuari i els límits d'ús. Accepto el tractament de les meves dades d'acord amb el <strong>RGPD (UE) 2016/679</strong> i la <strong>LOPD-GDD</strong>, i em comprometo a complir totes les normes d'ús establertes.",
   "index.consent.accept_button": "Ho he llegit tot — Accepto i entro",
 

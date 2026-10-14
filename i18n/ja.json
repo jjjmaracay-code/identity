@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ 規約を聞く",
   "index.consent.pause_button_active": "⏸ 一時停止",
   "index.consent.voice_unavailable": "音声読み上げは利用できません",
+  "index.consent.voice_unavailable_lang": "この言語では音声が利用できません",
   "index.consent.checkbox_html": "プライバシーポリシー、ユーザーの責務、利用制限を読み、聞き、<strong>すべて</strong>承諾します。<strong>GDPR（EU）2016/679</strong>および<strong>LOPD-GDD</strong>に基づく私のデータ処理に同意し、定められたすべての利用規則を守ることを約束します。",
   "index.consent.accept_button": "すべて読みました — 同意して入る",
 

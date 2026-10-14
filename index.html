@@ -4887,6 +4887,10 @@ window.i18nReady.finally(() => {
     window.setLanguage(e.target.value).then(() => {
       if (typeof renderQwertyKbdPin === 'function') renderQwertyKbdPin();
       window.idxTour?.refreshText?.();
+      // Detiene la lectura en voz alta si seguía sonando (quedaba en
+      // el idioma anterior, ver resetListenTermsButton()) y repinta el
+      // botón con el texto del nuevo idioma.
+      if (typeof resetListenTermsButton === 'function') resetListenTermsButton();
     });
   });
 });
@@ -4925,7 +4929,80 @@ btnConsent.addEventListener('click', () => {
 // =================== LECTURA POR VOZ DE LOS TÉRMINOS ===================
 const btnListenTerms = document.getElementById('btn-listen-terms');
 
-btnListenTerms.addEventListener('click', () => {
+// BCP-47 del idioma de la app -> lang de la utterance. No hay una única
+// variante "correcta" por idioma (es-ES vs es-MX, etc.) pero se fija una
+// concreta por idioma para que utterance.lang sea siempre coherente con
+// el texto que se lee (ver fullText más abajo, que ya sale traducido).
+const SPEECH_LANG_MAP = {
+  es: 'es-ES', ca: 'ca-ES', eu: 'eu-ES', gl: 'gl-ES', en: 'en-GB',
+  fr: 'fr-FR', de: 'de-DE', pt: 'pt-PT', hi: 'hi-IN', zh: 'zh-CN',
+  ru: 'ru-RU', ja: 'ja-JP',
+};
+
+// Las voces del navegador cargan de forma asíncrona (getVoices() puede
+// devolver [] en la primera llamada, sobre todo en Chrome) -- esto
+// espera a voiceschanged, con un margen de 1.5s por si el navegador
+// nunca lo dispara (ocurre si de verdad no hay ninguna voz instalada).
+function getVoicesReady() {
+  const synth = window.speechSynthesis;
+  if (!synth) return Promise.resolve([]);
+  const existing = synth.getVoices();
+  if (existing.length) return Promise.resolve(existing);
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (voices) => {
+      if (done) return;
+      done = true;
+      synth.removeEventListener('voiceschanged', onChange);
+      resolve(voices);
+    };
+    const onChange = () => finish(synth.getVoices());
+    synth.addEventListener('voiceschanged', onChange);
+    setTimeout(() => finish(synth.getVoices()), 1500);
+  });
+}
+
+// Nunca se lee con una voz de otro idioma: se filtra primero por el
+// subtag de idioma base (p.ej. "es" de "es-ES"), nunca por el BCP-47
+// completo a secas -- muchos sistemas solo traen "es-MX" o "es-US" y no
+// "es-ES" exacto, así que exigir coincidencia exacta de entrada dejaría
+// sin voz a idiomas que sí tienen alguna instalada. Dentro de ese
+// filtro por idioma base, prioridad: 1) una voz con el BCP-47 EXACTO
+// pedido (p.ej. "zh-CN"); 2) si no hay, cualquier otra voz del mismo
+// idioma base, prefiriendo la que el navegador marca como voz por
+// defecto (voice.default); 3) si no hay ninguna, null.
+// "zh" es un caso aparte: zh-HK es cantonés, no chino mandarín -- el
+// texto que se lee siempre es chino simplificado (zh-CN), así que una
+// voz zh-HK leería ese texto con una pronunciación de otra lengua. Se
+// excluye explícitamente del filtro por idioma base para "zh", aunque
+// "zh-HK".startsWith("zh") sea cierto.
+function pickVoiceForLang(voices, bcp47) {
+  const base = bcp47.split('-')[0].toLowerCase();
+  const target = bcp47.toLowerCase();
+  const excluded = base === 'zh' ? ['zh-hk'] : [];
+  const candidates = voices.filter(v => {
+    const vLang = v.lang && v.lang.toLowerCase();
+    return !!vLang && vLang.startsWith(base) && !excluded.includes(vLang);
+  });
+  const exact = candidates.find(v => v.lang.toLowerCase() === target);
+  if (exact) return exact;
+  const defaultVoice = candidates.find(v => v.default);
+  if (defaultVoice) return defaultVoice;
+  return candidates[0] || null;
+}
+
+// Detiene cualquier lectura en curso y repinta el botón con el texto
+// por defecto del idioma activo -- se llama al cambiar de idioma desde
+// el selector de esta misma pantalla (antes el botón se quedaba
+// mostrando "Pausar"/sonando en el idioma anterior, ver commit) y
+// también sirve de estado inicial normal del botón.
+function resetListenTermsButton() {
+  window.speechSynthesis?.cancel();
+  btnListenTerms.disabled = false;
+  btnListenTerms.textContent = t('index.consent.listen_button');
+}
+
+btnListenTerms.addEventListener('click', async () => {
   const synth = window.speechSynthesis;
   if (!synth) {
     btnListenTerms.textContent = t('index.consent.voice_unavailable');
@@ -4945,13 +5022,31 @@ btnListenTerms.addEventListener('click', () => {
     return;
   }
 
-  // Iniciar lectura de todos los bloques de términos en español
+  const targetLang = SPEECH_LANG_MAP[window.currentLanguage] || 'es-ES';
+
+  // Bloquea el botón mientras cargan las voces (puede tardar un
+  // instante) para evitar un segundo clic a mitad de la comprobación.
+  btnListenTerms.disabled = true;
+  const voices = await getVoicesReady();
+  const voice = pickVoiceForLang(voices, targetLang);
+  btnListenTerms.disabled = false;
+
+  if (!voice) {
+    btnListenTerms.textContent = t('index.consent.voice_unavailable_lang');
+    btnListenTerms.disabled = true;
+    return;
+  }
+
+  // Leer todos los bloques de términos EN EL IDIOMA ACTIVO -- su texto
+  // ya sale traducido (data-i18n-html, ver applyI18n), así que ahora
+  // utterance.lang/voice coinciden con lo que de verdad se está leyendo.
   const fullText = Array.from(document.querySelectorAll('.consent-block-text'))
     .map(el => el.textContent.replace(/\s+/g, ' ').trim())
     .join('. ');
 
   const utterance = new SpeechSynthesisUtterance(fullText);
-  utterance.lang = 'es-ES';
+  utterance.lang = targetLang;
+  utterance.voice = voice;
 
   const resetButton = () => { btnListenTerms.textContent = t('index.consent.listen_button'); };
   utterance.onend = () => {

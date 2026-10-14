@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ Bedingungen anhören",
   "index.consent.pause_button_active": "⏸ Pause",
   "index.consent.voice_unavailable": "Sprachwiedergabe nicht verfügbar",
+  "index.consent.voice_unavailable_lang": "Audio in dieser Sprache nicht verfügbar",
   "index.consent.checkbox_html": "Ich habe die Datenschutzrichtlinie, die Nutzerpflichten und die Nutzungsgrenzen gelesen, angehört und akzeptiere sie <strong>vollständig</strong>. Ich stimme der Verarbeitung meiner Daten gemäß der <strong>DSGVO (EU) 2016/679</strong> und dem <strong>LOPD-GDD</strong> zu und verpflichte mich, alle festgelegten Nutzungsregeln einzuhalten.",
   "index.consent.accept_button": "Ich habe alles gelesen — Akzeptieren und weiter",
 

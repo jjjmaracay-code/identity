@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ 收听条款",
   "index.consent.pause_button_active": "⏸ 暂停",
   "index.consent.voice_unavailable": "语音朗读功能不可用",
+  "index.consent.voice_unavailable_lang": "此语言暂不支持语音朗读",
   "index.consent.checkbox_html": "我已阅读并聆听，并<strong>完全</strong>接受隐私政策、用户义务和使用限制。我同意按照<strong>GDPR（欧盟）2016/679</strong>和<strong>LOPD-GDD</strong>处理我的数据，并承诺遵守所有既定的使用规则。",
   "index.consent.accept_button": "我已阅读全部内容 — 接受并进入",
 

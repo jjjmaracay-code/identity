@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ Escoitar termos",
   "index.consent.pause_button_active": "⏸ Pausar",
   "index.consent.voice_unavailable": "Lectura por voz non dispoñible",
+  "index.consent.voice_unavailable_lang": "Audio non dispoñible neste idioma",
   "index.consent.checkbox_html": "Lin, escoitei e acepto <strong>integramente</strong> a política de privacidade, os deberes de usuario e os límites de uso. Acepto o tratamento dos meus datos conforme ao <strong>RGPD (UE) 2016/679</strong> e a <strong>LOPD-GDD</strong>, e comprométome a cumprir todas as normas de uso establecidas.",
   "index.consent.accept_button": "Lino todo — Acepto e entro",
 

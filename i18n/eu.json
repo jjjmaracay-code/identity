@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ Baldintzak entzun",
   "index.consent.pause_button_active": "⏸ Pausatu",
   "index.consent.voice_unavailable": "Ahots bidezko irakurketa ez dago eskuragarri",
+  "index.consent.voice_unavailable_lang": "Audioa ez dago eskuragarri hizkuntza honetan",
   "index.consent.checkbox_html": "Irakurri eta entzun dut, eta <strong>osorik</strong> onartzen dut pribatutasun-politika, erabiltzailearen betebeharrak eta erabilera-mugak. Nire datuen tratamendua <strong>RGPD (EB) 2016/679</strong> eta <strong>LOPD-GDD</strong>ren arabera onartzen dut, eta ezarritako erabilera-arau guztiak betetzera konpromisoa hartzen dut.",
   "index.consent.accept_button": "Dena irakurri dut — Onartu eta sartu",
 

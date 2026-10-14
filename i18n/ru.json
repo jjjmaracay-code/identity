@@ -231,6 +231,7 @@
   "index.consent.pause_button": "▶ Прослушать условия",
   "index.consent.pause_button_active": "⏸ Пауза",
   "index.consent.voice_unavailable": "Голосовое чтение недоступно",
+  "index.consent.voice_unavailable_lang": "Аудио недоступно на этом языке",
   "index.consent.checkbox_html": "Я прочитал(а), прослушал(а) и <strong>полностью</strong> принимаю политику конфиденциальности, обязанности пользователя и ограничения использования. Я соглашаюсь на обработку моих данных в соответствии с <strong>GDPR (ЕС) 2016/679</strong> и <strong>LOPD-GDD</strong>, и обязуюсь соблюдать все установленные правила использования.",
   "index.consent.accept_button": "Я всё прочитал — принимаю и вхожу",
 
