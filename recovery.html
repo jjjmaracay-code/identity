@@ -12,6 +12,7 @@
 <title>IDENTIFLY · Recuperación</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="storage-wipe.js"></script>
+<script src="/password-utils.js"></script>
 <script src="/i18n/loader.js"></script>
 
 <style>
@@ -1165,13 +1166,13 @@ document.getElementById('btn-resend-temp').addEventListener('click', async () =>
 });
 
 // =================== FASE 3: NUEVA CONTRASEÑA ===================
-document.getElementById('btn-phase3').addEventListener('click', () => {
+document.getElementById('btn-phase3').addEventListener('click', async () => {
   if (!validatePwd(newPwdBuffer).valid) return;
-  // Guardar nueva contraseña
-  localStorage.setItem('identity_pin', newPwdBuffer);
-  // Resetear intentos fallidos
-  localStorage.removeItem('identity_attempts');
-  localStorage.removeItem('identity_block_until');
+  // savePassword() (password-utils.js) hashea con sal nueva y borra
+  // identity_attempts/identity_block_until junto con cualquier resto de
+  // la contraseña anterior -- nunca se guarda en texto plano, y nunca
+  // reutiliza la sal de la contraseña que se está sustituyendo.
+  await savePassword(newPwdBuffer);
 
   goToScreen('screen-success');
   updateSteps(4);

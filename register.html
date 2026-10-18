@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="/i18n/loader.js"></script>
+<script src="/password-utils.js"></script>
 
 <style>
   :root {
@@ -1046,7 +1047,15 @@
 // =================== ESTADO ===================
 const REG_KEY = 'identity_registration';
 
-if (localStorage.getItem('identity_data') || localStorage.getItem(REG_KEY)) {
+// Antes bloqueaba también con solo identity_data (perfil local sin
+// registro de servidor) -- eso impedía completar el registro a quien
+// tiene una identidad local antigua (antes de este archivo) que
+// index.html ahora envía aquí a verificar su email (ver
+// "index.pin.verify_email_button" en index.html). Solo bloquea si YA
+// hay un registro de servidor real -- register.html nunca toca
+// identity_data (ver más abajo), así que el perfil local de esos casos
+// llega intacto.
+if (localStorage.getItem(REG_KEY)) {
   document.body.innerHTML = `
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#000;font-family:'Inter',sans-serif;text-align:center;">
       <div style="max-width:360px;">
@@ -1677,7 +1686,10 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   };
 
   localStorage.setItem(REG_KEY, JSON.stringify(registration));
-  localStorage.setItem('identity_pin', pwd1Buffer);
+  // savePassword() (password-utils.js) hashea con sal nueva y borra
+  // cualquier resto de una contraseña anterior -- nunca se guarda en
+  // texto plano, ni siquiera un instante.
+  await savePassword(pwd1Buffer);
 
   if (data?.token) localStorage.setItem('identity_access_token', data.token);
   // Herencia de plan por email: si este email ya tenía un plan de pago

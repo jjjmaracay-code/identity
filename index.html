@@ -13,6 +13,8 @@
 <title>IDENTIFLY</title>
 <link rel="canonical" href="https://www.identifly.app/">
 <script src="storage-wipe.js"></script>
+<script src="/password-utils.js"></script>
+<script src="/vcard.js"></script>
 <script src="/i18n/loader.js"></script>
 <link rel="stylesheet" href="business.css?v=27">
 
@@ -2958,7 +2960,6 @@
           <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:rgba(255,255,255,0.8);line-height:1.4;">
             <div data-i18n="index.plans.feature_video">✓ Video de fondo en tarjeta</div>
             <div data-i18n="index.plans.feature_qr">✓ Personalización completa del QR</div>
-            <div data-i18n="index.plans.feature_2fa">✓ Doble factor de autenticación</div>
             <div data-i18n="index.plans.feature_support">✓ Soporte prioritario</div>
           </div>
         </div>
@@ -3052,6 +3053,23 @@
     <button type="button" id="btn-recover-skip"
       style="width:100%;padding:10px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.5px;margin-top:18px;cursor:pointer;" data-i18n="index.recover_access.skip_button">
       Ahora no
+    </button>
+  </div>
+</div>
+
+<!-- Identidades locales creadas antes de este cambio (contraseña
+     correcta pero sin identity_registration+token real) -- ver punto 3
+     del lote de textos legales. No se borra nada: la tarjeta local
+     sigue intacta, solo se bloquea la entrada hasta verificar el email. -->
+<div id="verify-email-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div style="background:#0a0a0a;border:1.5px solid rgba(170,255,0,0.3);border-radius:20px;padding:28px 24px;max-width:380px;width:100%;font-family:'Inter',sans-serif;text-align:center;">
+    <div style="font-size:14px;font-weight:900;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;margin-bottom:10px;" data-i18n="index.pin.verify_email_title">Verifica tu email para seguir usando IDENTIFLY</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:22px;line-height:1.6;" data-i18n="index.pin.verify_email_text">
+      Tu contraseña es correcta, pero esta identidad se creó sin verificar un email. Verifica tu email para seguir usando IDENTIFLY — tu tarjeta no se borra mientras lo haces.
+    </div>
+    <button type="button" id="btn-verify-email-go"
+      style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(170,255,0,0.3);" data-i18n="index.pin.verify_email_button">
+      Verificar mi email
     </button>
   </div>
 </div>
@@ -4057,7 +4075,7 @@
   <div class="edit-section" id="sec-seguridad">
     <div class="edit-section-title" data-i18n="index.twofa.title">Doble factor de autenticación (2FA)</div>
     <div class="twofa-info" data-i18n="index.twofa.info">
-      Con 2FA activo, tras introducir tu contraseña necesitarás un segundo factor para entrar. Nivel de seguridad militar.
+      Con 2FA activo, tras introducir tu contraseña necesitarás un segundo factor para entrar.
     </div>
     <div class="field-group">
       <div class="field-toggle-wrap">
@@ -4491,6 +4509,26 @@ if (_vincularCompra) {
 }
 
 const _reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+
+// true solo si este dispositivo tiene un registro de servidor real
+// (email verificado + token) -- no basta con identity_registration
+// a secas. index.html se apoya en esto para decidir si puede dejar
+// crear/verificar una contraseña aquí mismo o si hace falta mandar al
+// usuario a register.html primero (ver punto 3 del lote de textos
+// legales: antes, cualquiera podía crear una identidad local sin pasar
+// nunca por el servidor, lo que además dejaba sin efecto la expiración
+// de la prueba de 30 días -- ver _trialBloqueadoLocal() más abajo).
+function tieneRegistroServidor() {
+  return !!(localStorage.getItem('identity_registration') && localStorage.getItem('identity_access_token'));
+}
+
+// Aviso de que el borrado se completó -- solo aparece justo tras la
+// recarga que hace finishLocalWipeAndReturnToConsent() (ver más abajo),
+// nunca en una carga normal de la página.
+if (sessionStorage.getItem('identity_just_deleted')) {
+  sessionStorage.removeItem('identity_just_deleted');
+  window.i18nReady.finally(() => showToast(t('index.delete.all_deleted_toast')));
+}
 const PLANES_PAGO = ['pro', 'lifetime'];
 function _trialBloqueadoLocal() {
   if (!_reg.timestamp) return false;
@@ -4870,17 +4908,26 @@ document.getElementById('btn-recover-skip')?.addEventListener('click', () => {
   if (_trialBloqueadoLocal()) window.location.href = '/paywall.html';
 });
 
-if (!localStorage.getItem('identity_registration')) {
-  // No se lanza excepción: el resto del script sigue corriendo con normalidad
-  // (isFirstTime ya maneja este caso — crear PIN sin identity_registration
-  // equivale a un identity blanco editable después, no rompe nada).
+// Solo bloquea la pantalla del PIN cuando el dispositivo no tiene NI
+// contraseña NI registro -- es decir, es realmente nuevo. Si ya existe
+// identity_pin pero no hay registro de servidor (identidad local de
+// antes de este cambio), la pantalla del PIN sigue funcionando con
+// normalidad: pinEnterBtn() decide qué hacer tras verificar la
+// contraseña (ver más abajo, pantalla "verifica tu email" -- nunca
+// entra directamente sin un registro real).
+if (!tieneRegistroServidor() && !localStorage.getItem(PIN_KEY)) {
   document.getElementById('screen-pin').classList.add('locked-no-identity');
   document.getElementById('screen-no-identity').style.display = 'block';
   const noAccountLink = document.getElementById('link-no-account');
   if (noAccountLink) noAccountLink.style.display = 'block';
+  // Antes este botón desbloqueaba la creación de una contraseña LOCAL
+  // sin pasar nunca por el servidor (el hueco de seguridad del punto 1
+  // del lote: identidad gratuita e ilimitada, sin huella anti-reabuso
+  // ni expiración de prueba real). Ahora lleva a register.html, igual
+  // que "link-no-account" -- es la única puerta para crear una
+  // identidad nueva.
   document.getElementById('btn-no-identity-register').addEventListener('click', () => {
-    document.getElementById('screen-pin').classList.remove('locked-no-identity');
-    document.getElementById('screen-no-identity').style.display = 'none';
+    window.location.href = '/register.html';
   });
 }
 
@@ -5235,8 +5282,11 @@ btnListenTerms.addEventListener('click', async () => {
 
 // =================== ESTADO ===================
 const STORAGE_KEY = 'identity_data';
-const PIN_KEY = 'identity_pin';
-const PIN_SALT_KEY = 'identity_pin_salt';
+// PIN_KEY, hashPassword/verifyPassword/savePassword viven en
+// password-utils.js, compartido con register.html/recovery.html -- ver
+// ese archivo para el porqué (antes cada uno tenía su propia copia,
+// y esta era la única que generaba hash real; las otras dos escribían
+// texto plano confiando en que esta migrara el formato más adelante).
 
 let pinBuffer = '';
 // La expone buildQwertyKbdPin() más abajo -- permite repintar solo las
@@ -5625,12 +5675,43 @@ document.querySelectorAll('.pin-key[data-n]').forEach(btn => {
   });
 });
 
+// Identidad local sin registro de servidor real (contraseña correcta,
+// pero sin identity_registration+token) -- no entra, pero tampoco se
+// toca ni se borra su tarjeta local mientras verifica su email.
+function showVerifyEmailRequired() {
+  document.getElementById('verify-email-ov').style.display = 'flex';
+}
+document.getElementById('btn-verify-email-go').addEventListener('click', () => {
+  document.getElementById('verify-email-ov').style.display = 'none';
+  // Dos casos distintos de "sin registro con token", que NO son lo
+  // mismo: con identity_registration (cuenta de antes de que existieran
+  // los tokens, ver claim-token.js) hay un email real al que enviar un
+  // código -- "Recupera tu acceso" (mostrarRecuperarAcceso) ya hace
+  // exactamente eso y, al verificar, guarda el token y recarga sin
+  // tocar la tarjeta local. Sin NINGÚN identity_registration (identidad
+  // puramente local, nunca llegó a registrarse) no hay ningún email
+  // al que enviar nada -- la única vía real es register.html.
+  if (_reg.email) {
+    mostrarRecuperarAcceso(_reg.email);
+  } else {
+    window.location.href = '/register.html';
+  }
+});
+
 pinEnterBtn.addEventListener('click', async () => {
   if (pinEnterBtn.disabled) return;
   const stored = localStorage.getItem(PIN_KEY);
   if (isFirstTime) {
-    const hashed = await hashPin(pinBuffer);
-    localStorage.setItem(PIN_KEY, hashed);
+    // index.html NUNCA crea una contraseña nueva sin un registro de
+    // servidor real -- defensivo, la UI ya debería estar bloqueada por
+    // 'locked-no-identity' en este caso (ver el bloque de arriba que la
+    // aplica). Cierra de raíz el hueco de "identidad local ilimitada y
+    // gratis sin pasar por el servidor" (punto 1 del lote).
+    if (!tieneRegistroServidor()) {
+      showErrorToast(t('index.pin.registration_required_toast'));
+      return;
+    }
+    await savePassword(pinBuffer);
     isFirstTime = false;
     pinEnterBtn.classList.remove('ready');
     pinEnterBtn.disabled = true;
@@ -5639,11 +5720,19 @@ pinEnterBtn.addEventListener('click', async () => {
     await migrateTOTPIfNeeded(sessionCryptoKey);
     pinSuccess();
   } else {
-    const result = await verifyPin(pinBuffer, stored);
+    const result = await verifyPassword(pinBuffer, stored);
     if (result.valid) {
       if (result.needsMigration) {
-        const hashed = await hashPin(pinBuffer);
-        localStorage.setItem(PIN_KEY, hashed);
+        await savePassword(pinBuffer);
+      }
+      if (!tieneRegistroServidor()) {
+        // Identidad local de antes de este cambio: contraseña correcta,
+        // pero sin registro de servidor real -- no se entra, no se
+        // borra nada, solo se pide verificar el email.
+        pinEnterBtn.classList.remove('ready');
+        pinEnterBtn.disabled = true;
+        showVerifyEmailRequired();
+        return;
       }
       sessionCryptoKey = await deriveKeyFromPin(pinBuffer);
       await migrateTOTPIfNeeded(sessionCryptoKey);
@@ -6317,45 +6406,10 @@ document.getElementById('card-container').addEventListener('click', () => {
 // =================== QR (vCard) ===================
 let qrInstance = null;
 
+// buildVCardFromProfile() vive en vcard.js, compartido con el botón
+// "Exportar mi tarjeta (vCard)" de paywall.html (ver punto 2 del lote).
 function buildVCard() {
-  const d = profileData;
-  const t = profileData.toggles || {};
-
-  let vc = 'BEGIN:VCARD\nVERSION:3.0\n';
-  if (d.name) {
-    const parts = d.name.trim().split(' ');
-    const firstName = parts[0] || '';
-    const lastName = parts.slice(1).join(' ') || '';
-    vc += `N:${lastName};${firstName};;;\n`;
-    vc += `FN:${d.name}\n`;
-  }
-  if (d.job && t.job !== false)   vc += `TITLE:${d.job}\n`;
-  if (d.phoneNumber && t.phone !== false) {
-    const fullPhone = (d.phoneCountryCode ? d.phoneCountryCode + ' ' : '') + d.phoneNumber;
-    vc += `TEL:${fullPhone}\n`;
-  }
-  if (d.mobileNumber && t.mobile !== false) {
-    const fullMobile = (d.mobileCountryCode ? d.mobileCountryCode + ' ' : '') + d.mobileNumber;
-    vc += `TEL;type=CELL:${fullMobile}\n`;
-  }
-  if (d.landlineNumber && t.landline) {
-    const fullLandline = (d.landlineCountryCode ? d.landlineCountryCode + ' ' : '') + d.landlineNumber;
-    vc += `TEL;type=HOME:${fullLandline}\n`;
-  }
-  if (d.email  && t.email  !== false) vc += `EMAIL:${d.email}\n`;
-  if (d.email2    && t.email2)            vc += `EMAIL;type=HOME:${d.email2}\n`;
-  if (d.emailWork && t.emailWork)         vc += `EMAIL;type=WORK:${d.emailWork}\n`;
-  if (d.company   && t.company !== false) vc += `ORG:${d.company}\n`;
-  if (d.address && t.address)         vc += `ADR:;;${d.address};;;;\n`;
-  if (d.linkedin && t.linkedin !== false) vc += `URL;type=LinkedIn:${d.linkedin}\n`;
-  if (d.github   && t.github   !== false) vc += `URL;type=GitHub:${d.github}\n`;
-  if (d.web      && t.web      !== false) vc += `URL;type=Web:${d.web}\n`;
-  if (d.twitter   && t.twitter   !== false) vc += `URL;type=Twitter:${d.twitter}\n`;
-  if (d.instagram && t.instagram !== false) vc += `URL;type=Instagram:${d.instagram}\n`;
-  if (d.youtube   && t.youtube   !== false) vc += `URL;type=YouTube:${d.youtube}\n`;
-  if (d.tiktok    && t.tiktok    !== false) vc += `URL;type=TikTok:${d.tiktok}\n`;
-  vc += 'END:VCARD';
-  return vc;
+  return buildVCardFromProfile(profileData);
 }
 
 // =================== DISEÑADOR QR PROFESIONAL ===================
@@ -8429,33 +8483,21 @@ async function finishLocalWipeAndReturnToConsent() {
     console.error('[BORRAR TODO] Fallo inesperado al invocar borrarTodoElAlmacenamiento():', e);
   }
 
-  // Resetear estado en memoria
-  profileData = {};
-  pinBuffer = '';
-  sessionCryptoKey = null;
-  twoFAConfig = { totp: false };
-
-  // Cerrar todo y volver al consentimiento
-  closeDeleteModal();
-  resetDeleteConfirmModal();
-  document.getElementById('screen-edit').classList.remove('open');
-  document.getElementById('screen-main').classList.remove('visible');
-  document.getElementById('screen-pin').classList.remove('hidden');
-  renderPinMode();
-  // storage-wipe.js ya borró identity_business_draft junto con el resto de
-  // localStorage, pero si el editor/vista previa de Business seguía
-  // "abierto" detrás de esta pantalla, su DOM ya renderizado (formulario,
-  // vista previa) podría seguir mostrando el borrador de la cuenta recién
-  // eliminada. Ver window.closeAllBusinessScreens en business.js.
-  if (typeof window.closeAllBusinessScreens === 'function') window.closeAllBusinessScreens();
-
-  // Mostrar de nuevo el consentimiento
-  document.getElementById('screen-consent').classList.remove('hidden');
-  document.getElementById('consent-check').classList.remove('checked');
-  document.getElementById('btn-consent-accept').disabled = true;
-  document.getElementById('btn-consent-accept').classList.remove('active');
-
-  showToast(t('index.delete.all_deleted_toast'));
+  // Recarga completa (nunca un reset "blando" del DOM, como antes): una
+  // variable de nivel superior sin resetear (consentChecked) dejaba el
+  // botón de aceptar bloqueado tras un segundo borrado en la misma
+  // pestaña, y la comprobación de "sin identidad" (más arriba en este
+  // mismo script) solo se evaluaba una vez al cargar la página, así que
+  // nunca volvía a aplicarse tras un borrado -- dejaba crear una
+  // contraseña local nueva sin pasar nunca por el registro de servidor
+  // (el hueco de seguridad del punto 1 del lote de textos legales).
+  // location.replace() (no href) para que "atrás" no vuelva a la cuenta
+  // ya borrada. sessionStorage sobrevive a esta navegación (es del
+  // mismo origen, misma pestaña) para poder mostrar el aviso tras
+  // recargar -- borrarTodoElAlmacenamiento() ya vació sessionStorage,
+  // así que esto no resucita nada de la cuenta borrada.
+  try { sessionStorage.setItem('identity_just_deleted', '1'); } catch (e) {}
+  window.location.replace('/index.html');
 }
 
 // "Borrar solo este dispositivo" -- la elección explícita del usuario
@@ -8627,50 +8669,8 @@ async function migrateTOTPIfNeeded(key) {
   }
 }
 
-function getOrCreatePinSalt() {
-  let saltB64 = localStorage.getItem(PIN_SALT_KEY);
-  if (!saltB64) {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    saltB64 = btoa(String.fromCharCode(...salt));
-    localStorage.setItem(PIN_SALT_KEY, saltB64);
-  }
-  return Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
-}
-
-async function hashPin(pin) {
-  const salt = getOrCreatePinSalt();
-  const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-    baseKey,
-    256
-  );
-  const hashB64 = btoa(String.fromCharCode(...new Uint8Array(bits)));
-  return JSON.stringify({ v: 1, hash: hashB64 });
-}
-
-function timingSafeEqualStr(a, b) {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-async function verifyPin(inputPin, storedValue) {
-  // Devuelve { valid: bool, needsMigration: bool }
-  try {
-    const obj = JSON.parse(storedValue);
-    if (obj.v === 1 && obj.hash) {
-      const candidate = await hashPin(inputPin);
-      const candidateObj = JSON.parse(candidate);
-      return { valid: timingSafeEqualStr(candidateObj.hash, obj.hash), needsMigration: false };
-    }
-  } catch(e) {
-    // No es JSON válido => formato viejo en texto plano
-  }
-  return { valid: inputPin === storedValue, needsMigration: true };
-}
+// hashPassword/verifyPassword/savePassword (sal nueva cada vez, migra
+// v1/texto plano) viven en password-utils.js -- ver ese archivo.
 
 // Toggle TOTP
 document.getElementById('t-totp').addEventListener('change', (e) => {

@@ -41,6 +41,12 @@ export async function onRequestPost(context) {
     params.append('line_items[0][price]', priceId);
     params.append('line_items[0][quantity]', '1');
     params.append('customer_email', email);
+    // Métodos de pago explícitos: solo tarjeta (Apple Pay / Google Pay
+    // siguen funcionando dentro de 'card', vía el wallet del navegador).
+    // Así se evita que Klarna, Bancontact, MB WAY, EPS, Amazon Pay o Link
+    // aparezcan en el checkout, sin depender de lo que esté marcado en el
+    // panel de Stripe.
+    params.append('payment_method_types[0]', 'card');
     // client_reference_id y metadata[account_email]: a diferencia de
     // customer_email (que Stripe Checkout precarga en el campo de email
     // pero deja EDITABLE por quien paga), ninguno de estos dos campos se

@@ -161,14 +161,6 @@
       content: '— ';
       color: var(--green);
     }
-    .plan-features li.disabled {
-      color: rgba(255,255,255,0.2);
-      text-decoration: line-through;
-    }
-    .plan-features li.disabled::before {
-      color: rgba(255,255,255,0.15);
-    }
-
     .btn-plan {
       width: 100%;
       padding: 14px;
@@ -181,11 +173,6 @@
       text-transform: uppercase;
       cursor: pointer;
       transition: opacity 0.15s;
-    }
-    .btn-plan.free {
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
     }
     .btn-plan.pro {
       background: var(--green);
@@ -357,22 +344,6 @@
 
   <div class="plans">
 
-    <!-- FREE -->
-    <div class="plan-card">
-      <div class="plan-name">Free</div>
-      <div class="plan-price"><sup>€</sup>0</div>
-      <div class="plan-period">para siempre</div>
-      <ul class="plan-features">
-        <li>Perfil completo de contacto</li>
-        <li>QR estándar funcional</li>
-        <li>Importador de datos</li>
-        <li class="disabled">Video de fondo en tarjeta</li>
-        <li class="disabled">Personalización de colores QR</li>
-        <li class="disabled">Doble factor de autenticación</li>
-      </ul>
-      <button class="btn-plan free" onclick="goFree()">Continuar gratis</button>
-    </div>
-
     <!-- PRO -->
     <div class="plan-card featured">
       <div class="plan-badge">Más popular</div>
@@ -380,10 +351,11 @@
       <div class="plan-price"><sup>€</sup>2<span style="font-size:20px">.99</span></div>
       <div class="plan-period">por mes — cancela cuando quieras</div>
       <ul class="plan-features">
-        <li>Todo lo de Free</li>
+        <li>Perfil completo de contacto</li>
+        <li>QR estándar funcional</li>
+        <li>Importador de datos</li>
         <li>Video de fondo en tarjeta</li>
         <li>Personalización completa del QR</li>
-        <li>Doble factor de autenticación</li>
         <li>Soporte prioritario</li>
       </ul>
       <button class="btn-plan pro" onclick="openModal('pro')">Quiero Pro — 2.99€/mes</button>
@@ -410,7 +382,14 @@
        de i18n más abajo); el resto de esta página sigue en español fijo
        como hasta ahora. Reutiliza la clave index.edit.link_purchase_link,
        ya traducida a los 5 idiomas, para no duplicar texto. -->
-  <button type="button" id="link-vincular-compra-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 24px;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter','Noto Sans Devanagari','Noto Sans SC','Noto Sans JP',system-ui,-apple-system,sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
+  <button type="button" id="link-vincular-compra-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 12px;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter','Noto Sans Devanagari','Noto Sans SC','Noto Sans JP',system-ui,-apple-system,sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
+
+  <!-- Salidas SIEMPRE visibles mientras no hay plan de pago (eliminado
+       el plan Free, punto 2 del lote de textos legales): quien no quiere
+       pagar puede llevarse sus datos (vCard) o borrarlos del todo -- en
+       ningún caso queda atrapado sin salida en esta pantalla. -->
+  <button type="button" id="btn-export-vcard-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 12px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Exportar mi tarjeta (vCard)</button>
+  <button type="button" id="btn-delete-account-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 24px;padding:11px;border-radius:10px;border:1px solid rgba(255,60,60,0.4);background:none;color:rgba(255,100,100,0.85);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Eliminar todos mis datos</button>
 
   <div class="footer-note">
     Tu perfil y tus datos de contacto se guardan solo en tu dispositivo.<br>
@@ -438,8 +417,16 @@
   <!-- Cargado solo por el botón "Ya pagué un plan" de más abajo (ver su
        comentario) -- el resto de esta página no usa i18n. -->
   <script src="/i18n/loader.js"></script>
+  <!-- storage-wipe.js: borrado completo tras "Eliminar todos mis datos".
+       vcard.js: buildVCardFromProfile(), compartida con index.html, para
+       "Exportar mi tarjeta (vCard)". -->
+  <script src="/storage-wipe.js"></script>
+  <script src="/vcard.js"></script>
   <script>
-    // Mostrar días restantes o estado del trial
+    // Mostrar días restantes o estado del trial. Plan gratuito eliminado
+    // (punto 2 del lote de textos legales): cuando la prueba termina sin
+    // un plan de pago, el mensaje deja claro que hace falta elegir un
+    // plan para seguir usando la app -- ya no existe "continuar gratis".
     const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
     if (reg.timestamp) {
       const start = new Date(reg.timestamp);
@@ -450,18 +437,8 @@
       if (remaining > 0) {
         badge.textContent = `Periodo de prueba — quedan ${remaining} días`;
       } else {
-        badge.textContent = 'Periodo de prueba finalizado';
+        badge.textContent = 'Tu prueba ha terminado. Elige un plan para seguir usando IDENTIFLY.';
       }
-    }
-
-    function goFree() {
-      // 'free' sigue siendo una elección legítima del usuario (se usa
-      // para la burbuja/textos de la UI) — lo que cambió es que ya NO
-      // exime de la expiración del trial: esa decisión ahora la toma
-      // check-plan.js en el servidor, mirando solo si existe un plan de
-      // pago (pro/lifetime) para este email, sin mirar este valor.
-      localStorage.setItem('identity_plan', 'free');
-      window.location.href = '/index.html';
     }
 
     let currentPlan = null;
@@ -559,6 +536,65 @@
         }
         window.location.href = '/?vincular=1';
       });
+    });
+
+    // "Exportar mi tarjeta (vCard)" -- salida siempre visible mientras no
+    // hay plan de pago (punto 2 del lote): el perfil local (identity_data)
+    // nunca se pierde solo por no pagar, así que quien no quiere pagar
+    // puede llevarse sus datos sin necesidad de usar la app.
+    document.getElementById('btn-export-vcard-paywall').addEventListener('click', () => {
+      let profileData = {};
+      try { profileData = JSON.parse(localStorage.getItem('identity_data') || '{}'); } catch (e) {}
+      const vcard = buildVCardFromProfile(profileData);
+      downloadVCardFile(vcard, (profileData.name || 'contacto').replace(/[^a-zA-Z0-9]+/g, '_') + '.vcf');
+    });
+
+    // "Eliminar todos mis datos" -- mismo flujo de delete-account.js que
+    // index.html (ver su botón "Baja voluntaria"): si hay registro de
+    // servidor, borra primero ahí; el borrado local (storage-wipe.js) solo
+    // ocurre si el servidor confirma, o si no hay registro que borrar.
+    document.getElementById('btn-delete-account-paywall').addEventListener('click', async () => {
+      if (!confirm('¿Seguro que quieres eliminar todos tus datos de IDENTIFLY? Esta acción no se puede deshacer.')) return;
+      const btn = document.getElementById('btn-delete-account-paywall');
+
+      if (!reg || !reg.email) {
+        await borrarTodoElAlmacenamiento();
+        window.location.replace('/index.html');
+        return;
+      }
+      if (!navigator.onLine) {
+        alert('Necesitas conexión para eliminar tu cuenta del servidor.');
+        return;
+      }
+      const token = localStorage.getItem('identity_access_token');
+      btn.disabled = true;
+      btn.textContent = 'Eliminando...';
+      try {
+        const res = await fetch('/api/delete-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: reg.email, token })
+        });
+        if (res.ok) {
+          await borrarTodoElAlmacenamiento();
+          window.location.replace('/index.html');
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401 && data.error === 'no_verificado') {
+          if (confirm('No pudimos verificar tu cuenta en el servidor. ¿Borrar solo los datos de este dispositivo?')) {
+            await borrarTodoElAlmacenamiento();
+            window.location.replace('/index.html');
+            return;
+          }
+        } else {
+          alert('Error al eliminar la cuenta. Inténtalo de nuevo.');
+        }
+      } catch (err) {
+        alert('Error de conexión al eliminar la cuenta.');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Eliminar todos mis datos';
     });
   </script>
 

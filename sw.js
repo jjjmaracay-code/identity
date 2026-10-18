@@ -318,7 +318,33 @@
 // activate() purgue la v33 y los dispositivos que ya la tuvieran
 // cacheada reciban index.html/paywall.html actualizados, igual que en
 // v30-v33.
-const APP_VERSION = '34';
+// v35: quita la última referencia a "nivel militar"/biometría que
+// quedaba en el aviso de 2FA de Ajustes y en el resumen de ventajas de
+// pago (la 2FA es gratis para todos, nunca debió listarse ahí);
+// create-checkout.js fija payment_method_types=['card'] explícito
+// (Klarna/Bancontact/MB WAY/EPS/Amazon Pay/Link ya no pueden aparecer
+// en el checkout, se configure lo que se configure en el panel de
+// Stripe). Corrige el hueco de seguridad real del borrado de cuenta:
+// "Eliminar todos mis datos" no recargaba la página, lo que dejaba
+// crear una identidad local ilimitada y gratis sin pasar nunca por el
+// servidor (sin huella anti-reabuso ni expiración de prueba real) --
+// ahora recarga de verdad (location.replace), y la contraseña usa un
+// hash único compartido (password-utils.js, sal nueva en cada cambio,
+// nunca texto plano) entre register.html/recovery.html/index.html.
+// Las identidades locales de antes de este cambio (contraseña correcta
+// pero sin registro de servidor) ya no entran directamente: si tienen
+// identity_registration pero sin token, van a "Recupera tu acceso"
+// (verificación por email, sin perder su tarjeta); si no tienen ningún
+// registro, van a register.html.
+// Elimina el plan gratuito del paywall (tarjeta Free y "Continuar
+// gratis"): cuando la prueba de 30 días termina sin un plan de pago,
+// el paywall siempre ofrece exportar la tarjeta (vCard) o eliminar
+// todos los datos, nunca deja a nadie sin salida. Añade password-utils.js
+// y vcard.js (nuevos, compartidos) a CACHE_URLS. Sube la versión para
+// que activate() purgue la v34 y los dispositivos que ya la tuvieran
+// cacheada reciban index.html/paywall.html/register.html/recovery.html
+// actualizados, igual que en v30-v34.
+const APP_VERSION = '35';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -335,6 +361,8 @@ const CACHE_URLS = [
   '/vendor/qrcodejs/qrcode.min.js',
   '/vendor/otpauth/otpauth.umd.min.js',
   '/storage-wipe.js',
+  '/password-utils.js',
+  '/vcard.js',
   '/i18n/loader.js',
   '/i18n/es.json',
   '/i18n/en.json',
