@@ -1,3 +1,46 @@
+// v36: escáner local mejorado.
+//   - PDF/Word: sigue siendo texto digital directo (pdf.js/mammoth, sin
+//     OCR), sin cambios de fondo en ese camino.
+//   - Imagen: primero se busca un QR (jsQR, Apache-2.0, vendor/jsqr/) -- si
+//     contiene un vCard o MECARD, se rellena directamente desde ahí (máxima
+//     confianza, sin OCR). Si no hay QR, nuevo preprocesado 100% canvas
+//     (escala de grises, ampliado si la imagen es pequeña, contraste,
+//     binarizado de Otsu, inversión si el fondo es oscuro, enderezado si
+//     está inclinada) y Tesseract en modo de texto disperso (PSM 11).
+//   - Tesseract ahora carga el modelo del idioma actual de la app + inglés
+//     (antes siempre "spa+eng" sin importar el idioma) -- nuevos modelos
+//     "fast" (Apache-2.0, tessdata_fast) para cat/eus/glg/fra/deu/por/hin/
+//     chi_sim/rus/jpn en vendor/tessdata/ (ver scripts/download-tessdata-
+//     fast.ps1; si falta el archivo de un idioma, cae a usar solo inglés
+//     en vez de romper el escaneo, con un límite de tiempo explícito para
+//     no quedarse colgado si la descarga del modelo falla a medias).
+//   - Teléfonos: libphonenumber-js (MIT, bundle "min", vendor/libphonenumber/)
+//     sustituye al regex a mano -- valida números reales y normaliza a
+//     E.164; fijo/móvil sigue decidiéndose por el contexto de la línea.
+//   - Reglas nuevas en extractData(): empresa por sufijo legal (S.L., S.A.,
+//     S.L.U., Inc., Ltd., LLC, GmbH, SARL, Srl...) o por el dominio del
+//     email si no es un proveedor personal; cargo por palabras clave en
+//     los 12 idiomas de la app; nombre buscado junto al cargo detectado;
+//     unión de letras sueltas espaciadas ("C O N S U L T O R" ->
+//     "CONSULTOR") y de nombres en mayúsculas partidos en varias líneas.
+//     El importador de texto pegado usa las mismas reglas (extractData()
+//     ya era compartida).
+//   - Las casillas del formulario rellenadas por el escáner quedan con
+//     borde verde suave y la etiqueta "Revisar" hasta que el usuario las
+//     edite (reutiliza la traducción ya existente de index.import.
+//     confidence_low en los 12 idiomas, sin clave nueva).
+//   - _headers: se añade 'wasm-unsafe-eval' a script-src -- sin este
+//     cambio, Tesseract (el núcleo WASM) no podía compilarse bajo la CSP
+//     real del sitio (verificado con la CSP real, no solo sin CSP):
+//     bloqueaba tanto el OCR de imágenes como el de PDF escaneado sin
+//     capa de texto, YA ANTES de este lote (bug preexistente, no
+//     introducido aquí). Las imágenes se cargan con createImageBitmap()
+//     en vez de <img src="blob:...">, así que no hace falta además tocar
+//     img-src para permitir blob:.
+//   - vendor/jsqr/, vendor/libphonenumber/ y los tessdata nuevos se cargan
+//     bajo demanda, igual que pdf.js/mammoth/Tesseract: NO se precachean
+//     (no hay URLs nuevas en CACHE_URLS por este lote).
+//
 // v28: OTPAuth y QRCode.js (pantalla de alta de 2FA/TOTP) pasan a
 // autohospedarse en vendor/ -- antes se cargaban desde cdn.jsdelivr.net y
 // cdnjs.cloudflare.com respectivamente, cayendo en la rama "cache primero"
@@ -344,7 +387,7 @@
 // que activate() purgue la v34 y los dispositivos que ya la tuvieran
 // cacheada reciban index.html/paywall.html/register.html/recovery.html
 // actualizados, igual que en v30-v34.
-const APP_VERSION = '35';
+const APP_VERSION = '36';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

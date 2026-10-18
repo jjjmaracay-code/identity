@@ -1373,6 +1373,31 @@
 
   .field-input::placeholder { color: rgba(255,255,255,0.4); font-weight: 300; }
 
+  /* Casillas rellenadas por el escáner: borde verde suave + etiqueta
+     "Revisar" hasta que el usuario edite el campo (ver markFieldAsScanReview
+     más abajo, en el bloque de importación/OCR). Verde deliberadamente
+     distinto del lima de acento de la app (--accent), para no confundir
+     "dato por confirmar" con el estilo normal de foco/acento. */
+  .field-input.scan-review-input,
+  select.field-input.scan-review-input {
+    border-color: rgba(76,195,120,0.6);
+    background: rgba(76,195,120,0.08);
+  }
+  .scan-review-badge {
+    display: inline-block;
+    margin-top: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #6fd48f;
+    background: rgba(76,195,120,0.12);
+    border: 1px solid rgba(76,195,120,0.45);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
   /* El <select> hereda color claro de .field-input (var(--text)), pero
      su menú desplegable de <option> lo pinta el sistema operativo con
      fondo blanco por defecto -- texto claro sobre blanco, casi
@@ -6173,12 +6198,91 @@ function loadTesseract() {
   return _tesseractPromise;
 }
 
-async function ocrCanvases(canvases) {
+// jsQR (lectura de QR en imágenes, Apache-2.0, auto-hospedado en
+// vendor/jsqr/) y libphonenumber-js (validación/formateo de teléfonos,
+// MIT, auto-hospedado en vendor/libphonenumber/ — bundle "min", el más
+// ligero: no incluye los patrones de tipo de número fijo/móvil, que aquí
+// se sigue deduciendo por el contexto de la línea, igual que antes).
+let _jsQrPromise = null;
+function loadJsQR() {
+  if (!_jsQrPromise) {
+    _jsQrPromise = (typeof jsQR === 'undefined')
+      ? loadScript('/vendor/jsqr/jsQR.js')
+      : Promise.resolve();
+  }
+  return _jsQrPromise;
+}
+
+let _libPhoneNumberPromise = null;
+function loadLibPhoneNumber() {
+  if (!_libPhoneNumberPromise) {
+    _libPhoneNumberPromise = (typeof libphonenumber === 'undefined')
+      ? loadScript('/vendor/libphonenumber/libphonenumber-js.min.js')
+      : Promise.resolve();
+  }
+  return _libPhoneNumberPromise;
+}
+
+// Modelos de idioma de Tesseract disponibles en vendor/tessdata/ -- clave:
+// código de idioma de la app (window.currentLanguage, ver i18n/loader.js);
+// valor: código que usa Tesseract para el nombre de archivo
+// (vendor/tessdata/<codigo>.traineddata.gz). Se carga solo el idioma ACTUAL
+// del usuario + inglés -- nunca los 12 a la vez -- para no descargar
+// modelos que no se van a necesitar. "es"/"en" (spa/eng) ya estaban en el
+// repositorio; el resto los añade este mismo lote (ver vendor/tessdata/).
+const TESSERACT_LANG_MAP = {
+  es: 'spa', ca: 'cat', eu: 'eus', gl: 'glg', en: 'eng', fr: 'fra',
+  de: 'deu', pt: 'por', hi: 'hin', zh: 'chi_sim', ru: 'rus', ja: 'jpn',
+};
+
+function getOcrLangs() {
+  const code = TESSERACT_LANG_MAP[window.currentLanguage] || 'eng';
+  return code === 'eng' ? 'eng' : code + '+eng';
+}
+
+// Crea un worker de Tesseract para el idioma actual + inglés y reconoce UNA
+// imagen con el PSM indicado (o el que Tesseract use por defecto si no se
+// pasa ninguno). Si el modelo del idioma del usuario no está disponible
+// (p. ej. todavía no se ha ejecutado el script que descarga esos archivos
+// de vendor/tessdata/ para ese idioma; ver scripts/download-tessdata-fast.ps1),
+// se cae a usar solo inglés en vez de romper el escaneo entero.
+// Si falta el modelo de idioma (vendor/tessdata/<codigo>.traineddata.gz;
+// ver scripts/download-tessdata-fast.ps1) el error de red ocurre DENTRO del
+// Worker de Tesseract y no siempre llega como un rechazo normal de la
+// promesa de createWorker() -- verificado empíricamente: sin este límite
+// de tiempo, createWorker() se queda colgado para siempre en vez de
+// fallar, y el escaneo entero no termina nunca. Por eso se usa un plazo
+// explícito en vez de confiar solo en el try/catch.
+function createWorkerConTimeout(langs, ms) {
+  return Promise.race([
+    Tesseract.createWorker(langs, 1, TESSERACT_OPTS),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('tiempo agotado cargando el modelo de "' + langs + '"')), ms)),
+  ]);
+}
+
+async function recognizeWithPsm(image, psm) {
   await loadTesseract();
+  const langs = getOcrLangs();
+  let worker;
+  try {
+    worker = await createWorkerConTimeout(langs, 15000);
+  } catch (err) {
+    console.warn('Modelo de idioma Tesseract "' + langs + '" no disponible, usando solo inglés:', err);
+    worker = await createWorkerConTimeout('eng', 15000);
+  }
+  try {
+    if (psm) await worker.setParameters({ tessedit_pageseg_mode: psm });
+    const { data } = await worker.recognize(image);
+    return data.text || '';
+  } finally {
+    await worker.terminate().catch(() => {});
+  }
+}
+
+async function ocrCanvases(canvases) {
   let combined = '';
   for (const canvas of canvases) {
-    const { data } = await Tesseract.recognize(canvas, 'spa+eng', TESSERACT_OPTS);
-    combined += (data.text || '') + '\n';
+    combined += (await recognizeWithPsm(canvas)) + '\n';
   }
   return combined.trim();
 }
@@ -6237,10 +6341,302 @@ document.getElementById('btn-ocr-doc').addEventListener('click', () => {
   document.getElementById('ocr-file-input').click();
 });
 
+// =================== PREPROCESADO DE IMAGEN PARA OCR ===================
+// Pipeline 100% canvas, sin librerías externas: escala de grises, ampliado
+// si la imagen es pequeña, contraste, binarizado de Otsu, inversión si el
+// fondo es oscuro y enderezado (deskew) si está inclinada. Mejora mucho el
+// acierto de Tesseract en fotos reales de tarjetas (luz desigual, ángulo,
+// resolución baja de cámara de móvil) frente a pasarle la foto tal cual —
+// que es lo que hacía este mismo escáner antes de este lote.
+// createImageBitmap() decodifica el archivo directamente en memoria, sin
+// pasar por una URL de recurso (a diferencia de <img src="blob:...">) -- la
+// CSP del proyecto (img-src 'self' data:, sin blob:) no se aplica aquí, así
+// que no hace falta tocar _headers para que el escaneo de imágenes
+// funcione. Solo se usa el respaldo con <img>+blob: en los pocos
+// navegadores sin createImageBitmap.
+async function loadImageFromFile(file) {
+  if (typeof createImageBitmap === 'function') {
+    return await createImageBitmap(file);
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+      img.src = url;
+    });
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
-// Fallback 100% local (sin red ni CDN externo): decide la estrategia
-// según el tipo de archivo y devuelve el texto crudo, ya pasado por el
-// corrector ortográfico.
+function imageToCanvas(img, maxDim) {
+  let width = img.naturalWidth || img.width;
+  let height = img.naturalHeight || img.height;
+  if (maxDim && Math.max(width, height) > maxDim) {
+    const scale = maxDim / Math.max(width, height);
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+  return canvas;
+}
+
+// Escala de grises por luminosidad perceptual (coeficientes ITU-R BT.601).
+function toGrayscale(ctx, width, height) {
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    d[i] = d[i + 1] = d[i + 2] = gray;
+  }
+  return imgData;
+}
+
+// Expande el histograma al rango 0-255 completo (más contraste).
+function stretchContrast(imgData) {
+  const d = imgData.data;
+  let min = 255, max = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i] < min) min = d[i];
+    if (d[i] > max) max = d[i];
+  }
+  const range = max - min;
+  if (range < 10) return imgData; // ya es casi un solo tono: nada que estirar
+  for (let i = 0; i < d.length; i += 4) {
+    const v = Math.round((d[i] - min) * 255 / range);
+    d[i] = d[i + 1] = d[i + 2] = v;
+  }
+  return imgData;
+}
+
+// Umbral de Otsu: separa la imagen en texto/fondo maximizando la varianza
+// entre ambas clases -- el método estándar para binarizar documentos con
+// iluminación desigual, sin fijar un umbral a mano para cada foto.
+function otsuThreshold(imgData) {
+  const d = imgData.data;
+  const hist = new Array(256).fill(0);
+  for (let i = 0; i < d.length; i += 4) hist[d[i]]++;
+  const total = d.length / 4;
+
+  let sumTotal = 0;
+  for (let t = 0; t < 256; t++) sumTotal += t * hist[t];
+
+  let sumB = 0, wB = 0, maxVar = 0, threshold = 127;
+  for (let t = 0; t < 256; t++) {
+    wB += hist[t];
+    if (wB === 0) continue;
+    const wF = total - wB;
+    if (wF === 0) break;
+    sumB += t * hist[t];
+    const mB = sumB / wB;
+    const mF = (sumTotal - sumB) / wF;
+    const between = wB * wF * (mB - mF) * (mB - mF);
+    if (between > maxVar) { maxVar = between; threshold = t; }
+  }
+  return threshold;
+}
+
+function binarize(imgData, threshold) {
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = d[i] >= threshold ? 255 : 0;
+    d[i] = d[i + 1] = d[i + 2] = v;
+  }
+  return imgData;
+}
+
+// Si la mayoría de píxeles quedan negros tras binarizar, el fondo real era
+// oscuro (texto claro sobre fondo oscuro) -- Tesseract espera texto oscuro
+// sobre fondo claro, así que se invierte.
+function invertIfDarkBackground(imgData) {
+  const d = imgData.data;
+  let dark = 0;
+  const total = d.length / 4;
+  for (let i = 0; i < d.length; i += 4) if (d[i] === 0) dark++;
+  if (dark > total / 2) {
+    for (let i = 0; i < d.length; i += 4) {
+      const v = 255 - d[i];
+      d[i] = d[i + 1] = d[i + 2] = v;
+    }
+  }
+  return imgData;
+}
+
+// Enderezado (deskew) por proyección: prueba un rango de ángulos y se queda
+// con el que, al proyectar los píxeles negros sobre ese eje, da filas más
+// "afiladas" (mayor varianza entre filas) -- con el texto ya alineado
+// horizontalmente, las filas con texto y las de separación entre líneas se
+// distinguen mucho más que con cualquier otro ángulo. Se mide sobre la
+// imagen ya binarizada (en blanco y negro puro) y, cada 2 píxeles, para que
+// sea rápido incluso en imágenes grandes.
+function detectSkewAngle(imgData, width, height) {
+  const d = imgData.data;
+  let bestAngle = 0, bestScore = -1;
+  for (let deg = -15; deg <= 15; deg += 1) {
+    const rad = deg * Math.PI / 180;
+    const sin = Math.sin(rad), cos = Math.cos(rad);
+    const rows = new Array(height).fill(0);
+    for (let y = 0; y < height; y += 2) {
+      for (let x = 0; x < width; x += 2) {
+        if (d[(y * width + x) * 4] === 0) {
+          const ry = Math.round(x * sin + y * cos);
+          if (ry >= 0 && ry < height) rows[ry]++;
+        }
+      }
+    }
+    const mean = rows.reduce((a, b) => a + b, 0) / rows.length;
+    const variance = rows.reduce((a, b) => a + (b - mean) * (b - mean), 0) / rows.length;
+    if (variance > bestScore) { bestScore = variance; bestAngle = deg; }
+  }
+  return bestAngle;
+}
+
+function rotateCanvas(canvas, degrees) {
+  if (!degrees) return canvas;
+  const rad = degrees * Math.PI / 180;
+  const w = canvas.width, h = canvas.height;
+  const newW = Math.round(Math.abs(w * Math.cos(rad)) + Math.abs(h * Math.sin(rad)));
+  const newH = Math.round(Math.abs(w * Math.sin(rad)) + Math.abs(h * Math.cos(rad)));
+  const out = document.createElement('canvas');
+  out.width = newW; out.height = newH;
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, newW, newH);
+  ctx.translate(newW / 2, newH / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(canvas, -w / 2, -h / 2);
+  return out;
+}
+
+// Pipeline completo: imagen original subida por el usuario -> canvas listo
+// para pasar a Tesseract. Solo se usa cuando la imagen NO trae un QR
+// reconocible (ver tryDecodeQrCard) -- con QR, los datos son explícitos y
+// no hace falta ningún reconocimiento de píxeles.
+async function preprocessImageForOcr(file) {
+  const img = await loadImageFromFile(file);
+  const MIN_DIM = 1200; // ampliar si la imagen es pequeña (fotos de móvil a baja resolución)
+  const scale = Math.max(1, MIN_DIM / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+  let canvas = imageToCanvas(img, null);
+  if (scale > 1) {
+    const bigger = document.createElement('canvas');
+    bigger.width = Math.round(canvas.width * scale);
+    bigger.height = Math.round(canvas.height * scale);
+    bigger.getContext('2d').drawImage(canvas, 0, 0, bigger.width, bigger.height);
+    canvas = bigger;
+  }
+
+  let ctx = canvas.getContext('2d');
+  let imgData = toGrayscale(ctx, canvas.width, canvas.height);
+  imgData = stretchContrast(imgData);
+  imgData = binarize(imgData, otsuThreshold(imgData));
+  imgData = invertIfDarkBackground(imgData);
+  ctx.putImageData(imgData, 0, 0);
+
+  // detectSkewAngle ya devuelve el ángulo que HAY QUE APLICAR para
+  // enderezar (no la inclinación detectada en la imagen) -- verificado
+  // empíricamente con una imagen rotada a sabiendas: se corrigió mal hasta
+  // que se dejó de invertir el signo aquí.
+  const angle = detectSkewAngle(imgData, canvas.width, canvas.height);
+  return rotateCanvas(canvas, angle);
+}
+
+// =================== QR / vCard / MECARD ===================
+// Si la imagen trae un QR con un vCard o MECARD, se rellenan los campos
+// directamente desde ahí -- máxima confianza, porque son datos explícitos
+// del propio QR, no una suposición sobre texto reconocido por OCR.
+async function tryDecodeQrCard(file) {
+  await loadJsQR();
+  const img = await loadImageFromFile(file);
+  const canvas = imageToCanvas(img, 1600); // de sobra para leer un QR; no hace falta más resolución
+  const ctx = canvas.getContext('2d');
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const decoded = jsQR(imgData.data, imgData.width, imgData.height);
+  if (!decoded) return null;
+  const parsed = parseVCardOrMecard(decoded.data);
+  return parsed ? { raw: decoded.data, parsed } : null;
+}
+
+// Misma forma de resultado que extractData(): {campo: {value, confidence}}.
+// Devuelve null si el texto del QR no es un vCard ni un MECARD (ej. era
+// solo una URL cualquiera) -- en ese caso el llamador cae al OCR normal.
+function parseVCardOrMecard(raw) {
+  const text = (raw || '').trim();
+  const result = {};
+  const high = (v) => ({ value: v, confidence: 'high' });
+
+  if (/^BEGIN:VCARD/i.test(text)) {
+    let telCount = 0, emailCount = 0;
+    for (let line of text.split(/\r?\n/)) {
+      line = line.trim();
+      if (!line) continue;
+      const sep = line.indexOf(':');
+      if (sep === -1) continue;
+      const rawKey = line.slice(0, sep);
+      const value = line.slice(sep + 1).trim();
+      if (!value) continue;
+      const key = rawKey.split(';')[0].toUpperCase();
+      const props = rawKey.toUpperCase();
+
+      if (key === 'FN') result.nombre = high(value);
+      else if (key === 'TITLE') result.cargo = high(value);
+      else if (key === 'ORG') result.empresa = high(value.split(';')[0]);
+      else if (key === 'URL') result.web = high(value);
+      else if (key === 'ADR') {
+        const partes = value.split(';').filter(Boolean);
+        if (partes.length) result.ciudad = high(partes.join(', '));
+      } else if (key === 'TEL') {
+        telCount++;
+        if (/CELL|MOBILE/.test(props) && !result.movil) result.movil = high(value);
+        else if (!result.telefono_fijo && telCount === 1) result.telefono_fijo = high(value);
+        else if (!result.movil) result.movil = high(value);
+      } else if (key === 'EMAIL') {
+        emailCount++;
+        if (emailCount === 1) result.email_principal = high(value);
+        else if (emailCount === 2) result.email_secundario = high(value);
+        else if (!result.email_trabajo) result.email_trabajo = high(value);
+      }
+    }
+  } else if (/^MECARD:/i.test(text)) {
+    // MECARD separa campos con ';' sin escapar y usa '\;' para un ';'
+    // literal dentro de un valor -- se divide respetando ese escape.
+    const body = text.replace(/^MECARD:/i, '').replace(/;;\s*$/, '');
+    for (const campoCrudo of body.split(/(?<!\\);/)) {
+      const campo = campoCrudo.replace(/\\;/g, ';').trim();
+      if (!campo) continue;
+      const idx = campo.indexOf(':');
+      if (idx === -1) continue;
+      const key = campo.slice(0, idx).toUpperCase();
+      const value = campo.slice(idx + 1).trim();
+      if (!value) continue;
+
+      if (key === 'N') result.nombre = high(value.replace(',', ' ').replace(/\s+/g, ' ').trim());
+      else if (key === 'ORG') result.empresa = high(value);
+      else if (key === 'TEL') result.telefono = high(value);
+      else if (key === 'EMAIL') result.email_principal = high(value);
+      else if (key === 'URL') result.web = high(value);
+      else if (key === 'ADR') result.ciudad = high(value);
+      else if (key === 'NOTE' && !result.cargo) result.cargo = high(value);
+    }
+  } else {
+    return null;
+  }
+  return Object.keys(result).length ? result : null;
+}
+
+// Fallback 100% local (sin red ni CDN externo): decide la estrategia según
+// el tipo de archivo y devuelve el texto crudo, ya pasado por el corrector
+// ortográfico. Las imágenes YA NO pasan por aquí (ver el manejador de
+// ocr-file-input): tienen su propio camino, QR primero y preprocesado +
+// PSM disperso después -- esta función ahora cubre PDF, Word y, como red de
+// seguridad, cualquier otro tipo de archivo que el navegador deje elegir
+// pese al atributo accept del input (p. ej. si el sistema operativo no lo
+// respeta).
 async function extractTextLocally(file) {
   let text = '';
 
@@ -6254,9 +6650,7 @@ async function extractTextLocally(file) {
       text = await ocrCanvases(canvases);
     }
   } else {
-    await loadTesseract();
-    const { data } = await Tesseract.recognize(file, 'spa+eng', TESSERACT_OPTS);
-    text = data.text || '';
+    text = await recognizeWithPsm(file);
   }
 
   try {
@@ -6280,14 +6674,47 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
   showToast(t('index.import.processing_toast'));
 
   try {
-    // Escaneo 100% local -- el archivo nunca sale del dispositivo (ver
-    // pipeline auto-hospedado arriba: pdf.js/mammoth.js/Tesseract.js +
-    // extractData()). Antes se intentaba primero /api/extract-document
-    // (Gemini); ese endpoint se retiró (responde 410, ver
-    // functions/api/extract-document.js) y este es ahora el único camino.
-    const text = await extractTextLocally(file);
-    const extractedLocal = extractData(text);
-    const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extractedLocal[k]);
+    // Escaneo 100% local -- el archivo nunca sale del dispositivo. Antes
+    // se intentaba primero /api/extract-document (Gemini); ese endpoint se
+    // retiró (responde 410, ver functions/api/extract-document.js) y este
+    // es ahora el único camino.
+    //
+    // Para imágenes: primero se busca un QR (vCard/MECARD) -- si aparece,
+    // son datos explícitos y no hace falta OCR. Si no hay QR o no se puede
+    // leer, se cae al preprocesado de canvas + Tesseract en modo de texto
+    // disperso (PSM 11), pensado para fotos de tarjetas reales.
+    const esImagen = file.type.startsWith('image/');
+    let text = '';
+    let extracted = null;
+
+    if (esImagen) {
+      const qr = await tryDecodeQrCard(file).catch((err) => {
+        console.warn('Lectura de QR fallida, se sigue con OCR normal:', err);
+        return null;
+      });
+      if (qr) {
+        text = qr.raw;
+        extracted = qr.parsed;
+      }
+    }
+
+    if (!extracted) {
+      if (esImagen) {
+        const canvas = await preprocessImageForOcr(file);
+        text = await recognizeWithPsm(canvas, Tesseract.PSM.SPARSE_TEXT);
+        try {
+          const speller = await loadSpellChecker();
+          text = spellCorrectText(text, speller);
+        } catch (err) {
+          console.error('Corrector ortográfico no disponible:', err);
+        }
+      } else {
+        text = await extractTextLocally(file);
+      }
+      extracted = await extractData(text);
+    }
+
+    const mappedKeys = Object.keys(IMPORT_FIELD_MAP).filter(k => extracted[k]);
 
     if (!mappedKeys.length) {
       showToast(t('index.import.no_data_found_toast'));
@@ -6296,7 +6723,7 @@ document.getElementById('ocr-file-input').addEventListener('change', async (e) =
 
     openImportModal();
     document.getElementById('import-textarea').value = text;
-    renderImportResults(extractedLocal);
+    renderImportResults(extracted);
   } catch (err) {
     console.error('OCR:', err);
     showToast(t('index.import.process_error_toast'));
@@ -8898,8 +9325,119 @@ function lineHasFuzzyWord(line, knownWords) {
   return false;
 }
 
-function extractData(text) {
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Algunos escaneos (sobre todo el modo de texto disperso de Tesseract, ver
+// PSM 11 más arriba) separan cada letra con un espacio ("C O N S U L T O R"
+// → debería ser "CONSULTOR"). Se unen solo secuencias de 3 o más letras
+// sueltas de una sola letra cada una separadas por un único espacio -- así
+// no se toca una abreviatura real de una letra ("S L", de "S.L.", no entra
+// porque exige minúsculas también sueltas en la secuencia junto a mayúsculas,
+// y porque una secuencia de solo 2 letras es demasiado ambigua para unir
+// con seguridad).
+function joinSpacedLetters(line) {
+  // Exactamente UN espacio ("\s", no "\s+") entre cada letra suelta:
+  // verificado con un PDF real (extractPdfNativeText inserta un único " "
+  // entre dos items de texto de la misma línea) que la separación DENTRO
+  // de una palabra letra-espaciada es de un solo espacio, mientras que el
+  // hueco ENTRE dos palabras suele traer 2 o 3 (por los items vacíos de
+  // ajuste de posición que pdf.js añade justo en los bordes de palabra).
+  // Usar "\s+" aquí (como en una versión anterior de esta función) hace
+  // que el propio límite de palabra desaparezca y una frase entera como
+  // "C O N S U L T O R   D E   S I S T E M A S" se una en un solo bloque
+  // sin espacios -- comprobado empíricamente con ese mismo CV real.
+  const RUN3_RE = /\b(?:[A-Za-zÁÉÍÓÚÑÜáéíóúñü]\s){2,}[A-Za-zÁÉÍÓÚÑÜáéíóúñü]\b/;
+  if (!RUN3_RE.test(line)) return line; // sin ninguna secuencia real de 3+ letras sueltas: no se toca nada, ni "S L" ni "S.L." sueltos
+
+  line = line.replace(new RegExp(RUN3_RE, 'g'), (m) => m.replace(/\s+/g, ''));
+
+  // Esta línea SÍ tiene una secuencia real de letras espaciadas -- eso es
+  // buena evidencia de que el resto de la línea usa el mismo estilo, así
+  // que aquí también se unen los restos de SOLO 2 letras ("D E" -> "DE"),
+  // que la regla anterior deja fuera a propósito cuando van sueltos en una
+  // línea normal. Mismo espacio único exacto, por la misma razón de
+  // arriba. Si la línea no tuviera ninguna secuencia de 3+ (ya comprobado
+  // arriba), esta segunda unión nunca se ejecuta -- un "S L" o "S.L."
+  // sueltos en una línea normal, sin ninguna otra palabra letra-espaciada
+  // alrededor, nunca se tocan.
+  return line.replace(/\b[A-Za-zÁÉÍÓÚÑÜáéíóúñü]\s[A-Za-zÁÉÍÓÚÑÜáéíóúñü]\b/g,
+    (m) => m.replace(/\s+/g, ''));
+}
+
+// Algunos nombres en mayúsculas quedan partidos en dos líneas seguidas
+// ("JHONATAN" / "MARACAY ORTIZ"). Se fusionan líneas consecutivas
+// ÍNTEGRAMENTE EN MAYÚSCULAS (sin ninguna minúscula) si el resultado sigue
+// teniendo 4 palabras o menos -- limitado a las primeras 8 líneas del
+// documento (donde realmente puede aparecer un nombre) para no fusionar por
+// error dos títulos de sección sueltos más abajo en el texto.
+function mergeUppercaseSplitLines(lines) {
+  const LIMIT = Math.min(8, lines.length);
+  const isAllCaps = (l) => /^[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s.'-]*$/.test(l) && l.replace(/[^A-ZÁÉÍÓÚÑÜ]/g, '').length >= 2;
+  const merged = [];
+  for (let i = 0; i < LIMIT; i++) {
+    let line = lines[i];
+    while (
+      isAllCaps(line) && i + 1 < LIMIT && isAllCaps(lines[i + 1]) &&
+      (line + ' ' + lines[i + 1]).split(/\s+/).filter(Boolean).length <= 4
+    ) {
+      i++;
+      line = line + ' ' + lines[i];
+    }
+    merged.push(line);
+  }
+  return merged.concat(lines.slice(LIMIT));
+}
+
+// Una URL larga en una columna estrecha puede partirse en dos líneas reales
+// del PDF (comprobado con pdf.js: no es un error de reconstrucción, el
+// documento original ya trae esas dos líneas con coordenadas Y distintas
+// -- ej. "www.linkedin.com/in/jhonatan-davi" + "d-maracay-ortiz-..."). Se
+// une SOLO si el ÚLTIMO TOKEN de la línea contiene "/" (una URL con ruta,
+// nunca un email ni un dominio suelto -- "juan@empresa.com" no tiene "/")
+// Y la línea siguiente es un único token sin ningún espacio. Con las dos
+// condiciones a la vez, un email seguido de una ciudad en la línea de
+// abajo ("juan@empresa.com" / "madrid, españa") nunca se une: la ciudad
+// tiene una coma y un espacio, no es "un único token".
+function joinWrappedUrls(text) {
+  const lines = text.split('\n');
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    while (i + 1 < lines.length) {
+      const trimmed = line.trimEnd();
+      const lastToken = trimmed.split(/\s+/).pop() || '';
+      const nextLine = lines[i + 1];
+      const nextEsUnSoloToken = nextLine.length > 0 && !/\s/.test(nextLine);
+      if (lastToken.includes('/') && nextEsUnSoloToken) {
+        i++;
+        line = trimmed + nextLine;
+      } else {
+        break;
+      }
+    }
+    out.push(line);
+  }
+  return out.join('\n');
+}
+
+async function extractData(text) {
   const result = {};
+
+  // Normalización previa a cualquier regla: primero se reconstruyen URLs
+  // partidas por el ancho de columna del PDF (joinWrappedUrls), luego se
+  // unen letras sueltas separadas por espacios en cada línea
+  // (joinSpacedLetters). La fusión de nombres partidos en mayúsculas
+  // (mergeUppercaseSplitLines) se aplica más abajo, sobre `lines`, una vez
+  // separado el texto en líneas.
+  text = joinWrappedUrls(text);
+  // Después de unir letras sueltas quedan huecos de 2-3 espacios donde
+  // antes había una palabra entera (el hueco real entre palabras en el
+  // texto reconstruido del PDF) -- se colapsan a uno solo, puramente
+  // cosmético: no cambia qué letras se unieron, solo cómo se ve el valor
+  // final en la casilla "Revisar".
+  text = text.split('\n').map(joinSpacedLetters).map(l => l.replace(/ {2,}/g, ' ')).join('\n');
 
   // CAPA 1 — Patrones exactos
   const emails = [...new Set((text.match(/[\w.+-]+@[\w-]+\.[a-z]{2,}/gi) || []).map(e => e.toLowerCase()))];
@@ -8907,29 +9445,33 @@ function extractData(text) {
   if (emails[1]) result.email_secundario = { value: emails[1], confidence: 'high' };
   if (emails[2]) result.email_trabajo    = { value: emails[2], confidence: 'medium' };
 
-  // Teléfonos: primero el patrón español explícito (empieza por 6/7/8/9,
-  // con o sin prefijo +34/0034); si no aparece ninguno, un patrón
-  // internacional genérico (prefijo de país + grupos de dígitos) como red
-  // de seguridad para documentos no españoles. Cuando el texto etiqueta
-  // explícitamente el tipo ("Fijo:", "Móvil:", "Office", "Cell"...) se
-  // respeta esa etiqueta; si no hay etiqueta, se mantiene el criterio
-  // anterior (primer número → telefono, segundo → movil).
-  const TEL_ES_RE = /(\+34|0034)?[\s.-]?[6789]\d{2}[\s.-]?\d{3}[\s.-]?\d{3}/g;
-  const TEL_INTL_RE = /\+\d{1,3}[\s.-]?\(?\d{1,4}\)?(?:[\s.-]?\d{2,4}){2,4}/g;
-
-  let telMatches = [...text.matchAll(TEL_ES_RE)].map(m => m[0]).filter(Boolean);
-  if (!telMatches.length) telMatches = [...text.matchAll(TEL_INTL_RE)].map(m => m[0]);
+  // Teléfonos: libphonenumber-js (auto-hospedado, bundle "min") detecta y
+  // VALIDA números reales -- evita falsos positivos de un regex a mano (p.
+  // ej. una fecha o un código postal con forma de teléfono) y normaliza
+  // siempre a formato E.164 (+34...), que de paso hace que el selector de
+  // país del formulario se rellene solo (ver parseTelefono()). Se prueba
+  // primero SIN país por defecto (detecta el país por el propio prefijo
+  // +NN) y, si no aparece nada, se repite asumiendo España -- mismo
+  // criterio que antes, pensado para tarjetas españolas sin prefijo
+  // explícito. El bundle "min" no incluye los patrones de tipo de número
+  // (fijo/móvil) del bundle "max" (mucho más pesado); fijo/móvil/genérico
+  // se sigue decidiendo por la etiqueta de contexto ("Fijo:", "Móvil:",
+  // "Office", "Cell"...), igual que antes.
+  await loadLibPhoneNumber();
+  let telMatches = libphonenumber.findPhoneNumbersInText(text).filter(m => m.number.isValid());
+  if (!telMatches.length) {
+    telMatches = libphonenumber.findPhoneNumbersInText(text, 'ES').filter(m => m.number.isValid());
+  }
 
   if (telMatches.length) {
     const seen = new Set();
     let asignoGenerico = false;
-    for (const raw of telMatches) {
-      const clean = raw.replace(/[\s.-]/g, '').replace(/^0034/, '+34');
-      if (!clean || seen.has(clean)) continue;
+    for (const m of telMatches) {
+      const clean = m.number.number; // E.164, ej. "+34663334534"
+      if (seen.has(clean)) continue;
       seen.add(clean);
 
-      const idx = text.indexOf(raw);
-      const contexto = text.slice(Math.max(0, idx - 20), idx).toLowerCase();
+      const contexto = text.slice(Math.max(0, m.startsAt - 20), m.startsAt).toLowerCase();
 
       if (/fijo|oficina|office|landline/.test(contexto) && !result.telefono_fijo) {
         result.telefono_fijo = { value: clean, confidence: 'high' };
@@ -8954,20 +9496,27 @@ function extractData(text) {
   // etiqueta ANTES de llegar a la URL real (aparece antes en el string) y
   // capturaría "linkedin" (el propio dominio) como si fuera el usuario —
   // bug verificado empíricamente con un .docx de prueba real.
+  // Todas las etiquetas sueltas (sin URL real delante) exigen "\b" antes
+  // del token -- sin eso, "ig[:\s]+" machea el final de "Big" seguido de
+  // un espacio (bug real verificado: "Big Data" -> instagram="Data" en un
+  // CV que no menciona Instagram en ningún sitio). Con límite de palabra,
+  // "ig"/"tw" solo cuentan como la propia etiqueta, nunca como el final de
+  // otra palabra. La captura exige 2 caracteres o más, para no quedarse
+  // con un usuario de una sola letra suelta.
   let liMatch = text.match(/linkedin\.com\/in\/([\w-]+)/i);
-  if (!liMatch) liMatch = text.match(/(?:linked\s*in[:\s]+|linkedln[:\s]+|linkedin[:\s]+)([\w-]+)/i);
+  if (!liMatch) liMatch = text.match(/\b(?:linked\s*in|linkedln|linkedin)[:\s]+([\w-]{2,})/i);
   if (liMatch) result.linkedin = { value: 'https://linkedin.com/in/' + liMatch[1].replace(/^@/, ''), confidence: 'high' };
 
   let ghMatch = text.match(/github\.com\/([\w-]+)/i);
-  if (!ghMatch) ghMatch = text.match(/(?:git\s*hub[:\s]+|githb[:\s]+|github[:\s]+)([\w-]+)/i);
+  if (!ghMatch) ghMatch = text.match(/\b(?:git\s*hub|githb|github)[:\s]+([\w-]{2,})/i);
   if (ghMatch) result.github = { value: 'https://github.com/' + ghMatch[1].replace(/^@/, ''), confidence: 'high' };
 
-  // Twitter/X: el patrón genérico "@handle" al inicio de línea, sin más
-  // contexto, NO se trata como Twitter si hay evidencia de Instagram/
-  // TikTok en esa misma línea o en la anterior — evita que un @handle de
-  // otra red se etiquete mal solo por empezar con "@".
+  // Twitter/X: el patrón genérico "@handle" al inicio de línea (un
+  // @usuario real, no una etiqueta) NO se trata como Twitter si hay
+  // evidencia de Instagram/TikTok en esa misma línea o en la anterior —
+  // evita que un @handle de otra red se etiquete mal solo por empezar con "@".
   let twMatch = text.match(/(?:twitter\.com|x\.com)\/([\w]+)/i);
-  if (!twMatch) twMatch = text.match(/tw(?:itter)?[:\s]+([\w]+)/i);
+  if (!twMatch) twMatch = text.match(/\btw(?:itter)?[:\s]+([\w]{2,})/i);
   if (!twMatch) {
     const atMatch = text.match(/^@([\w]+)/m);
     if (atMatch) {
@@ -8983,46 +9532,97 @@ function extractData(text) {
   if (twMatch) result.twitter = { value: '@' + twMatch[1], confidence: 'high' };
 
   let igMatch = text.match(/instagram\.com\/([\w.]+)/i);
-  if (!igMatch) igMatch = text.match(/(?:ig[:\s]+|insta(?:gram)?[:\s]+)([\w.]+)/i);
+  if (!igMatch) igMatch = text.match(/\b(?:ig|insta(?:gram)?)[:\s]+([\w.]{2,})/i);
   if (igMatch) result.instagram = { value: 'https://instagram.com/' + igMatch[1], confidence: 'high' };
 
+  // Facebook: no tiene campo en el formulario (no está en IMPORT_FIELD_MAP,
+  // igual que antes de este lote) -- se excluye igualmente de "web" más
+  // abajo para no mostrarlo mal etiquetado como web genérica, pero no se
+  // añade un campo nuevo que no se pidió.
   const webMatches = [...text.matchAll(/https?:\/\/(?!(?:linkedin|github|twitter|instagram|facebook|x\.com))([\w.-]+\.[a-z]{2,}[\w./=?&-]*)/gi)];
   if (webMatches.length) result.web = { value: webMatches[0][0], confidence: 'high' };
 
   let ytMatch = text.match(/youtube\.com\/(?:c\/|channel\/|@)([\w-]+)/i);
-  if (!ytMatch) ytMatch = text.match(/you\s*tube[:\s]+([\w-]+)/i);
+  if (!ytMatch) ytMatch = text.match(/\byou\s*tube[:\s]+([\w-]{2,})/i);
   if (ytMatch) result.youtube = { value: 'https://youtube.com/@' + ytMatch[1], confidence: 'high' };
 
   let ttMatch = text.match(/tiktok\.com\/@([\w.]+)/i);
-  if (!ttMatch) ttMatch = text.match(/tik\s*tok[:\s]+@?([\w.]+)/i);
+  if (!ttMatch) ttMatch = text.match(/\btik\s*tok[:\s]+@?([\w.]{2,})/i);
   if (ttMatch) result.tiktok = { value: 'https://tiktok.com/@' + ttMatch[1], confidence: 'high' };
 
-  const waMatch = text.match(/(?:whatsapp[:\s]+|wa[:\s]+)(\+?[\d\s.-]{9,15})/i);
+  const waMatch = text.match(/\b(?:whatsapp|wa)[:\s]+(\+?[\d\s.-]{9,15})/i);
   if (waMatch) result.whatsapp = { value: waMatch[1].replace(/[\s.-]/g, ''), confidence: 'high' };
 
   // CAPA 2 — Patrones contextuales
-  const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const lines = mergeUppercaseSplitLines(text.split(/\n/).map(l => l.trim()).filter(Boolean));
 
+  // Palabras de cargo en los 12 idiomas de la app (es/en ya cubiertas por
+  // CARGO_KW/CARGO_WORDS con comprobación difusa -- Levenshtein -- para
+  // tolerar ruido de OCR en alfabeto latino; el resto se comprueba por
+  // coincidencia exacta: para escrituras no latinas -- hi/zh/ru/ja -- la
+  // distancia de Levenshtein entre caracteres no tiene el mismo sentido que
+  // en latín, y para el resto de idiomas latinos añadir fuzzy duplicaría el
+  // riesgo de falsos positivos sin aportar nada que el regex exacto no
+  // cubra ya).
   const CARGO_KW = /Engineer|Developer|Designer|Manager|Director|CEO|CTO|CFO|Founder|Consultor|Analista|T[eé]cnico|Especialista|Coordinador|Ingenier[oa]/i;
   const CARGO_WORDS = ['Engineer','Developer','Designer','Manager','Director','Founder','Consultor','Analista','Técnico','Especialista','Coordinador','Ingeniero','Ingeniera'];
-  for (const line of lines) {
+  const CARGO_WORDS_INTL = [
+    'Enginyer','Enginyera','Desenvolupador','Desenvolupadora','Dissenyador','Dissenyadora','Gerent','Fundador','Fundadora','Tècnic','Tècnica', // ca
+    'Ingeniari','Garatzaile','Diseinatzaile','Zuzendari','Kudeatzaile','Sortzaile','Aholkulari','Teknikari','Espezialista','Koordinatzaile', // eu
+    'Enxeñeiro','Enxeñeira','Desenvolvedor','Desenvolvedora','Deseñador','Deseñadora','Xerente','Coordinador','Coordinadora', // gl
+    'Ingénieur','Ingénieure','Développeur','Développeuse','Directeur','Directrice','Gérant','Gérante','Fondateur','Fondatrice','Consultant','Consultante','Analyste','Technicien','Technicienne','Spécialiste','Coordinateur','Coordinatrice', // fr
+    'Ingenieur','Ingenieurin','Entwickler','Entwicklerin','Designer','Designerin','Leiter','Leiterin','Geschäftsführer','Geschäftsführerin','Gründer','Gründerin','Berater','Beraterin','Analyst','Analystin','Techniker','Technikerin','Spezialist','Spezialistin','Koordinator','Koordinatorin', // de
+    'Engenheiro','Engenheira','Desenvolvedor','Desenvolvedora','Diretor','Diretora','Gerente','Fundador','Fundadora','Coordenador','Coordenadora', // pt
+    'इंजीनियर','डेवलपर','डिज़ाइनर','निर्देशक','प्रबंधक','संस्थापक','सलाहकार','विश्लेषक','तकनीशियन','विशेषज्ञ','समन्वयक', // hi
+    '工程师','开发者','开发人员','设计师','总监','主管','经理','创始人','顾问','分析师','技术员','专家','协调员', // zh
+    'Инженер','Разработчик','Дизайнер','Директор','Менеджер','Основатель','Консультант','Аналитик','Техник','Специалист','Координатор', // ru
+    'エンジニア','開発者','デザイナー','ディレクター','部長','マネージャー','創業者','コンサルタント','アナリスト','技術者','スペシャリスト','コーディネーター', // ja
+  ];
+  const CARGO_KW_INTL = new RegExp(CARGO_WORDS_INTL.map(escapeRegExp).join('|'));
+  let cargoLineIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (line.length >= 100) continue;
-    const exacto = CARGO_KW.test(line);
+    const exacto = CARGO_KW.test(line) || CARGO_KW_INTL.test(line);
     if (exacto || lineHasFuzzyWord(line, CARGO_WORDS)) {
       result.cargo = { value: line, confidence: exacto ? 'medium' : 'low' };
+      cargoLineIdx = i;
       break;
     }
   }
 
-  // Antes exigía solo la preposición suelta "en"/"at" en cualquier punto de
-  // la línea (ej. "Nacido en Madrid" → empresa="Madrid", falso positivo).
-  // Ahora exige contexto real de relación laboral o una etiqueta explícita.
+  // Empresa: 1) relación laboral explícita ("trabaja en", "at", "empresa:",
+  // "company:" -- como antes); 2) si no, una línea con un sufijo de razón
+  // social real (S.L., S.A., S.L.U., Inc., Ltd., LLC, GmbH, SARL, Srl...),
+  // que se toma entera como nombre de empresa; 3) si tampoco, el dominio
+  // del email (si no es un proveedor de correo personal) -- señal más
+  // débil, por eso queda en confidence 'low' y el usuario la revisa.
   const EMPRESA_RE = /(?:trabaj[ao]\s+en|trabajando\s+en|empleado\s+en|\bat\b|empresa\s*:|company\s*:)\s*(.+)/i;
   for (const line of lines) {
     const m = line.match(EMPRESA_RE);
     if (m && m[1].trim().length >= 2 && m[1].length < 80) {
       result.empresa = { value: m[1].trim(), confidence: 'medium' };
       break;
+    }
+  }
+
+  if (!result.empresa) {
+    const SUFIJO_LEGAL_RE = /\b(?:S\.?L\.?U?\.?|S\.?A\.?|S\.?A\.?U\.?|Inc\.?|Ltd\.?|LLC|GmbH|SARL|Srl)\b/;
+    const linea = lines.find(l => l.length < 80 && SUFIJO_LEGAL_RE.test(l));
+    if (linea) result.empresa = { value: linea, confidence: 'medium' };
+  }
+
+  if (!result.empresa) {
+    const PROVEEDORES_PERSONALES = new Set(['gmail.com','hotmail.com','outlook.com','yahoo.com','icloud.com','live.com','protonmail.com','aol.com','yahoo.es','hotmail.es']);
+    const emailParaDominio = result.email_trabajo || result.email_principal || result.email_secundario;
+    if (emailParaDominio) {
+      const dominio = emailParaDominio.value.split('@')[1]?.toLowerCase();
+      if (dominio && !PROVEEDORES_PERSONALES.has(dominio)) {
+        const etiqueta = dominio.split('.')[0];
+        if (etiqueta && etiqueta.length >= 2) {
+          result.empresa = { value: etiqueta.charAt(0).toUpperCase() + etiqueta.slice(1), confidence: 'low' };
+        }
+      }
     }
   }
 
@@ -9057,19 +9657,36 @@ function extractData(text) {
     }
   }
 
-  // CAPA 3 — Heurística de nombre (primeras 5 líneas)
-  // Excluye líneas que ya se detectaron como empresa, o que contienen
-  // marcas típicas de razón social (S.L., S.A., Group, Solutions, Studio,
-  // Soluciones, Consulting) — el nombre de la empresa puede aparecer
-  // arriba del todo en una tarjeta y cumplir el mismo patrón de
+  // CAPA 3 — Heurística de nombre: línea de 2 a 4 palabras con mayúscula
+  // inicial, sin dígitos ni "@". Si se detectó un cargo, se busca junto a
+  // él (3 líneas antes, 3 después -- en una tarjeta o un CV el nombre casi
+  // siempre está pegado al cargo); si no hay cargo, se buscan las primeras
+  // 5 líneas del documento, como antes. Excluye líneas ya usadas como
+  // empresa o que contienen marcas de razón social (S.L., S.A., Group,
+  // Solutions, Studio, Soluciones, Consulting) — el nombre de la empresa
+  // puede aparecer arriba del todo y cumplir el mismo patrón de
   // "2-4 palabras capitalizadas" que un nombre de persona.
   const RAZON_SOCIAL_RE = /\bS\.?L\.?\b|\bS\.?A\.?\b|\bGroup\b|\bSolutions\b|\bStudio\b|\bSoluciones\b|\bConsulting\b/i;
   const NAME_RE = /^[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ][a-záéíóúàèìòùâêîôûäëïöüñ]+(?:\s+[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ][a-záéíóúàèìòùâêîôûäëïöüñ]+){1,3}$/;
-  for (let i = 0; i < Math.min(5, lines.length); i++) {
+  // Mismo patrón, pero para un nombre íntegramente en mayúsculas (ej. tras
+  // mergeUppercaseSplitLines) -- NAME_RE no lo detecta porque exige
+  // minúsculas tras la inicial de cada palabra.
+  const NAME_CAPS_RE = /^[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ]+(?:\s+[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÑ]+){1,3}$/;
+  let nameSearchRange;
+  if (cargoLineIdx !== -1) {
+    const from = Math.max(0, cargoLineIdx - 3);
+    const to = Math.min(lines.length, cargoLineIdx + 4);
+    nameSearchRange = [];
+    for (let i = from; i < to; i++) if (i !== cargoLineIdx) nameSearchRange.push(i);
+  } else {
+    nameSearchRange = [];
+    for (let i = 0; i < Math.min(5, lines.length); i++) nameSearchRange.push(i);
+  }
+  for (const i of nameSearchRange) {
     const line = lines[i];
     if (result.empresa && line === result.empresa.value) continue;
     if (RAZON_SOCIAL_RE.test(line)) continue;
-    if (NAME_RE.test(line) && line.length >= 5 && line.length <= 50) {
+    if ((NAME_RE.test(line) || NAME_CAPS_RE.test(line)) && line.length >= 5 && line.length <= 50) {
       result.nombre = { value: line, confidence: i < 2 ? 'high' : 'medium' };
       break;
     }
@@ -9166,7 +9783,7 @@ function _importModalSetup() {
   document.getElementById('import-overlay').addEventListener('click', closeImportModal);
   document.getElementById('btn-cancel-import').addEventListener('click', closeImportModal);
 
-  document.getElementById('btn-analyze').addEventListener('click', () => {
+  document.getElementById('btn-analyze').addEventListener('click', async () => {
     const text = document.getElementById('import-textarea').value.trim();
 
     if (!text) {
@@ -9176,8 +9793,32 @@ function _importModalSetup() {
       return;
     }
 
-    renderImportResults(extractData(text));
+    // El importador de texto pegado usa exactamente las mismas reglas
+    // (extractData) que el escaneo de imagen/PDF/Word.
+    renderImportResults(await extractData(text));
   });
+
+  // Marca una casilla del formulario como rellenada por el escáner: borde
+  // verde suave + etiqueta "Revisar" (ver CSS .scan-review-input/-badge),
+  // hasta que el usuario edite el campo (el propio "input" la borra).
+  // Reutiliza index.import.confidence_low -- ya traducida a "Revisar" (o
+  // equivalente) en los 12 idiomas, no hace falta una clave nueva.
+  function markFieldAsScanReview(inputEl) {
+    if (!inputEl || inputEl.dataset.scanReview === '1') return;
+    inputEl.dataset.scanReview = '1';
+    inputEl.classList.add('scan-review-input');
+    const badge = document.createElement('span');
+    badge.className = 'scan-review-badge';
+    badge.textContent = t('index.import.confidence_low');
+    inputEl.insertAdjacentElement('afterend', badge);
+    const limpiar = () => {
+      inputEl.classList.remove('scan-review-input');
+      delete inputEl.dataset.scanReview;
+      badge.remove();
+      inputEl.removeEventListener('input', limpiar);
+    };
+    inputEl.addEventListener('input', limpiar);
+  }
 
   document.getElementById('btn-apply-all').addEventListener('click', () => {
     const rows = document.querySelectorAll('.import-row');
@@ -9199,6 +9840,7 @@ function _importModalSetup() {
         const { codigo, numero } = parseTelefono(value, selectEl);
         if (codigo) selectEl.value = codigo;
         numberEl.value = numero;
+        markFieldAsScanReview(numberEl);
         if (!firstEl) firstEl = numberEl;
         return;
       }
@@ -9206,6 +9848,7 @@ function _importModalSetup() {
       const input = document.getElementById(mapping.id);
       if (!input) return;
       input.value = value;
+      markFieldAsScanReview(input);
       if (!firstEl) firstEl = input;
     });
 
