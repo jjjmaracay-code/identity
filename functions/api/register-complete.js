@@ -1,4 +1,6 @@
 import { hashTrialFingerprint, trialFingerprintKey } from '../_shared/trial-fingerprint.js';
+import { recordDeviceSeen } from '../_shared/devices.js';
+import { computePaidActive } from '../_shared/plan-access.js';
 
 // Comparación en tiempo constante (mismo patrón que check-plan.js /
 // stripe-webhook.js) — evita que una diferencia de tiempo de respuesta
@@ -33,7 +35,7 @@ export async function onRequestPost(context) {
   try {
     // "name" ya no se lee del body -- ver minimización de datos más abajo,
     // donde tampoco se escribe en reg:{email}.
-    const { email, code } = await request.json();
+    const { email, code, deviceId } = await request.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Falta email' }), {
@@ -181,6 +183,11 @@ export async function onRequestPost(context) {
       JSON.stringify({ registeredAt, token })
     );
 
+    // Registro de dispositivo (fase 3, solo lectura de uso -- ver
+    // functions/_shared/devices.js). Nunca bloquea ni cambia esta
+    // respuesta, y no depende de si este email tenía o no un plan pagado.
+    await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
+
     // Herencia de plan por email: IDENTIFLY es local-first (el perfil
     // vive solo en el dispositivo), pero el plan de pago sí es
     // server-mode por diseño y vive en la clave SIN prefijo `emailKey`
@@ -191,13 +198,20 @@ export async function onRequestPost(context) {
     // uno nuevo. Es una lectura pura — no se escribe ni se toca esa
     // entrada en ningún momento, así que no hay duplicado ni
     // sobreescritura posible.
-    const PAID_PLANS = ['pro', 'lifetime'];
+    //
+    // computePaidActive() (functions/_shared/plan-access.js), no un
+    // simple PAID_PLANS.includes(paid.plan) -- antes, un 'pro' ya
+    // cancelado o con el periodo pagado ya vencido se devolvía igual como
+    // plan activo a cualquier dispositivo nuevo que registrara ese email,
+    // porque esta comprobación nunca miraba currentPeriodEnd/status (a
+    // diferencia de check-plan.js, que sí usa ese mismo cálculo
+    // compartido desde siempre).
     let plan = null;
     try {
       const paidRaw = await env.PLANS_KV.get(emailKey);
       if (paidRaw) {
         const paid = JSON.parse(paidRaw);
-        if (paid?.plan && PAID_PLANS.includes(paid.plan)) plan = paid.plan;
+        if (computePaidActive(paid)) plan = paid.plan;
       }
     } catch (_) { /* dato de plan corrupto — mejor no aplicar nada que romper el registro */ }
 

@@ -235,6 +235,10 @@ export async function onRequestPost(context) {
       env.PLANS_KV.delete('verify:' + emailKey),
       env.PLANS_KV.delete('ratelimit:' + emailKey),
       env.PLANS_KV.delete('ocrlimit:acct:' + emailKey),
+      // Lista de dispositivos (fase 3 del lote de licencias, ver
+      // functions/_shared/devices.js) -- mismo criterio que el resto de
+      // este borrado: dato ligado a la cuenta, se va con ella.
+      env.PLANS_KV.delete('devices:' + emailKey),
       env.PLANS_KV.put('deleted:' + marcaHash, '1', { expirationTtl: 7 * 24 * 3600 }),
       env.PLANS_KV.put(trialFingerprintKey(trialHash), '1', { expirationTtl: TRIAL_FINGERPRINT_TTL_SECONDS }),
     ]);

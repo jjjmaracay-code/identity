@@ -16,6 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="/i18n/loader.js"></script>
 <script src="/password-utils.js"></script>
+<script src="/device-id.js"></script>
 
 <style>
   :root {
@@ -1627,7 +1628,7 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
     const res = await fetch('/api/register-complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: step1Data.email, name: step1Data.name, code: codeBuffer })
+      body: JSON.stringify({ email: step1Data.email, name: step1Data.name, code: codeBuffer, deviceId: getOrCreateDeviceId() })
     });
     if (res.ok) {
       data = await res.json();
