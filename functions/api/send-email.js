@@ -43,11 +43,13 @@ export async function onRequestPost(context) {
       });
     }
     // 'verification' genera y guarda su propio código más abajo — no lo
-    // acepta del cliente (ver nota junto a la generación). El resto de
-    // templates (p.ej. 'backup', un código permanente que no se valida
-    // contra ninguna acción posterior) siguen recibiéndolo del cliente,
-    // sin cambios.
-    if (template !== 'verification' && !code) {
+    // acepta del cliente (ver nota junto a la generación). 'notice' es un
+    // aviso simple sin ningún código (p.ej. "tu dispositivo fue
+    // revocado" -- ver transfer-device.js). El resto de templates
+    // (p.ej. 'backup', un código permanente que no se valida contra
+    // ninguna acción posterior) siguen recibiéndolo del cliente, sin
+    // cambios.
+    if (template !== 'verification' && template !== 'notice' && !code) {
       return new Response(JSON.stringify({ error: 'Falta code' }), {
         status: 400, headers: { 'Content-Type': 'application/json' }
       });
@@ -170,6 +172,25 @@ export async function onRequestPost(context) {
     <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0;line-height:1.6;">— Si no has solicitado este código, ignora este correo. Tu cuenta permanece segura.</p>
   </div>
   <p style="color:rgba(255,255,255,0.2);font-size:10px;text-align:center;line-height:1.6;">Este correo es generado automáticamente · No respondas a este mensaje<br>Tus datos se almacenan exclusivamente en tu dispositivo · RGPD Art. 5</p>
+</div>`;
+    } else if (template === 'notice') {
+      // Aviso simple, sin ningún código -- ver transfer-device.js (aviso
+      // de que se liberó/transfirió un dispositivo). alert/intro/
+      // message_title/message ya vienen traducidos por quien llama.
+      finalSubject = subject || `IDENTIFLY — Aviso`;
+      html = `
+<div style="background:#080808;padding:40px 24px;font-family:Arial,sans-serif;max-width:480px;margin:0 auto;border:1px solid #AAFF00;border-radius:16px;">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div style="font-size:22px;font-weight:900;letter-spacing:10px;color:#AAFF00;text-transform:uppercase;text-shadow:0 0 10px #AAFF00,0 0 25px rgba(170,255,0,0.6);">IDENTIFLY</div>
+    <div style="font-size:11px;letter-spacing:3px;color:rgba(255,255,255,0.3);margin-top:4px;">IDENTIDAD DIGITAL SEGURA</div>
+  </div>
+  <p style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:8px;">Hola <strong style="color:#fff;">${safeName}</strong>,</p>
+  <div style="background:#111;border:2px solid #AAFF00;border-radius:12px;padding:20px;margin-bottom:24px;">
+    <div style="font-size:12px;font-weight:900;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;margin-bottom:10px;">${escapeHtml(alert || '')}</div>
+    <p style="color:#ccc;font-size:13px;margin:0;line-height:1.6;">${escapeHtml(intro || '')}</p>
+  </div>
+  <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0 0 8px;line-height:1.6;">${escapeHtml(message || '')}</p>
+  <p style="color:rgba(255,255,255,0.2);font-size:10px;text-align:center;line-height:1.6;margin-top:24px;">Este correo es generado automáticamente · No respondas a este mensaje<br>RGPD Art. 5</p>
 </div>`;
     } else {
       finalSubject = subject || `IDENTIFLY — Código`;

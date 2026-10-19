@@ -1,4 +1,5 @@
-import { recordDeviceSeen } from '../_shared/devices.js';
+import { recordDeviceSeen, isNewDeviceOverLimit } from '../_shared/devices.js';
+import { computePaidActive } from '../_shared/plan-access.js';
 
 // Migración para cuentas registradas ANTES de que existiera el sistema
 // de token (ver register-complete.js / check-plan.js). Asigna un token
@@ -64,8 +65,28 @@ export async function onRequestPost(context) {
   await env.PLANS_KV.put('reg:' + emailKey, JSON.stringify({ registeredAt: reg.registeredAt, token }));
 
   // Registro de dispositivo (fase 3, solo lectura de uso -- ver
-  // functions/_shared/devices.js). Nunca bloquea ni cambia esta respuesta.
-  await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
+  // functions/_shared/devices.js). Nunca bloquea ni cambia esta respuesta
+  // (el token se entrega igual más abajo): si el plan ya tiene el límite
+  // de dispositivos activos cubierto (fases 4-5, solo con
+  // DEVICE_LIMIT_ENFORCED==='true'), este dispositivo NUEVO sencillamente
+  // no se da de alta -- así su siguiente check-plan lo ve como "nuevo" de
+  // verdad y responde device_limit, en vez de quedar activo para siempre
+  // por haber entrado vía la migración automática de token en lugar de
+  // por check-plan.js.
+  let plan = null;
+  try {
+    const paidRaw = await env.PLANS_KV.get(emailKey);
+    if (paidRaw) {
+      const paid = JSON.parse(paidRaw);
+      if (computePaidActive(paid)) plan = paid.plan;
+    }
+  } catch (_) { /* dato de plan corrupto -- mejor no aplicar nada que romper la migración */ }
+
+  const enforced = env.DEVICE_LIMIT_ENFORCED === 'true';
+  const sobreLimite = enforced && await isNewDeviceOverLimit(env, emailKey, deviceId, plan);
+  if (!sobreLimite) {
+    await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
+  }
 
   return new Response(JSON.stringify({ ok: true, token }), {
     status: 200, headers: { 'Content-Type': 'application/json' }

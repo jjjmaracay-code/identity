@@ -3083,6 +3083,58 @@
   </div>
 </div>
 
+<!-- Límite de dispositivos alcanzado (fases 4-5 del lote de licencias,
+     código device_limit de check-plan.js) -- elegir cuál dispositivo
+     liberar, código de verificación al email de la cuenta (mismo
+     mecanismo que recover-access-ov), motivo de una lista cerrada, aviso
+     claro y aceptación expresa antes de poder confirmar. -->
+<div id="device-limit-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+  <div style="background:#0a0a0a;border:1.5px solid rgba(170,255,0,0.3);border-radius:20px;padding:28px 24px;max-width:420px;width:100%;font-family:'Inter',sans-serif;">
+    <div style="font-size:14px;font-weight:900;letter-spacing:2px;color:#AAFF00;text-transform:uppercase;text-align:center;margin-bottom:10px;" data-i18n="index.devices.limit_title">Límite de dispositivos alcanzado</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.55);text-align:center;margin-bottom:18px;line-height:1.6;" data-i18n="index.devices.limit_intro">Tu plan ya tiene el máximo de dispositivos activos. Elige cuál liberar para activar este.</div>
+
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px;" data-i18n="index.devices.choose_label">Dispositivo a liberar</div>
+    <div id="device-limit-list" style="margin-bottom:18px;display:flex;flex-direction:column;gap:8px;"></div>
+
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px;" data-i18n="index.devices.reason_label">Motivo</div>
+    <select id="device-limit-reason" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(170,255,0,0.3);background:#111;color:#fff;font-size:13px;font-family:'Inter',sans-serif;margin-bottom:16px;">
+      <option value="cambio_movil" data-i18n="index.devices.reason_cambio_movil">Cambié de móvil</option>
+      <option value="robo" data-i18n="index.devices.reason_robo">Robo</option>
+      <option value="perdida" data-i18n="index.devices.reason_perdida">Pérdida</option>
+      <option value="rotura" data-i18n="index.devices.reason_rotura">Se rompió</option>
+      <option value="otro" data-i18n="index.devices.reason_otro">Otro</option>
+    </select>
+
+    <div id="device-limit-step-code">
+      <button type="button" id="btn-device-limit-send-code"
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(170,255,0,0.3);" data-i18n="index.devices.send_code_button">
+        Enviar código a mi correo
+      </button>
+    </div>
+
+    <div id="device-limit-step-confirm" style="display:none;">
+      <input type="text" id="device-limit-code" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos"
+        style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(170,255,0,0.3);background:#111;color:#fff;text-align:center;font-size:20px;letter-spacing:6px;font-family:'Inter',sans-serif;margin-bottom:16px;" data-i18n-placeholder="index.recover_access.code_placeholder">
+
+      <div style="font-size:11px;color:#ff6b6b;text-align:center;margin-bottom:14px;line-height:1.6;" data-i18n="index.devices.warning_text">
+        El dispositivo que liberes perderá el plan y todos sus datos de IDENTIFLY. Esta acción no se puede deshacer.
+      </div>
+
+      <label id="device-limit-accept-wrap" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:18px;cursor:pointer;">
+        <input type="checkbox" id="device-limit-accept" style="margin-top:2px;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5;" data-i18n="index.devices.accept_label">Entiendo y acepto que el dispositivo liberado perderá el plan y sus datos.</span>
+      </label>
+
+      <button type="button" id="btn-device-limit-confirm" disabled
+        style="width:100%;padding:14px;border-radius:10px;border:none;background:#AAFF00;color:#000;font-family:'Inter',sans-serif;font-size:12px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 24px rgba(170,255,0,0.3);opacity:0.4;" data-i18n="index.devices.confirm_button">
+        Confirmar transferencia
+      </button>
+    </div>
+
+    <div id="device-limit-msg" style="display:none;font-size:11px;color:#ff6b6b;text-align:center;margin-top:14px;line-height:1.5;"></div>
+  </div>
+</div>
+
 <!-- Identidades locales creadas antes de este cambio (contraseña
      correcta pero sin identity_registration+token real) -- ver punto 3
      del lote de textos legales. No se borra nada: la tarjeta local
@@ -4555,6 +4607,15 @@ if (sessionStorage.getItem('identity_just_deleted')) {
   sessionStorage.removeItem('identity_just_deleted');
   window.i18nReady.finally(() => showToast(t('index.delete.all_deleted_toast')));
 }
+// Dispositivo revocado por una transferencia real desde otro dispositivo
+// (ver transfer-device.js / check-plan.js, código device_revoked) --
+// mismo patrón que el aviso de borrado de arriba: el borrado completo ya
+// ocurrió ANTES de esta recarga (ver finishLocalWipeAndReturnToConsent()
+// más abajo), aquí solo se muestra el aviso.
+if (sessionStorage.getItem('identity_device_revoked')) {
+  sessionStorage.removeItem('identity_device_revoked');
+  window.i18nReady.finally(() => showToast(t('index.devices.revoked_toast')));
+}
 const PLANES_PAGO = ['pro', 'lifetime'];
 
 // Margen de gracia sin conexión: 14 días desde la última verificación de
@@ -4697,6 +4758,29 @@ function _bloqueadoRedirigirOVincular() {
       body: JSON.stringify({ email: _reg.email, token, deviceId: getOrCreateDeviceId() })
     });
     const data = await res.json();
+
+    // Dispositivo revocado por una transferencia real (ver
+    // transfer-device.js). Condición deliberadamente exacta y estricta
+    // (regla 8 del lote): NUNCA se borra por un error de red (eso es el
+    // catch, más abajo, que no borra nada), un 4xx/5xx (res.status debe
+    // ser EXACTAMENTE 200), un JSON inválido (res.json() ya habría
+    // lanzado y caído al catch antes de llegar aquí), un token rechazado
+    // (ese caso es {ok:false} SIN code, ver más abajo) ni ningún otro
+    // código -- SOLO este código exacto, en una respuesta 200 real, para
+    // el deviceId de este mismo dispositivo (el único que esta petición
+    // pudo haber enviado). Borrado COMPLETO e inmediato: IDENTIFLY es
+    // local-first, estos datos no tienen copia en ningún otro sitio.
+    if (res.status === 200 && data && data.ok === false && data.code === 'device_revoked') {
+      await finishLocalWipeAndReturnToConsent('identity_device_revoked');
+      return;
+    }
+
+    // Límite de dispositivos del plan alcanzado (regla 2/4) -- NUNCA se
+    // borra nada aquí, solo se ofrece la pantalla de transferencia.
+    if (res.status === 200 && data && data.ok === false && data.code === 'device_limit') {
+      mostrarLimiteDispositivos(data);
+      return;
+    }
 
     if (data.ok) {
       // Respuesta válida del servidor — se cachea para dar un margen de
@@ -4955,6 +5039,136 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
 document.getElementById('btn-recover-skip')?.addEventListener('click', () => {
   ocultarRecuperarAcceso();
   if (_trialBloqueadoLocal()) window.location.href = '/paywall.html';
+});
+
+// =================== LÍMITE DE DISPOSITIVOS / TRANSFERENCIA ===================
+// (fases 4-5 del lote de licencias: check-plan.js responde
+// code:'device_limit' cuando el plan ya tiene el máximo de dispositivos
+// activos y este es uno nuevo). Reutiliza el mismo mecanismo de código de
+// email que "Recupera tu acceso" (send-email.js + la verificación
+// existente, ver register-complete.js/transfer-device.js); el propio
+// transfer-device.js es quien de verdad revoca el dispositivo elegido y
+// activa este. Nunca borra nada aquí -- el borrado del dispositivo VIEJO
+// ocurre en SU PROPIO siguiente check-plan (código device_revoked, ver
+// más arriba), nunca desde este dispositivo.
+let _deviceLimitSelectedId = null;
+
+function formatearUltimaVezDispositivo(iso) {
+  try {
+    const dias = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
+    if (dias <= 0) return t('index.devices.last_seen_today');
+    if (dias === 1) return t('index.devices.last_seen_yesterday');
+    return t('index.devices.last_seen_days').replace('{n}', dias);
+  } catch (_) { return ''; }
+}
+
+function actualizarBotonConfirmarDispositivos() {
+  const code = document.getElementById('device-limit-code').value.trim();
+  const accept = document.getElementById('device-limit-accept').checked;
+  const btn = document.getElementById('btn-device-limit-confirm');
+  const listo = !!_deviceLimitSelectedId && /^\d{6}$/.test(code) && accept;
+  btn.disabled = !listo;
+  btn.style.opacity = listo ? '1' : '0.4';
+}
+
+function mostrarMensajeLimiteDispositivos(texto) {
+  const el = document.getElementById('device-limit-msg');
+  el.textContent = texto;
+  el.style.display = 'block';
+}
+
+function mostrarLimiteDispositivos(data) {
+  _deviceLimitSelectedId = null;
+
+  const ov = document.getElementById('device-limit-ov');
+  const lista = document.getElementById('device-limit-list');
+  const esLifetime = data.plan === 'lifetime';
+  lista.innerHTML = '';
+
+  (data.devices || []).forEach((d) => {
+    const etiquetaTipo = t('index.devices.type_' + (d.tipo || 'otro'));
+    const wrap = document.createElement('label');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1px solid rgba(170,255,0,0.2);background:#111;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.8);';
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'device-limit-choice';
+    input.value = d.deviceId;
+    if (esLifetime) { input.checked = true; _deviceLimitSelectedId = d.deviceId; }
+    input.addEventListener('change', () => {
+      _deviceLimitSelectedId = d.deviceId;
+      actualizarBotonConfirmarDispositivos();
+    });
+    const texto = document.createElement('span');
+    texto.textContent = etiquetaTipo + ' · ' + formatearUltimaVezDispositivo(d.lastSeen);
+    wrap.appendChild(input);
+    wrap.appendChild(texto);
+    lista.appendChild(wrap);
+  });
+
+  document.getElementById('device-limit-step-code').style.display = 'block';
+  document.getElementById('device-limit-step-confirm').style.display = 'none';
+  document.getElementById('device-limit-code').value = '';
+  document.getElementById('device-limit-accept').checked = false;
+  document.getElementById('device-limit-msg').style.display = 'none';
+  actualizarBotonConfirmarDispositivos();
+  ov.style.display = 'flex';
+}
+
+function ocultarLimiteDispositivos() {
+  document.getElementById('device-limit-ov').style.display = 'none';
+}
+
+document.getElementById('btn-device-limit-send-code')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-device-limit-send-code');
+  btn.disabled = true;
+  try {
+    await fetch('/api/send-email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ template: 'verification', to_email: _reg.email, to_name: '' })
+    });
+  } catch (_) { /* el usuario puede intentarlo de nuevo si no le llega el código */ }
+  document.getElementById('device-limit-step-code').style.display = 'none';
+  document.getElementById('device-limit-step-confirm').style.display = 'block';
+  btn.disabled = false;
+  actualizarBotonConfirmarDispositivos();
+});
+
+document.getElementById('device-limit-code')?.addEventListener('input', actualizarBotonConfirmarDispositivos);
+document.getElementById('device-limit-accept')?.addEventListener('change', actualizarBotonConfirmarDispositivos);
+
+document.getElementById('btn-device-limit-confirm')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-device-limit-confirm');
+  const code = document.getElementById('device-limit-code').value.trim();
+  const motivo = document.getElementById('device-limit-reason').value;
+  const token = localStorage.getItem('identity_access_token');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/transfer-device', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: _reg.email, token, deviceIdViejo: _deviceLimitSelectedId,
+        deviceIdNuevo: getOrCreateDeviceId(), motivo, code,
+        lang: window.currentLanguage || 'es'
+      })
+    });
+    const data = await res.json().catch(() => null);
+    if (res.ok && data?.ok) {
+      ocultarLimiteDispositivos();
+      showToast(t('index.devices.transfer_done_toast'));
+      return;
+    }
+    if (data?.error === 'cooldown_activo') {
+      mostrarMensajeLimiteDispositivos(t('index.devices.cooldown_msg'));
+    } else if (data?.error === 'codigo_invalido_o_caducado') {
+      mostrarMensajeLimiteDispositivos(t('index.devices.bad_code_msg'));
+    } else {
+      mostrarMensajeLimiteDispositivos(t('index.devices.generic_error_msg'));
+    }
+  } catch (_) {
+    mostrarMensajeLimiteDispositivos(t('index.devices.generic_error_msg'));
+  }
+  btn.disabled = false;
+  actualizarBotonConfirmarDispositivos();
 });
 
 // Solo bloquea la pantalla del PIN cuando el dispositivo no tiene NI
@@ -8922,7 +9136,7 @@ btnCancelDelete.addEventListener('click', () => {
 // "borrado solo de este dispositivo": sin identity_registration, éxito
 // del borrado en el servidor (ya borrado allí, falta lo local) y la
 // elección explícita "Borrar solo este dispositivo" tras un 401.
-async function finishLocalWipeAndReturnToConsent() {
+async function finishLocalWipeAndReturnToConsent(sessionFlag = 'identity_just_deleted') {
   // borrarTodoElAlmacenamiento() ya protege cada paso con timeout (ver
   // storage-wipe.js), así que no debería rechazar — pero este try/catch
   // es la última red: si algo inesperado lanza de todos modos, queda
@@ -8947,7 +9161,7 @@ async function finishLocalWipeAndReturnToConsent() {
   // mismo origen, misma pestaña) para poder mostrar el aviso tras
   // recargar -- borrarTodoElAlmacenamiento() ya vació sessionStorage,
   // así que esto no resucita nada de la cuenta borrada.
-  try { sessionStorage.setItem('identity_just_deleted', '1'); } catch (e) {}
+  try { sessionStorage.setItem(sessionFlag, '1'); } catch (e) {}
   window.location.replace('/index.html');
 }
 

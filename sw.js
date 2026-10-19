@@ -1,3 +1,20 @@
+// v39: licencias, fases 4-5 (límite de dispositivos + transferencia).
+// TODO el bloqueo real depende de la variable de entorno
+// DEVICE_LIMIT_ENFORCED==='true' (si no vale exactamente eso, el servidor
+// solo registra en log "habria bloqueado" y nunca bloquea a nadie). Con
+// el interruptor encendido: Pro hasta 3 dispositivos activos, Lifetime 1,
+// prueba sin límite nuevo; los dispositivos ya registrados antes de
+// activar el interruptor se respetan siempre, aunque superen el límite
+// (solo afecta a dispositivos NUEVOS). check-plan.js responde
+// code:'device_limit' (con la lista de dispositivos) o code:'device_revoked'
+// según el caso. Nuevo endpoint /api/transfer-device.js: código real al
+// email de la cuenta (reutiliza send-email.js/verify:), motivo de una
+// lista cerrada, revoca el dispositivo elegido y activa el nuevo; Lifetime
+// exige 24h entre transferencias. El dispositivo revocado se borra POR SÍ
+// MISMO (storage-wipe.js) solo ante el código device_revoked exacto, en
+// una respuesta 200 real -- nunca por error de red, 4xx/5xx, JSON
+// inválido, token rechazado ni ningún otro código.
+//
 // v38: licencias, fase 3 (identificador de dispositivo) -- SOLO REGISTRA,
 // no bloquea a nadie todavía. Nuevo /device-id.js (UUID v4 por
 // dispositivo, nunca se borra salvo "Eliminar todos mis datos"): se envía
@@ -412,7 +429,7 @@
 // que activate() purgue la v34 y los dispositivos que ya la tuvieran
 // cacheada reciban index.html/paywall.html/register.html/recovery.html
 // actualizados, igual que en v30-v34.
-const APP_VERSION = '38';
+const APP_VERSION = '39';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
