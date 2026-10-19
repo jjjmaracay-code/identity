@@ -260,6 +260,28 @@ test('sin suscripción activa (free, sin plan de pago) se borra todo sin llamar 
   assert.equal(await existeAlgunRastro(env, email), false, 'debió borrarse todo');
 });
 
+// Fase 3 del lote de licencias (identificador de dispositivo, ver
+// functions/_shared/devices.js) -- devices:{emailKey} es un dato más
+// ligado a la cuenta, igual que reg:/ratelimit:/ocrlimit:acct: (ver
+// seedAccount/existeAlgunRastro arriba): se va con el resto al borrar.
+test('delete-account borra también devices:{emailKey}', async () => {
+  const env = makeEnv();
+  const email = 'con-dispositivos@example.com';
+  await seedAccount(env, email, 'token-real');
+  await env.PLANS_KV.put('devices:' + email, JSON.stringify([
+    { deviceId: '11111111-1111-4111-8111-111111111111', tipo: 'iphone', firstSeen: new Date().toISOString(), lastSeen: new Date().toISOString() },
+  ]));
+
+  globalThis.fetch = async () => new Response('{}', { status: 200 });
+
+  const res = await onRequestPost({ request: makeRequest({ email, token: 'token-real' }), env });
+  const data = await res.json();
+
+  assert.equal(res.status, 200);
+  assert.equal(data.ok, true);
+  assert.equal(await env.PLANS_KV.get('devices:' + email), null, 'devices: debió borrarse junto al resto de la cuenta');
+});
+
 test('lifetime: no hay nada que cancelar, se borra igual sin llamar a Stripe', async () => {
   const env = makeEnv();
   const email = 'lifetime@example.com';

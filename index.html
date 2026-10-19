@@ -15,6 +15,7 @@
 <script src="storage-wipe.js"></script>
 <script src="/password-utils.js"></script>
 <script src="/vcard.js"></script>
+<script src="/device-id.js"></script>
 <script src="/i18n/loader.js"></script>
 <link rel="stylesheet" href="business.css?v=27">
 
@@ -4628,7 +4629,7 @@ function _bloqueadoRedirigirOVincular() {
     const res = await fetch('/api/register-complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: _reg.email, name: _reg.name, code: pendingCode })
+      body: JSON.stringify({ email: _reg.email, name: _reg.name, code: pendingCode, deviceId: getOrCreateDeviceId() })
     });
     if (res.ok) {
       const data = await res.json();
@@ -4664,7 +4665,7 @@ function _bloqueadoRedirigirOVincular() {
       const claimRes = await fetch('/api/claim-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: _reg.email, registeredAt: _reg.timestamp })
+        body: JSON.stringify({ email: _reg.email, registeredAt: _reg.timestamp, deviceId: getOrCreateDeviceId() })
       });
       claimData = await claimRes.json();
       if (claimData.ok && claimData.token) {
@@ -4693,7 +4694,7 @@ function _bloqueadoRedirigirOVincular() {
     const res = await fetch('/api/check-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: _reg.email, token })
+      body: JSON.stringify({ email: _reg.email, token, deviceId: getOrCreateDeviceId() })
     });
     const data = await res.json();
 
@@ -4904,7 +4905,7 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
     const res = await fetch('/api/register-complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name: _reg.name || '', code })
+      body: JSON.stringify({ email, name: _reg.name || '', code, deviceId: getOrCreateDeviceId() })
     });
     const data = await res.json().catch(() => null);
     if (res.ok && data?.token) {

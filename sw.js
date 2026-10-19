@@ -1,3 +1,18 @@
+// v38: licencias, fase 3 (identificador de dispositivo) -- SOLO REGISTRA,
+// no bloquea a nadie todavía. Nuevo /device-id.js (UUID v4 por
+// dispositivo, nunca se borra salvo "Eliminar todos mis datos"): se envía
+// junto a email+token en check-plan.js, register-complete.js y
+// claim-token.js. El servidor lo valida (formato UUID v4; si no es
+// válido, se ignora y la petición sigue igual) y lo guarda en
+// devices:{emailKey} (functions/_shared/devices.js): deviceId, tipo
+// genérico deducido del User-Agent (iphone/android/tablet/otro, nunca el
+// User-Agent completo ni la IP), firstSeen, lastSeen. Escritura mínima:
+// solo si el dispositivo es nuevo o su lastSeen tiene más de 24h, tope de
+// 20 dispositivos por cuenta (se descarta el de lastSeen más antiguo).
+// register-complete.js ahora hereda el plan de pago existente pasando por
+// computePaidActive() (antes devolvía 'pro' aunque estuviera cancelado o
+// caducado). delete-account.js borra también devices:{emailKey}.
+//
 // v37: licencias, fase 1 (regla 5) -- la gracia sin conexión pasa de 24
 // horas a 14 días (GRACIA_SIN_RED_DIAS, index.html). Antes, un plan de
 // pago (identity_plan:'pro'/'lifetime') cacheado localmente concedía
@@ -397,7 +412,7 @@
 // que activate() purgue la v34 y los dispositivos que ya la tuvieran
 // cacheada reciban index.html/paywall.html/register.html/recovery.html
 // actualizados, igual que en v30-v34.
-const APP_VERSION = '37';
+const APP_VERSION = '38';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -416,6 +431,7 @@ const CACHE_URLS = [
   '/storage-wipe.js',
   '/password-utils.js',
   '/vcard.js',
+  '/device-id.js',
   '/i18n/loader.js',
   '/i18n/es.json',
   '/i18n/en.json',

@@ -16,6 +16,7 @@
 // cancelación/impago de la suscripción. Ver ese archivo compartido y
 // stripe-webhook.js para el detalle del ciclo de vida real.
 import { TRIAL_DAYS, getPlanStatus } from '../_shared/plan-access.js';
+import { recordDeviceSeen } from '../_shared/devices.js';
 
 function genericReject() {
   return new Response(JSON.stringify({ ok: false }), {
@@ -36,9 +37,9 @@ function timingSafeEqual(a, b) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  let email, token;
+  let email, token, deviceId;
   try {
-    ({ email, token } = await request.json());
+    ({ email, token, deviceId } = await request.json());
   } catch (_) {
     return genericReject();
   }
@@ -51,6 +52,13 @@ export async function onRequestPost(context) {
   let reg;
   try { reg = JSON.parse(regRaw); } catch (_) { return genericReject(); }
   if (!reg.token || !timingSafeEqual(reg.token, token)) return genericReject();
+
+  // Registro de dispositivo (fase 3, solo lectura de uso -- nunca bloquea
+  // ni cambia esta respuesta, ver functions/_shared/devices.js). Mismo
+  // patrón que el resto de este archivo: se espera (await) en vez de
+  // "fire and forget", porque un Worker puede cortar cualquier promesa
+  // sin terminar en cuanto se devuelve la Response si no se espera antes.
+  await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
 
   // Token válido — a partir de aquí se calcula el estado del trial/plan
   // enteramente con datos del servidor (getPlanStatus vuelve a leer

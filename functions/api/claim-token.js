@@ -1,3 +1,5 @@
+import { recordDeviceSeen } from '../_shared/devices.js';
+
 // Migración para cuentas registradas ANTES de que existiera el sistema
 // de token (ver register-complete.js / check-plan.js). Asigna un token
 // una única vez por email, y solo si quien lo pide puede demostrar —de
@@ -28,9 +30,9 @@ function genericReject() {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  let email, registeredAt;
+  let email, registeredAt, deviceId;
   try {
-    ({ email, registeredAt } = await request.json());
+    ({ email, registeredAt, deviceId } = await request.json());
   } catch (_) {
     return genericReject();
   }
@@ -60,6 +62,10 @@ export async function onRequestPost(context) {
   // para siempre. registeredAt es el único otro campo que de verdad se
   // usa en algún sitio (ver comprobación de arriba y el trial).
   await env.PLANS_KV.put('reg:' + emailKey, JSON.stringify({ registeredAt: reg.registeredAt, token }));
+
+  // Registro de dispositivo (fase 3, solo lectura de uso -- ver
+  // functions/_shared/devices.js). Nunca bloquea ni cambia esta respuesta.
+  await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
 
   return new Response(JSON.stringify({ ok: true, token }), {
     status: 200, headers: { 'Content-Type': 'application/json' }
