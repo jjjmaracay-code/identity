@@ -1,3 +1,13 @@
+// v37: licencias, fase 1 (regla 5) -- la gracia sin conexión pasa de 24
+// horas a 14 días (GRACIA_SIN_RED_DIAS, index.html). Antes, un plan de
+// pago (identity_plan:'pro'/'lifetime') cacheado localmente concedía
+// acceso sin límite de tiempo en el cálculo de respaldo sin red
+// (_trialBloqueadoLocal()) -- ahora también exige una verificación de
+// servidor con éxito en los últimos 14 días (identity_plan_verified.
+// verifiedAt), igual que ya exigía el trial. Al caducar la gracia, el
+// comportamiento sigue siendo el mismo de siempre: solo redirige a
+// paywall.html, nunca borra ningún dato.
+//
 // v36: escáner local mejorado.
 //   - PDF/Word: sigue siendo texto digital directo (pdf.js/mammoth, sin
 //     OCR), sin cambios de fondo en ese camino.
@@ -387,7 +397,7 @@
 // que activate() purgue la v34 y los dispositivos que ya la tuvieran
 // cacheada reciban index.html/paywall.html/register.html/recovery.html
 // actualizados, igual que en v30-v34.
-const APP_VERSION = '36';
+const APP_VERSION = '37';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
