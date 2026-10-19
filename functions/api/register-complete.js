@@ -1,5 +1,5 @@
 import { hashTrialFingerprint, trialFingerprintKey } from '../_shared/trial-fingerprint.js';
-import { recordDeviceSeen } from '../_shared/devices.js';
+import { recordDeviceSeen, isNewDeviceOverLimit } from '../_shared/devices.js';
 import { computePaidActive } from '../_shared/plan-access.js';
 
 // Comparación en tiempo constante (mismo patrón que check-plan.js /
@@ -183,11 +183,6 @@ export async function onRequestPost(context) {
       JSON.stringify({ registeredAt, token })
     );
 
-    // Registro de dispositivo (fase 3, solo lectura de uso -- ver
-    // functions/_shared/devices.js). Nunca bloquea ni cambia esta
-    // respuesta, y no depende de si este email tenía o no un plan pagado.
-    await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
-
     // Herencia de plan por email: IDENTIFLY es local-first (el perfil
     // vive solo en el dispositivo), pero el plan de pago sí es
     // server-mode por diseño y vive en la clave SIN prefijo `emailKey`
@@ -198,6 +193,10 @@ export async function onRequestPost(context) {
     // uno nuevo. Es una lectura pura — no se escribe ni se toca esa
     // entrada en ningún momento, así que no hay duplicado ni
     // sobreescritura posible.
+    //
+    // Se calcula AQUÍ (antes de registrar el dispositivo, no después)
+    // porque isNewDeviceOverLimit() de más abajo necesita saber el plan
+    // real para mirar el límite de dispositivos.
     //
     // computePaidActive() (functions/_shared/plan-access.js), no un
     // simple PAID_PLANS.includes(paid.plan) -- antes, un 'pro' ya
@@ -214,6 +213,21 @@ export async function onRequestPost(context) {
         if (computePaidActive(paid)) plan = paid.plan;
       }
     } catch (_) { /* dato de plan corrupto — mejor no aplicar nada que romper el registro */ }
+
+    // Registro de dispositivo (fase 3, solo lectura de uso -- ver
+    // functions/_shared/devices.js). Nunca bloquea ni cambia esta
+    // respuesta (el token se entrega igual más abajo): si el plan ya
+    // tiene el límite de dispositivos activos cubierto (fases 4-5, solo
+    // con DEVICE_LIMIT_ENFORCED==='true'), este dispositivo NUEVO
+    // sencillamente no se da de alta -- así su siguiente check-plan lo ve
+    // como "nuevo" de verdad y responde device_limit, en vez de quedar
+    // activo para siempre por haber entrado vía "recuperar acceso"/
+    // registro en lugar de por check-plan.js.
+    const enforced = env.DEVICE_LIMIT_ENFORCED === 'true';
+    const sobreLimite = enforced && await isNewDeviceOverLimit(env, emailKey, deviceId, plan);
+    if (!sobreLimite) {
+      await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
+    }
 
     // El token se devuelve para que el cliente lo guarde en su propio
     // localStorage — es lo que permite después a check-plan.js verificar

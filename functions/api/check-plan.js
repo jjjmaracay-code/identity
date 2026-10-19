@@ -16,7 +16,10 @@
 // cancelación/impago de la suscripción. Ver ese archivo compartido y
 // stripe-webhook.js para el detalle del ciclo de vida real.
 import { TRIAL_DAYS, getPlanStatus } from '../_shared/plan-access.js';
-import { recordDeviceSeen } from '../_shared/devices.js';
+import {
+  recordDeviceSeen, isValidDeviceId, getDevicesList, findDevice, isDeviceActive,
+  countActiveDevices, PLAN_DEVICE_LIMITS, isDeviceLimitEnforced, getOrSetDeviceLimitActivatedAt,
+} from '../_shared/devices.js';
 
 function genericReject() {
   return new Response(JSON.stringify({ ok: false }), {
@@ -53,13 +56,6 @@ export async function onRequestPost(context) {
   try { reg = JSON.parse(regRaw); } catch (_) { return genericReject(); }
   if (!reg.token || !timingSafeEqual(reg.token, token)) return genericReject();
 
-  // Registro de dispositivo (fase 3, solo lectura de uso -- nunca bloquea
-  // ni cambia esta respuesta, ver functions/_shared/devices.js). Mismo
-  // patrón que el resto de este archivo: se espera (await) en vez de
-  // "fire and forget", porque un Worker puede cortar cualquier promesa
-  // sin terminar en cuanto se devuelve la Response si no se espera antes.
-  await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
-
   // Token válido — a partir de aquí se calcula el estado del trial/plan
   // enteramente con datos del servidor (getPlanStatus vuelve a leer
   // PLANS_KV, es una segunda lectura barata que evita duplicar aquí su
@@ -68,13 +64,61 @@ export async function onRequestPost(context) {
   if (!status) return genericReject(); // no debería pasar (ya comprobamos reg arriba), blindaje
 
   const diasRestantes = Math.max(0, TRIAL_DAYS - status.diasTranscurridos);
-
-  return new Response(JSON.stringify({
+  const ua = request.headers.get('User-Agent');
+  const respuestaNormal = () => new Response(JSON.stringify({
     ok: true, plan: status.plan, registeredAt: status.registeredAt,
     diasRestantes, bloqueado: status.bloqueado,
-  }), {
-    status: 200, headers: { 'Content-Type': 'application/json' }
-  });
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+  // Sin deviceId (o inválido): nada que registrar ni que limitar -- se
+  // comporta exactamente igual que antes de la fase 3.
+  if (!isValidDeviceId(deviceId)) return respuestaNormal();
+
+  const enforced = isDeviceLimitEnforced(env);
+  const lista = await getDevicesList(env, emailKey);
+  const existente = findDevice(lista, deviceId);
+
+  if (existente) {
+    if (!isDeviceActive(existente)) {
+      // Dispositivo revocado por una transferencia real (ver
+      // transfer-device.js). SOLO con el interruptor encendido se avisa
+      // al cliente para que se borre él mismo (regla 7); apagado, se
+      // trata como si no estuviera revocado -- regla 1, ningún bloqueo
+      // nuevo sin el interruptor.
+      if (enforced) {
+        console.log('[device-limit] bloqueo real: device_revoked', JSON.stringify({ emailKey, deviceId }));
+        return new Response(JSON.stringify({ ok: false, code: 'device_revoked' }), {
+          status: 200, headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      console.log('[device-limit] habria bloqueado (device_revoked), interruptor apagado', JSON.stringify({ emailKey, deviceId }));
+      await recordDeviceSeen(env, emailKey, deviceId, ua);
+      return respuestaNormal();
+    }
+    // Dispositivo activo ya conocido -- nunca lo afecta el límite, se vea
+    // o no superado (regla 3): solo se refresca su lastSeen.
+    await recordDeviceSeen(env, emailKey, deviceId, ua);
+    return respuestaNormal();
+  }
+
+  // Dispositivo NUEVO (no está todavía en la lista) -- aquí sí se mira el
+  // límite por plan (regla 2). Prueba/free: sin entrada en
+  // PLAN_DEVICE_LIMITS, sin límite nuevo.
+  const limite = PLAN_DEVICE_LIMITS[status.plan];
+  if (limite && countActiveDevices(lista) >= limite) {
+    if (enforced) {
+      await getOrSetDeviceLimitActivatedAt(env);
+      console.log('[device-limit] bloqueo real: device_limit', JSON.stringify({ emailKey, plan: status.plan, activos: countActiveDevices(lista), limite }));
+      return new Response(JSON.stringify({
+        ok: false, code: 'device_limit', plan: status.plan,
+        devices: lista.filter(isDeviceActive).map(d => ({ deviceId: d.deviceId, tipo: d.tipo, lastSeen: d.lastSeen })),
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    console.log('[device-limit] habria bloqueado (device_limit), interruptor apagado', JSON.stringify({ emailKey, plan: status.plan, activos: countActiveDevices(lista), limite }));
+  }
+
+  await recordDeviceSeen(env, emailKey, deviceId, ua);
+  return respuestaNormal();
 }
 
 // Cualquier otro método también responde de forma genérica — no exponer
