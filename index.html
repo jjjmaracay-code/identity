@@ -4555,10 +4555,31 @@ if (sessionStorage.getItem('identity_just_deleted')) {
   window.i18nReady.finally(() => showToast(t('index.delete.all_deleted_toast')));
 }
 const PLANES_PAGO = ['pro', 'lifetime'];
+
+// Margen de gracia sin conexión: 14 días desde la última verificación de
+// servidor con éxito (identity_plan_verified.verifiedAt, que escribe
+// _verificarTrialServidor() más abajo en cada respuesta válida de
+// check-plan.js). Antes, un plan de pago cacheado en identity_plan no
+// comparaba NINGUNA fecha -- concedía acceso local sin límite de tiempo
+// mientras el trial sí lo hacía. Pasados los 14 días sin que el servidor
+// lo confirme, este cálculo local deja de darlo por bueno, aunque
+// identity_plan siga diciendo 'pro' o 'lifetime'. Esto nunca borra datos
+// por sí mismo -- solo decide si _bloqueadoRedirigirOVincular() manda a
+// paywall.html (ver también la rama catch de _verificarTrialServidor,
+// que usa la misma constante para la validez de identity_plan_verified).
+const GRACIA_SIN_RED_DIAS = 14;
+function _verificacionServidorReciente() {
+  let veredicto = null;
+  try { veredicto = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
+  return !!(veredicto && (Date.now() - veredicto.verifiedAt) < GRACIA_SIN_RED_DIAS * 24 * 3600 * 1000);
+}
 function _trialBloqueadoLocal() {
   if (!_reg.timestamp) return false;
+  if (PLANES_PAGO.includes(localStorage.getItem('identity_plan'))) {
+    return !_verificacionServidorReciente();
+  }
   const _days = Math.floor((Date.now() - new Date(_reg.timestamp)) / (1000*60*60*24));
-  return _days >= 30 && !PLANES_PAGO.includes(localStorage.getItem('identity_plan'));
+  return _days >= 30;
 }
 
 // Abre la recuperación SIEMPRE que se llegó aquí desde paywall.html
@@ -4698,15 +4719,17 @@ function _bloqueadoRedirigirOVincular() {
     if (_trialBloqueadoLocal()) _bloqueadoRedirigirOVincular();
 
   } catch (_) {
-    // Fallo de red real (no una respuesta explícita del servidor):
-    // margen de gracia corto de 24h reutilizando el último veredicto de
-    // servidor verificado con éxito — más conservador que confiar en el
-    // cálculo local puro, que sería más permisivo para quien haya
-    // manipulado localStorage. Sin nada cacheado o si está viejo,
-    // cálculo local como último recurso.
+    // Fallo de red real (no una respuesta explícita del servidor): margen
+    // de gracia de 14 días (antes, 24 horas -- ver GRACIA_SIN_RED_DIAS)
+    // reutilizando el último veredicto de servidor verificado con éxito —
+    // más conservador que confiar en el cálculo local puro, que sería más
+    // permisivo para quien haya manipulado localStorage. Sin nada
+    // cacheado o si está más viejo que la gracia, cálculo local como
+    // último recurso (_trialBloqueadoLocal() aplica la MISMA ventana de
+    // 14 días para un plan de pago, ver más arriba).
     let veredictoCacheado = null;
     try { veredictoCacheado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
-    const cacheValido = veredictoCacheado && (Date.now() - veredictoCacheado.verifiedAt) < 24 * 3600 * 1000;
+    const cacheValido = veredictoCacheado && (Date.now() - veredictoCacheado.verifiedAt) < GRACIA_SIN_RED_DIAS * 24 * 3600 * 1000;
 
     if (cacheValido) {
       if (veredictoCacheado.bloqueado) _bloqueadoRedirigirOVincular();
