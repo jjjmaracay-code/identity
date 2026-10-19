@@ -9394,13 +9394,21 @@ function mergeUppercaseSplitLines(lines) {
 // del PDF (comprobado con pdf.js: no es un error de reconstrucción, el
 // documento original ya trae esas dos líneas con coordenadas Y distintas
 // -- ej. "www.linkedin.com/in/jhonatan-davi" + "d-maracay-ortiz-..."). Se
-// une SOLO si el ÚLTIMO TOKEN de la línea contiene "/" (una URL con ruta,
-// nunca un email ni un dominio suelto -- "juan@empresa.com" no tiene "/")
-// Y la línea siguiente es un único token sin ningún espacio. Con las dos
-// condiciones a la vez, un email seguido de una ciudad en la línea de
-// abajo ("juan@empresa.com" / "madrid, españa") nunca se une: la ciudad
-// tiene una coma y un espacio, no es "un único token".
+// une SOLO si se cumplen las TRES condiciones a la vez:
+//   1) El último token de la línea contiene "/" Y además un punto de
+//      dominio (p. ej. "linkedin.com/in/juan") -- así "01/2020" (una
+//      fecha con barra, sin ningún dominio) nunca se une.
+//   2) La línea siguiente es un único token, sin ningún espacio.
+//   3) La línea siguiente empieza por minúscula, dígito o guion -- nunca
+//      por mayúscula. Así un encabezado de sección suelto en su propia
+//      línea ("IDIOMAS") o una ciudad ("Madrid") nunca se unen, aunque la
+//      línea de arriba terminase en una URL real.
+// Con las tres a la vez, ni un email seguido de una ciudad
+// ("juan@empresa.com" / "madrid, españa": ni "/" ni dominio en el último
+// token, y además trae coma y espacio) ni una fecha con barra seguida de
+// una palabra en mayúscula ("Desde 01/2020" / "Presente") se unen nunca.
 function joinWrappedUrls(text) {
+  const DOMINIO_CON_RUTA_RE = /\.[A-Za-z]{2,}.*\//;
   const lines = text.split('\n');
   const out = [];
   for (let i = 0; i < lines.length; i++) {
@@ -9410,7 +9418,7 @@ function joinWrappedUrls(text) {
       const lastToken = trimmed.split(/\s+/).pop() || '';
       const nextLine = lines[i + 1];
       const nextEsUnSoloToken = nextLine.length > 0 && !/\s/.test(nextLine);
-      if (lastToken.includes('/') && nextEsUnSoloToken) {
+      if (DOMINIO_CON_RUTA_RE.test(lastToken) && nextEsUnSoloToken && /^[a-z0-9-]/.test(nextLine)) {
         i++;
         line = trimmed + nextLine;
       } else {
