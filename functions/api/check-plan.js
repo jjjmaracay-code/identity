@@ -63,11 +63,15 @@ export async function onRequestPost(context) {
   const status = await getPlanStatus(env, emailKey);
   if (!status) return genericReject(); // no debería pasar (ya comprobamos reg arriba), blindaje
 
-  const diasRestantes = Math.max(0, TRIAL_DAYS - status.diasTranscurridos);
+  const diasRestantes = status.trialActive
+    ? Math.max(0, Math.ceil((Date.parse(status.trialEndsAt) - Date.now()) / 86400000))
+    : Math.max(0, TRIAL_DAYS - status.diasTranscurridos);
   const ua = request.headers.get('User-Agent');
   const respuestaNormal = () => new Response(JSON.stringify({
     ok: true, plan: status.plan, registeredAt: status.registeredAt,
-    diasRestantes, bloqueado: status.bloqueado,
+    diasRestantes, bloqueado: status.bloqueado, cardTrialRequired: status.cardTrialRequired,
+    trialEligible: status.trialEligible, trialActive: status.trialActive, trialEndsAt: status.trialEndsAt,
+    cancelAtPeriodEnd: status.cancelAtPeriodEnd, hasSubscription: status.hasSubscription,
   }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   // Sin deviceId (o inválido): nada que registrar ni que limitar -- se
@@ -104,7 +108,7 @@ export async function onRequestPost(context) {
   // Dispositivo NUEVO (no está todavía en la lista) -- aquí sí se mira el
   // límite por plan (regla 2). Prueba/free: sin entrada en
   // PLAN_DEVICE_LIMITS, sin límite nuevo.
-  const limite = PLAN_DEVICE_LIMITS[status.plan];
+  const limite = status.trialActive ? null : PLAN_DEVICE_LIMITS[status.plan];
   if (limite && countActiveDevices(lista) >= limite) {
     if (enforced) {
       await getOrSetDeviceLimitActivatedAt(env);

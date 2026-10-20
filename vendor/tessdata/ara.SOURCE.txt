@@ -1,0 +1,6 @@
+Arabic OCR model from tesseract-ocr/tessdata_fast.
+Source: https://github.com/tesseract-ocr/tessdata_fast/blob/87416418657359cb625c412a48b6e1d6d41c29bd/ara.traineddata
+Commit: 87416418657359cb625c412a48b6e1d6d41c29bd
+Uncompressed SHA256: e3206d3dc87fd50c24a0fb9f01838615911d25168f4e64415244b67d2bb3e729
+License: Apache-2.0 (LICENSE-ara.txt).
+Stored as deterministic gzip; loaded on demand, like the other OCR models.

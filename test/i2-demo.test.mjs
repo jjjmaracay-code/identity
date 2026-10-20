@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const html = read('demo.html');
-const languages = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja'];
+const languages = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar'];
 const dictionaries = Object.fromEntries(languages.map(lang => [lang, JSON.parse(read('i18n/' + lang + '.json'))]));
 
 // DOM mínimo construido a partir de las etiquetas reales de demo.html.
@@ -44,7 +44,7 @@ async function fixture(options = {}) {
     navigator: { languages: [options.lang || 'es-ES'] },
     fetch: async url => {
       fetches.push(url);
-      assert.match(url, /^\/i18n\/(es|ca|eu|gl|en|fr|de|pt|hi|zh|ru|ja)\.json$/);
+      assert.match(url, /^\/i18n\/(es|ca|eu|gl|en|fr|de|pt|hi|zh|ru|ja|ar)\.json$/);
       const lang = url.slice(6, -5);
       if (options.failDictionary === lang) throw new Error('Offline dictionary');
       return { ok: true, json: async () => dictionaries[lang] };
@@ -93,6 +93,8 @@ for (const lang of languages) {
     assert.equal(f.privateAccesses, 0);
     assert.deepEqual(f.fetches, ['/i18n/' + lang + '.json']);
     assert.equal(f.context.currentLanguage, lang);
+    assert.equal(f.document.documentElement.dir, lang === 'ar' ? 'rtl' : 'ltr');
+    assert.equal(f.document.getElementById('demo-email').textContent, 'alex.demo@example.com');
     assert.equal(f.qrCalls.length, 1);
     const vcard = f.qrCalls[0].data;
     assert.match(vcard, /^BEGIN:VCARD\nVERSION:3\.0\n/);
@@ -174,4 +176,30 @@ test('la demo HTML carga solo componentes públicos y sus accesos no transportan
   assert.equal(document.nodes.some(node => node.tag === 'form'), false);
   const options = document.nodes.filter(node => node.tag === 'option').map(node => node.attributes.value);
   assert.deepEqual(new Set(options), new Set(languages));
+});
+
+
+test('árabe: cambiar a inglés restaura LTR, QR y descarga sin datos privados', async () => {
+  const f = await fixture({ lang: 'ar-SA' });
+  assert.equal(f.document.documentElement.dir, 'rtl');
+  await f.context.setLanguage('en');
+  assert.equal(f.document.documentElement.dir, 'ltr');
+  assert.equal(f.context.currentLanguage, 'en');
+  await f.context.setLanguage('ar');
+  assert.equal(f.document.documentElement.dir, 'rtl');
+  assert.equal(f.privateAccesses, 0);
+});
+
+test('árabe: el fallo del diccionario restaura dirección española', async () => {
+  const f = await fixture({ lang: 'ar', failDictionary: 'ar' });
+  assert.equal(f.context.currentLanguage, 'es');
+  assert.equal(f.document.documentElement.dir, 'ltr');
+});
+
+test('árabe: la cuenta conserva su idioma en otro dispositivo y no reescribe el registro', async () => {
+  const registration = JSON.stringify({ language: 'ar', email: 'private@example.com' });
+  const f = await fixture({ normalPage: true, lang: 'en', storage: { identity_registration: registration } });
+  assert.equal(f.document.documentElement.dir, 'rtl');
+  assert.equal(f.stored.get('identity_registration'), registration);
+  assert.deepEqual(f.storageWrites, []);
 });

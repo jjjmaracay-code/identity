@@ -19,6 +19,7 @@
 <script src="/i18n/loader.js"></script>
 <link rel="stylesheet" href="business.css?v=27">
 <link rel="stylesheet" href="/growth.css">
+<link rel="stylesheet" href="/i18n/rtl.css">
 <script src="/growth-share.js" defer></script>
 
 <style>
@@ -3177,6 +3178,7 @@
         <option value="zh">简体中文</option>
         <option value="ru">Русский</option>
         <option value="ja">日本語</option>
+        <option value="ar">العربية</option>
       </select>
     </div>
   </div>
@@ -3772,7 +3774,7 @@
   <div id="trial-bubble" style="background:rgba(170,255,0,0.08);border:1px solid rgba(170,255,0,0.3);border-radius:12px;padding:14px 16px;margin:12px 0 0;font-family:'Inter',sans-serif;">
     <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#aaff00;text-transform:uppercase;margin-bottom:6px;" data-i18n="index.edit.trial_title">Periodo de prueba</div>
     <div id="trial-bubble-text" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;" data-i18n="index.edit.trial_text">Tienes 30 días gratis con todas las funciones activas. Pasado ese periodo se te pedirá elegir un plan para continuar usando IDENTIFLY.</div>
-    <button onclick="window.location.href='/paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.edit.trial_view_plans">Ver planes — desde 2.99€/mes</button>
+    <button id="btn-billing-settings" type="button" onclick="window.location.href='/paywall.html'" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:none;background:#aaff00;color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;" data-i18n="index.edit.trial_view_plans">Ver planes — desde 2.99€/mes</button>
     <a href="/install.html" style="display:block;text-align:center;margin-top:10px;font-size:10px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;" data-i18n="index.edit.trial_install_link">¿Cómo instalar la app en mi móvil?</a>
     <button type="button" id="link-vincular-compra-edit" style="display:block;width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
   </div>
@@ -4574,6 +4576,7 @@
      modificar (banner de licencia conservado dentro del propio archivo). -->
 <script src="/vendor/otpauth/otpauth.umd.min.js" integrity="sha384-pL2lL8dpeXKbZABP3/eX4t3hzTdOskY6Xnw8o+L40SOL3d+PDicSw2QHGxxrjDWA"></script>
 
+<script src="/plan-cache.js"></script>
 <script>
 // =================== VERIFICACIÓN DE REGISTRO ===================
 // Si el usuario no está registrado, redirigir a register.html antes de mostrar nada
@@ -4650,9 +4653,11 @@ const GRACIA_SIN_RED_DIAS = 14;
 function _verificacionServidorReciente() {
   let veredicto = null;
   try { veredicto = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
-  return !!(veredicto && (Date.now() - veredicto.verifiedAt) < GRACIA_SIN_RED_DIAS * 24 * 3600 * 1000);
+  veredicto = identityPlanCache.read(GRACIA_SIN_RED_DIAS * 24 * 3600 * 1000);
+  return !!veredicto && !veredicto.bloqueado;
 }
 function _trialBloqueadoLocal() {
+  if (_reg.cardTrialRequired) return !_verificacionServidorReciente();
   if (!_reg.timestamp) return false;
   if (PLANES_PAGO.includes(localStorage.getItem('identity_plan'))) {
     return !_verificacionServidorReciente();
@@ -4687,7 +4692,7 @@ function _bloqueadoRedirigirOVincular() {
   window.location.href = '/paywall.html';
 }
 
-// Red de seguridad para la verificación fire-and-forget de register.html:
+// Compatibilidad con los registros pendientes de versiones anteriores:
 // si hubo un fallo de red o del servidor justo al llamar a
 // register-complete.js (ej. red inestable al instalar la PWA),
 // register.html deja la bandera identity_kv_sync_pending junto con el
@@ -4712,6 +4717,10 @@ function _bloqueadoRedirigirOVincular() {
     if (res.ok) {
       const data = await res.json();
       if (data.token) localStorage.setItem('identity_access_token', data.token);
+      if (data.cardTrialRequired) {
+        _reg.cardTrialRequired = true;
+        localStorage.setItem('identity_registration', JSON.stringify(_reg));
+      }
       localStorage.removeItem('identity_kv_sync_pending');
       localStorage.removeItem('identity_pending_verify_code');
     }
@@ -4802,9 +4811,7 @@ function _bloqueadoRedirigirOVincular() {
     if (data.ok) {
       // Respuesta válida del servidor — se cachea para dar un margen de
       // gracia corto si una carga futura no tiene red (ver el catch).
-      localStorage.setItem('identity_plan_verified', JSON.stringify({
-        bloqueado: data.bloqueado, plan: data.plan, verifiedAt: Date.now()
-      }));
+      identityPlanCache.write(data);
       if (data.bloqueado) { _bloqueadoRedirigirOVincular(); return; }
       // Si el usuario ya está en la pantalla de edición cuando esta
       // verificación (que empezó al cargar la página) por fin resuelve,
@@ -4830,7 +4837,7 @@ function _bloqueadoRedirigirOVincular() {
     // último recurso (_trialBloqueadoLocal() aplica la MISMA ventana de
     // 14 días para un plan de pago, ver más arriba).
     let veredictoCacheado = null;
-    try { veredictoCacheado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
+    try { veredictoCacheado = identityPlanCache.read(GRACIA_SIN_RED_DIAS * 24 * 3600 * 1000); } catch (_) {}
     const cacheValido = veredictoCacheado && (Date.now() - veredictoCacheado.verifiedAt) < GRACIA_SIN_RED_DIAS * 24 * 3600 * 1000;
 
     if (cacheValido) {
@@ -5031,6 +5038,7 @@ document.getElementById('btn-recover-verify')?.addEventListener('click', async (
         // vinculando esta instalación nueva a su compra. new Date() solo
         // como último recurso si el servidor no la devolviera por algún
         // motivo.
+        if (data.cardTrialRequired) current.cardTrialRequired = true;
         if (!current.timestamp) current.timestamp = data.registeredAt || new Date().toISOString();
         localStorage.setItem('identity_registration', JSON.stringify(current));
       }
@@ -5313,7 +5321,7 @@ const btnListenTerms = document.getElementById('btn-listen-terms');
 const SPEECH_LANG_MAP = {
   es: 'es-ES', ca: 'ca-ES', eu: 'eu-ES', gl: 'gl-ES', en: 'en-GB',
   fr: 'fr-FR', de: 'de-DE', pt: 'pt-PT', hi: 'hi-IN', zh: 'zh-CN',
-  ru: 'ru-RU', ja: 'ja-JP',
+  ru: 'ru-RU', ja: 'ja-JP', ar: 'ar-SA',
 };
 
 // Las voces del navegador cargan de forma asíncrona (getVoices() puede
@@ -6487,7 +6495,7 @@ function loadLibPhoneNumber() {
 // repositorio; el resto los añade este mismo lote (ver vendor/tessdata/).
 const TESSERACT_LANG_MAP = {
   es: 'spa', ca: 'cat', eu: 'eus', gl: 'glg', en: 'eng', fr: 'fra',
-  de: 'deu', pt: 'por', hi: 'hin', zh: 'chi_sim', ru: 'rus', ja: 'jpn',
+  de: 'deu', pt: 'por', hi: 'hin', zh: 'chi_sim', ru: 'rus', ja: 'jpn', ar: 'ara',
 };
 
 function getOcrLangs() {
@@ -8139,8 +8147,16 @@ function actualizarPlanBadge() {
   let verificado = null;
   try { verificado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
 
-  const esPago = verificado && ['pro', 'lifetime'].includes(verificado.plan);
+  const esPago = verificado && !verificado.bloqueado && !verificado.trialActive && ['pro', 'lifetime'].includes(verificado.plan);
 
+  const billingButton = document.getElementById('btn-billing-settings');
+  if (billingButton && verificado?.hasSubscription) billingButton.textContent = t('billing.cancel');
+  if (verificado?.trialActive) {
+    const remaining = Math.max(0, Math.ceil((Date.parse(verificado.trialEndsAt) - Date.now()) / 86400000));
+    const text = document.getElementById('trial-bubble-text');
+    if (text) text.textContent = verificado.cancelAtPeriodEnd
+      ? t('billing.cancelled') : t('billing.trial_remaining').replace('{n}', remaining);
+  }
   if (esPago) {
     badge.textContent = verificado.plan === 'lifetime' ? '★ LIFETIME' : '★ PRO';
     badge.style.display = 'inline-flex';
@@ -10295,12 +10311,17 @@ if (document.readyState === 'loading') {
 const _trialReg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
 if (_trialReg.timestamp) {
   const _trialDays = Math.floor((Date.now() - new Date(_trialReg.timestamp)) / (1000*60*60*24));
-  const _remaining = 30 - _trialDays;
+  const _trialCache = identityPlanCache.read(GRACIA_SIN_RED_DIAS * 86400000);
+  const _remaining = _trialCache?.trialActive
+    ? Math.max(0, Math.ceil((Date.parse(_trialCache.trialEndsAt) - Date.now()) / 86400000))
+    : 30 - _trialDays;
   const _bubble = document.getElementById('trial-bubble-text');
   if (_bubble) {
     window.i18nReady.finally(() => {
       if (_remaining > 0) {
-        _bubble.textContent = t('index.edit.trial_remaining').replace('{n}', _remaining);
+        _bubble.textContent = _trialCache?.trialActive
+          ? (_trialCache.cancelAtPeriodEnd ? t('billing.cancelled') : t('billing.trial_remaining').replace('{n}', _remaining))
+          : t('index.edit.trial_remaining').replace('{n}', _remaining);
       } else {
         _bubble.textContent = t('index.edit.trial_expired');
         _bubble.style.color = 'rgba(255,100,100,0.8)';

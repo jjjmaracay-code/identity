@@ -182,13 +182,13 @@
         });
         const data = await res.json();
         if (data.ok) {
-          localStorage.setItem('identity_plan_verified', JSON.stringify({ bloqueado: data.bloqueado, plan: data.plan, verifiedAt: Date.now() }));
+          identityPlanCache.write(data);
           return { plan: data.plan, bloqueado: data.bloqueado, esPago: ['pro', 'lifetime'].includes(data.plan) && !data.bloqueado, verified: true, cred };
         }
       } catch (_) { /* sin red — recurso de gracia offline abajo */ }
     }
     let cached = null;
-    try { cached = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
+    try { cached = identityPlanCache.read(24 * 3600 * 1000); } catch (_) {}
     if (cached && (Date.now() - cached.verifiedAt) < 24 * 3600 * 1000) {
       return { plan: cached.plan, bloqueado: cached.bloqueado, esPago: ['pro', 'lifetime'].includes(cached.plan) && !cached.bloqueado, verified: true, offline: true, cred };
     }

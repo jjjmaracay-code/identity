@@ -1,3 +1,4 @@
+import { closePendingCheckout } from '../_shared/card-trial.js';
 // Borrado de cuenta (RGPD art. 17) — borra todo lo que el servidor guarda
 // de este email en PLANS_KV. Ver INFORME Fase 0b para el inventario
 // completo de claves y para las piezas que quedan FUERA de este endpoint
@@ -86,7 +87,7 @@ const ESTADOS_SIN_NADA_QUE_CANCELAR = new Set(['canceled', 'incomplete_expired',
 async function fetchStripeSubscriptionStatus(env, subscriptionId) {
   try {
     const res = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
-      headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+      headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'Stripe-Version': '2026-09-30.endive' },
     });
     if (res.status === 404) return 'not_found';
     if (!res.ok) return null;
@@ -104,7 +105,7 @@ async function cancelStripeSubscription(env, subscriptionId) {
   try {
     const res = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+      headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'Stripe-Version': '2026-09-30.endive' },
     });
     return res.ok;
   } catch (_) {
@@ -188,6 +189,8 @@ export async function onRequestPost(context) {
       if (paidRaw) paid = JSON.parse(paidRaw);
     } catch (_) { paid = null; }
 
+    try { await closePendingCheckout(env, emailKey); } catch { return genericFailure(); }
+
     if (paid?.plan === 'pro' && paid?.subscriptionId) {
       const estadoActual = await fetchStripeSubscriptionStatus(env, paid.subscriptionId);
       if (estadoActual === null) return genericFailure();
@@ -233,6 +236,7 @@ export async function onRequestPost(context) {
       env.PLANS_KV.delete('reg:' + emailKey),
       env.PLANS_KV.delete(emailKey),
       env.PLANS_KV.delete('verify:' + emailKey),
+      env.PLANS_KV.delete('checkout:' + emailKey),
       env.PLANS_KV.delete('ratelimit:' + emailKey),
       env.PLANS_KV.delete('ocrlimit:acct:' + emailKey),
       // Lista de dispositivos (fase 3 del lote de licencias, ver

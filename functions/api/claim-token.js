@@ -1,5 +1,5 @@
 import { recordDeviceSeen, isNewDeviceOverLimit } from '../_shared/devices.js';
-import { computePaidActive } from '../_shared/plan-access.js';
+import { computePaidActive, isCardTrialActive } from '../_shared/plan-access.js';
 
 // Migración para cuentas registradas ANTES de que existiera el sistema
 // de token (ver register-complete.js / check-plan.js). Asigna un token
@@ -62,7 +62,9 @@ export async function onRequestPost(context) {
   // de la minimización de datos, ver register-complete.js) no lo arrastra
   // para siempre. registeredAt es el único otro campo que de verdad se
   // usa en algún sitio (ver comprobación de arriba y el trial).
-  await env.PLANS_KV.put('reg:' + emailKey, JSON.stringify({ registeredAt: reg.registeredAt, token }));
+  await env.PLANS_KV.put('reg:' + emailKey, JSON.stringify({ registeredAt: reg.registeredAt, token,
+    ...(reg.cardTrialRequired ? { cardTrialRequired: true } : {}),
+    ...(reg.cardTrialUsed ? { cardTrialUsed: true } : {}) }));
 
   // Registro de dispositivo (fase 3, solo lectura de uso -- ver
   // functions/_shared/devices.js). Nunca bloquea ni cambia esta respuesta
@@ -73,17 +75,18 @@ export async function onRequestPost(context) {
   // verdad y responde device_limit, en vez de quedar activo para siempre
   // por haber entrado vía la migración automática de token en lugar de
   // por check-plan.js.
-  let plan = null;
+  let plan = null, trialActive = false;
   try {
     const paidRaw = await env.PLANS_KV.get(emailKey);
     if (paidRaw) {
       const paid = JSON.parse(paidRaw);
       if (computePaidActive(paid)) plan = paid.plan;
+      trialActive = isCardTrialActive(paid);
     }
   } catch (_) { /* dato de plan corrupto -- mejor no aplicar nada que romper la migración */ }
 
   const enforced = env.DEVICE_LIMIT_ENFORCED === 'true';
-  const sobreLimite = enforced && await isNewDeviceOverLimit(env, emailKey, deviceId, plan);
+  const sobreLimite = enforced && await isNewDeviceOverLimit(env, emailKey, deviceId, trialActive ? null : plan);
   if (!sobreLimite) {
     await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
   }

@@ -36,11 +36,19 @@
 export const TRIAL_DAYS = 30;
 export const PAID_PLANS = ['pro', 'lifetime'];
 
+export function isCardTrialActive(paid) {
+  return !!(paid?.cardTrial && paid.status === 'trialing' && paid.trialStart && paid.trialEnd
+    && Date.parse(paid.trialStart) <= Date.now() && Date.now() < Date.parse(paid.trialEnd));
+}
+
 export function computePaidActive(paid) {
   if (!paid || !paid.plan) return false;
   if (paid.plan === 'lifetime') return true;
   if (paid.plan === 'pro') {
     if (paid.status === 'canceled') return false;
+    if (paid.status === 'trialing') return isCardTrialActive(paid);
+    if (paid.cardTrial && paid.status !== 'active') return false;
+    if (paid.cardTrial && !paid.currentPeriodEnd) return false;
     if (!paid.currentPeriodEnd) return true; // legado, ver comentario de cabecera
     return Date.now() < new Date(paid.currentPeriodEnd).getTime();
   }
@@ -66,7 +74,11 @@ export async function getPlanStatus(env, emailKey) {
 
   const plan = paid?.plan || 'free';
   const paidActive = computePaidActive(paid);
-  const bloqueado = diasTranscurridos >= TRIAL_DAYS && !paidActive;
+  const cardTrialRequired = reg.cardTrialRequired === true;
+  const trialActive = isCardTrialActive(paid);
+  const bloqueado = (cardTrialRequired || reg.cardTrialUsed || diasTranscurridos >= TRIAL_DAYS) && !paidActive;
 
-  return { reg, plan, paidActive, bloqueado, diasTranscurridos, paidRecord: paid, registeredAt: reg.registeredAt };
+  return { reg, plan, paidActive, bloqueado, diasTranscurridos, paidRecord: paid, registeredAt: reg.registeredAt,
+    cardTrialRequired, trialEligible: cardTrialRequired && !reg.cardTrialUsed && !paid, trialActive, trialEndsAt: paid?.trialEnd || null,
+    cancelAtPeriodEnd: !!paid?.cancelAtPeriodEnd, hasSubscription: !!paid?.subscriptionId && !['canceled', 'incomplete_expired'].includes(paid.status) };
 }

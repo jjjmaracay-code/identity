@@ -1,3 +1,4 @@
+// v42: prueba con tarjeta preparada, apagada por defecto; cuenta y cobros en Stripe.
 // v39: licencias, fases 4-5 (límite de dispositivos + transferencia).
 // TODO el bloqueo real depende de la variable de entorno
 // DEVICE_LIMIT_ENFORCED==='true' (si no vale exactamente eso, el servidor
@@ -432,7 +433,8 @@
 // v40: I2 Crecimiento. Demo ficticia aislada, firma pública de registro
 // y recomendación mediante enlace público. Se guardan también sus recursos
 // para que la demo funcione sin conexión en la app instalada.
-const APP_VERSION = '40';
+// v41: árabe, dirección RTL, fuentes y recursos de traducción locales.
+const APP_VERSION = '42';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -443,6 +445,8 @@ const CACHE_URLS = [
   '/install',
   '/demo',
   '/demo.js',
+  '/plan-cache.js',
+  '/billing.js',
   '/public-card.css',
   '/growth.css',
   '/growth-share.js',
@@ -458,6 +462,8 @@ const CACHE_URLS = [
   '/vcard.js',
   '/device-id.js',
   '/i18n/loader.js',
+  '/i18n/rtl.css',
+  '/i18n/ar.json',
   '/i18n/es.json',
   '/i18n/en.json',
   '/i18n/fr.json',

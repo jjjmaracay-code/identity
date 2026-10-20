@@ -8,6 +8,9 @@
     var qrError = document.getElementById('demo-qr-error');
     var download = document.getElementById('demo-download');
     var language = document.getElementById('demo-language');
+    // Evita que el CDN sustituya el email ficticio por un enlace que
+    // dependa de otro script para poder verse por primera vez sin red.
+    document.getElementById('demo-email').textContent = 'alex.demo@example.com';
 
     function exampleVCard() {
       return buildVCardFromProfile({
