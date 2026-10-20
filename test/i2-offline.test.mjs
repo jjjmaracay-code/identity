@@ -29,7 +29,7 @@ test('el generador QR real admite el contacto ficticio en los doce idiomas', asy
   vm.createContext(context);
   vm.runInContext(source('vendor/qr-code-styling/qr-code-styling.js'), context);
   vm.runInContext(source('vcard.js'), context);
-  for (const lang of ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja']) {
+  for (const lang of ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar']) {
     const dict = JSON.parse(source('i18n/' + lang + '.json'));
     const text = context.buildVCardFromProfile({
       name: 'Alex Demo', job: dict['growth.demo_role'], company: dict['growth.demo_company'], email: 'alex.demo@example.com'
@@ -82,7 +82,7 @@ test('HTTP local: el precache completo carga y sirve la demo y sus recursos cuan
         }
       },
       caches: {
-        async open(name) { assert.equal(name, 'identity-v40'); return cache; },
+        async open(name) { assert.equal(name, 'identity-v42'); return cache; },
         async match(request, options = {}) {
           const url = key(request);
           for (const [stored, response] of entries) {
@@ -117,12 +117,12 @@ test('HTTP local: el precache completo carga y sirve la demo y sus recursos cuan
     }
     const html = await cached('/demo.html', 'navigate');
     assert.match(html, /data-i18n-isolated/);
-    assert.match(html, /alex\.demo@example\.com/);
+    assert.match(html, /id="demo-email" dir="ltr"/);
     assert.equal(html, source('demo.html'));
     for (const path of ['/demo.js', '/public-card.css', '/growth.css', '/growth-share.js', '/vcard.js', '/vendor/qr-code-styling/qr-code-styling.js', '/i18n/loader.js']) {
       assert.equal(await cached(path), source(path.slice(1)), path);
     }
-    for (const lang of ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja']) {
+    for (const lang of ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar']) {
       assert.equal(await cached('/i18n/' + lang + '.json'), source('i18n/' + lang + '.json'));
     }
     assert.equal(fetched, fetchedBeforeOffline);

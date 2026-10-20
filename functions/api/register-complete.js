@@ -1,6 +1,7 @@
+import { cardTrialEnabled } from '../_shared/card-trial.js';
 import { hashTrialFingerprint, trialFingerprintKey } from '../_shared/trial-fingerprint.js';
 import { recordDeviceSeen, isNewDeviceOverLimit } from '../_shared/devices.js';
-import { computePaidActive } from '../_shared/plan-access.js';
+import { computePaidActive, isCardTrialActive } from '../_shared/plan-access.js';
 
 // Comparación en tiempo constante (mismo patrón que check-plan.js /
 // stripe-webhook.js) — evita que una diferencia de tiempo de respuesta
@@ -172,6 +173,8 @@ export async function onRequestPost(context) {
       ? new Date(0).toISOString()
       : (existing?.registeredAt || new Date().toISOString());
     const token = existing?.token || crypto.randomUUID();
+    const cardTrialRequired = existing ? existing.cardTrialRequired === true : cardTrialEnabled(env);
+    const cardTrialUsed = existing?.cardTrialUsed === true || (cardTrialRequired && trialUsed);
 
     // Minimización de datos: "name" ya no se guarda (nunca se lee en
     // ningún otro punto del backend -- era puramente decorativo). Un
@@ -180,7 +183,8 @@ export async function onRequestPost(context) {
     // con el mismo email...) -- no hace falta una migración aparte.
     await env.PLANS_KV.put(
       'reg:' + emailKey,
-      JSON.stringify({ registeredAt, token })
+      JSON.stringify({ registeredAt, token, ...(cardTrialRequired ? { cardTrialRequired: true } : {}),
+        ...(cardTrialUsed ? { cardTrialUsed: true } : {}) })
     );
 
     // Herencia de plan por email: IDENTIFLY es local-first (el perfil
@@ -205,12 +209,13 @@ export async function onRequestPost(context) {
     // porque esta comprobación nunca miraba currentPeriodEnd/status (a
     // diferencia de check-plan.js, que sí usa ese mismo cálculo
     // compartido desde siempre).
-    let plan = null;
+    let plan = null, trialActive = false;
     try {
       const paidRaw = await env.PLANS_KV.get(emailKey);
       if (paidRaw) {
         const paid = JSON.parse(paidRaw);
         if (computePaidActive(paid)) plan = paid.plan;
+        trialActive = isCardTrialActive(paid);
       }
     } catch (_) { /* dato de plan corrupto — mejor no aplicar nada que romper el registro */ }
 
@@ -224,7 +229,7 @@ export async function onRequestPost(context) {
     // activo para siempre por haber entrado vía "recuperar acceso"/
     // registro en lugar de por check-plan.js.
     const enforced = env.DEVICE_LIMIT_ENFORCED === 'true';
-    const sobreLimite = enforced && await isNewDeviceOverLimit(env, emailKey, deviceId, plan);
+    const sobreLimite = enforced && await isNewDeviceOverLimit(env, emailKey, deviceId, trialActive ? null : plan);
     if (!sobreLimite) {
       await recordDeviceSeen(env, emailKey, deviceId, request.headers.get('User-Agent'));
     }
@@ -232,7 +237,7 @@ export async function onRequestPost(context) {
     // El token se devuelve para que el cliente lo guarde en su propio
     // localStorage — es lo que permite después a check-plan.js verificar
     // el plan de este email sin exponerlo a nadie más (ver check-plan.js).
-    return new Response(JSON.stringify({ ok: true, token, plan, registeredAt, trialUsed }), {
+    return new Response(JSON.stringify({ ok: true, token, plan, registeredAt, trialUsed, cardTrialRequired }), {
       status: 200, headers: { 'Content-Type': 'application/json' }
     });
 

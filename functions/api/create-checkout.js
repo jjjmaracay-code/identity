@@ -1,105 +1,84 @@
-export async function onRequestPost(context) {
-  const { request, env } = context;
+import { authenticateBilling, readRecord, accountId, stripeRequest, jsonResponse } from '../_shared/card-trial.js';
+import { computePaidActive } from '../_shared/plan-access.js';
+
+export async function onRequestPost({ request, env }) {
+  let checkoutEmail;
   try {
     const body = await request.json();
-    const { plan, email, waiverAccepted } = body;
-
-    if (!plan || !email) {
-      return new Response(JSON.stringify({ error: 'Faltan plan o email' }), {
-        status: 400, headers: { 'Content-Type': 'application/json' }
-      });
+    const account = await authenticateBilling(env, body);
+    if (!account) return jsonResponse({ error: 'no_verificado' }, 401);
+    const { email, reg } = account;
+    checkoutEmail = email;
+    const { plan, waiverAccepted } = body;
+    if (waiverAccepted !== true) return jsonResponse({ error: 'waiver_not_accepted' }, 400);
+    const price = plan === 'pro' ? env.STRIPE_PRICE_PRO : plan === 'lifetime' ? env.STRIPE_PRICE_LIFETIME : null;
+    if (!price) return jsonResponse({ error: 'invalid_plan' }, 400);
+    const paid = await readRecord(env, email);
+    if (computePaidActive(paid)) return jsonResponse({ error: 'plan_already_active' }, 409);
+    if (paid?.subscriptionId) {
+      const oldSub = await stripeRequest(env, 'subscriptions/' + encodeURIComponent(paid.subscriptionId));
+      if (!['canceled', 'incomplete_expired'].includes(oldSub.status)) return jsonResponse({ error: 'plan_already_active' }, 409);
+      await env.PLANS_KV.put(email, JSON.stringify({ ...paid, status: oldSub.status }));
     }
+    const trial = plan === 'pro' && reg.cardTrialRequired === true && !reg.cardTrialUsed && !paid;
+    if (!trial && body.trialAccepted === true) return jsonResponse({ error: 'trial_unavailable' }, 409);
+    if (trial && body.trialAccepted !== true) return jsonResponse({ error: 'trial_not_accepted' }, 400);
 
-    // Prueba, en el servidor, de que se aceptó la renuncia al derecho de
-    // desistimiento de 14 días (Art. 103.m LGDCU) ANTES de crear la
-    // sesión de pago -- la casilla del cliente (paywall.html) ya lo exige
-    // para habilitar el botón, pero eso por sí solo es trivialmente
-    // saltable (consola del navegador, petición manual); esta
-    // comprobación es la que de verdad importa. true estricto, no solo
-    // "truthy", para que un valor inesperado del body nunca cuele.
-    if (waiverAccepted !== true) {
-      return new Response(JSON.stringify({ error: 'waiver_not_accepted' }), {
-        status: 400, headers: { 'Content-Type': 'application/json' }
-      });
+    let pending = await readRecord(env, 'checkout:' + email);
+    let previous = paid?.sessionId || '';
+    if (pending?.sessionId) {
+      const old = await stripeRequest(env, 'checkout/sessions/' + encodeURIComponent(pending.sessionId));
+      if (old.status === 'complete') return jsonResponse({ error: 'activation_pending' }, 409);
+      if (old.status === 'open' && pending.plan === plan) return jsonResponse({ url: old.url });
+      if (old.status === 'open') {
+        await stripeRequest(env, 'checkout/sessions/' + encodeURIComponent(old.id) + '/expire', new URLSearchParams());
+      } else if (old.status !== 'expired') throw new Error('stripe_unavailable');
+      previous = old.id;
+      pending = null;
     }
-
-    const priceId = plan === 'pro' ? env.STRIPE_PRICE_PRO
-                  : plan === 'lifetime' ? env.STRIPE_PRICE_LIFETIME
-                  : null;
-
-    if (!priceId) {
-      return new Response(JSON.stringify({ error: 'Plan no válido' }), {
-        status: 400, headers: { 'Content-Type': 'application/json' }
-      });
+    if (pending && pending.plan !== plan) return jsonResponse({ error: 'activation_pending' }, 409);
+    if (pending && Date.now() - pending.createdAt > 23 * 3600 * 1000) {
+      return jsonResponse({ error: 'activation_pending' }, 409);
     }
-
-    const mode = plan === 'pro' ? 'subscription' : 'payment';
     const origin = new URL(request.url).origin;
-
-    const params = new URLSearchParams();
-    params.append('mode', mode);
-    params.append('line_items[0][price]', priceId);
-    params.append('line_items[0][quantity]', '1');
-    params.append('customer_email', email);
-    // Métodos de pago explícitos: solo tarjeta (Apple Pay / Google Pay
-    // siguen funcionando dentro de 'card', vía el wallet del navegador).
-    // Así se evita que Klarna, Bancontact, MB WAY, EPS, Amazon Pay o Link
-    // aparezcan en el checkout, sin depender de lo que esté marcado en el
-    // panel de Stripe.
-    params.append('payment_method_types[0]', 'card');
-    // client_reference_id y metadata[account_email]: a diferencia de
-    // customer_email (que Stripe Checkout precarga en el campo de email
-    // pero deja EDITABLE por quien paga), ninguno de estos dos campos se
-    // muestra ni se puede tocar en la página de pago -- son la fuente de
-    // verdad que stripe-webhook.js usa para decidir a qué cuenta
-    // pertenece el plan (ver ese archivo).
-    params.append('client_reference_id', email);
-    params.append('success_url', `${origin}/paywall.html?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`);
-    params.append('cancel_url', `${origin}/paywall.html`);
-    params.append('metadata[plan]', plan);
-    params.append('metadata[email]', email);
-    params.append('metadata[account_email]', email);
-    // Prueba del lado del servidor de que se aceptó la renuncia al
-    // desistimiento, con fecha -- queda en la propia sesión de Stripe
-    // (consultable después si hiciera falta), no solo en el hecho de que
-    // la petición no fue rechazada.
-    params.append('metadata[waiver_accepted]', 'true');
-    params.append('metadata[waiver_accepted_at]', new Date().toISOString());
-    // Solo relevante para 'pro' (mode:'subscription'): esta metadata se
-    // copia al objeto Subscription que Stripe crea, así que
-    // stripe-webhook.js puede resolver a qué cuenta pertenece cuando
-    // lleguen customer.subscription.updated/deleted más adelante (esos
-    // eventos no incluyen la sesión de checkout original, solo la propia
-    // suscripción). 'lifetime' es mode:'payment' y nunca crea una
-    // suscripción, así que este parámetro no tiene efecto en ese caso.
-    if (mode === 'subscription') {
-      params.append('subscription_data[metadata][email]', email);
+    const identity = await accountId(reg.token);
+    const attempt = pending?.attempt || await accountId(identity + ':' + origin + ':' + previous);
+    const params = new URLSearchParams({
+      mode: plan === 'pro' ? 'subscription' : 'payment',
+      integration_identifier: 'identifly-fase6-kqzwrpma',
+      'line_items[0][price]': price, 'line_items[0][quantity]': '1',
+      customer_email: email, 'allowed_payment_method_types[0]': 'card', client_reference_id: email,
+      success_url: `${origin}/paywall.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/paywall.html`,
+      'metadata[plan]': plan, 'metadata[email]': email, 'metadata[account_email]': email,
+      'metadata[account_id]': identity, 'metadata[waiver_accepted]': 'true',
+    });
+    if (plan === 'pro') {
+      params.set('subscription_data[metadata][email]', email);
+      params.set('subscription_data[metadata][account_id]', identity);
     }
-
-    const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params.toString()
-    });
-
-    const session = await stripeRes.json();
-
-    if (!stripeRes.ok) {
-      return new Response(JSON.stringify({ error: session.error?.message || 'Error de Stripe' }), {
-        status: 500, headers: { 'Content-Type': 'application/json' }
-      });
+    if (trial) {
+      params.set('payment_method_collection', 'always');
+      params.set('subscription_data[trial_period_days]', '30');
+      params.set('subscription_data[trial_settings][end_behavior][missing_payment_method]', 'cancel');
+      params.set('subscription_data[metadata][card_trial]', 'true');
+      params.set('metadata[card_trial]', 'true');
+      params.set('metadata[trial_accepted]', 'true');
     }
-
-    return new Response(JSON.stringify({ url: session.url }), {
-      status: 200, headers: { 'Content-Type': 'application/json' }
-    });
-
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: { 'Content-Type': 'application/json' }
-    });
+    await env.PLANS_KV.put('checkout:' + email, JSON.stringify({
+      attempt, createdAt: pending?.createdAt || Date.now(), plan, params: params.toString(),
+    }));
+    const session = await stripeRequest(env, 'checkout/sessions', params, 'identifly-' + attempt);
+    if (!session.id || !session.url) throw new Error('stripe_unavailable');
+    await env.PLANS_KV.put('checkout:' + email, JSON.stringify({
+      attempt, createdAt: pending?.createdAt || Date.now(), plan, sessionId: session.id,
+    }));
+    return jsonResponse({ url: session.url });
+  } catch (error) {
+    if (checkoutEmail && [400, 401, 403, 404].includes(error.status) && error.code !== 'idempotency_error') {
+      const pending = await readRecord(env, 'checkout:' + checkoutEmail);
+      if (pending && !pending.sessionId) await env.PLANS_KV.delete('checkout:' + checkoutEmail);
+    }
+    return jsonResponse({ error: 'payment_unavailable' }, 503);
   }
 }

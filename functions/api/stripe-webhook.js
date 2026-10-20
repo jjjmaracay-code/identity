@@ -1,3 +1,4 @@
+import { stripeRequest, syncCardSubscription, readRecord, accountId } from '../_shared/card-trial.js';
 // Ciclo de vida real de las suscripciones de Stripe.
 //
 // ANTES: solo se escuchaba checkout.session.completed. Un plan 'pro'
@@ -61,7 +62,7 @@ async function verifyStripeSignature(payload, signatureHeader, secret) {
   if (!timestamp || !signature) return false;
 
   const age = Date.now() / 1000 - parseInt(timestamp, 10);
-  if (age > 300) return false;
+  if (!Number.isFinite(age) || Math.abs(age) > 300) return false;
 
   const signedPayload = `${timestamp}.${payload}`;
   const key = await crypto.subtle.importKey(
@@ -80,7 +81,7 @@ async function verifyStripeSignature(payload, signatureHeader, secret) {
 // porque el evento checkout.session.completed no los trae.
 async function fetchSubscription(env, subscriptionId) {
   const res = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
-    headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+    headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`, 'Stripe-Version': '2026-09-30.endive' },
   });
   if (!res.ok) return null;
   return res.json();
@@ -117,6 +118,8 @@ async function leerRegistroPago(env, emailKey) {
   try { return JSON.parse(raw); } catch (_) { return null; }
 }
 
+const CHECKOUT_EVENTS = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded']);
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -132,7 +135,53 @@ export async function onRequestPost(context) {
   try { event = JSON.parse(rawBody); } catch (_) { return new Response('Invalid payload', { status: 400 }); }
   const eventCreated = typeof event.created === 'number' ? event.created : Math.floor(Date.now() / 1000);
 
-  if (event.type === 'checkout.session.completed') {
+  // Los eventos de la prueba con tarjeta se reconcilian leyendo el estado
+  // actual de Stripe, también si dos cambios comparten el mismo segundo.
+  const object = event.data?.object;
+  if (event.type === 'invoice.paid' || event.type === 'invoice.payment_failed') {
+    // Resolver desde la factura a la suscripción, no desde su email de facturación.
+    const subscription = object?.parent?.subscription_details?.subscription || object?.subscription;
+    const id = typeof subscription === 'string' ? subscription : subscription?.id;
+    if (!id) return new Response('OK');
+    try {
+      const sub = await stripeRequest(env, 'subscriptions/' + encodeURIComponent(id));
+      if (sub.metadata?.account_id) await syncCardSubscription(env, sub, { eventCreated, eventId: event.id });
+      else if (sub.metadata?.email) {
+        const email = sub.metadata.email.toLowerCase(), existing = await leerRegistroPago(env, email);
+        if (existing?.plan === 'pro' && existing.subscriptionId === sub.id) {
+          await env.PLANS_KV.put(email, JSON.stringify({ ...existing,
+            status: sub.status, currentPeriodEnd: isoFromUnix(currentPeriodEndUnix(sub)),
+            cancelAtPeriodEnd: !!sub.cancel_at_period_end, updatedAt: new Date().toISOString(),
+            lastEventCreated: Math.max(existing.lastEventCreated || 0, eventCreated),
+          }));
+        }
+      }
+      return new Response('OK');
+    } catch { return new Response('Retry invoice sync', { status: 503 }); }
+  }
+  if (event.type === 'checkout.session.async_payment_failed') return new Response('OK');
+  const isCardEvent = !!object?.metadata?.account_id &&
+    (object.object === 'subscription' || event.type.startsWith('customer.subscription.') || object.metadata.card_trial === 'true');
+  if (isCardEvent && (CHECKOUT_EVENTS.has(event.type) ||
+      ['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted',
+        'customer.subscription.paused', 'customer.subscription.resumed'].includes(event.type))) {
+    try {
+      if (CHECKOUT_EVENTS.has(event.type) &&
+          (object.status !== 'complete' || !['paid', 'no_payment_required'].includes(object.payment_status))) {
+        return new Response('Incomplete Checkout', { status: 400 });
+      }
+      const id = CHECKOUT_EVENTS.has(event.type) ? object.subscription : object.id;
+      if (typeof id !== 'string') return new Response('Missing subscription', { status: 400 });
+      const sub = await stripeRequest(env, 'subscriptions/' + encodeURIComponent(id));
+      await syncCardSubscription(env, sub, {
+        sessionId: CHECKOUT_EVENTS.has(event.type) ? object.id : undefined,
+        eventCreated, eventId: event.id,
+      });
+      return new Response('OK', { status: 200 });
+    } catch { return new Response('Retry subscription sync', { status: 503 }); }
+  }
+
+  if (CHECKOUT_EVENTS.has(event.type)) {
     const session = event.data.object;
     // metadata.account_email y client_reference_id los fija
     // create-checkout.js y NUNCA son visibles ni editables en la página
@@ -150,9 +199,15 @@ export async function onRequestPost(context) {
     if (email && plan) {
       const emailKey = email.toLowerCase();
       const existing = await leerRegistroPago(env, emailKey);
+      if (session.metadata?.account_id) {
+        const reg = await readRecord(env, 'reg:' + emailKey);
+        if (!reg?.token || session.metadata.account_id !== await accountId(reg.token)) return new Response('OK');
+        if (session.payment_status !== 'paid') return new Response('Incomplete payment', { status: 400 });
+      }
       if (!esEventoObsoleto(existing, eventCreated)) {
         const nowIso = new Date().toISOString();
 
+        if (existing?.plan === 'lifetime' && plan !== 'lifetime') return new Response('OK');
         if (plan === 'lifetime') {
           await env.PLANS_KV.put(emailKey, JSON.stringify({
             plan: 'lifetime', sessionId: session.id, date: existing?.date || nowIso,
@@ -160,6 +215,11 @@ export async function onRequestPost(context) {
           }));
         } else if (plan === 'pro' && session.subscription) {
           const sub = await fetchSubscription(env, session.subscription);
+          if (!sub && session.metadata?.account_id) return new Response('Retry subscription sync', { status: 503 });
+          if (session.metadata?.account_id) {
+            await syncCardSubscription(env, sub, { sessionId: session.id, eventCreated, eventId: event.id });
+            return new Response('OK');
+          }
           await env.PLANS_KV.put(emailKey, JSON.stringify({
             plan: 'pro', sessionId: session.id, date: existing?.date || nowIso,
             subscriptionId: session.subscription,

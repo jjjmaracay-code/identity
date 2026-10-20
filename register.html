@@ -18,6 +18,7 @@
 <script src="/password-utils.js"></script>
 <script src="/device-id.js"></script>
 <link rel="stylesheet" href="/growth.css">
+<link rel="stylesheet" href="/i18n/rtl.css">
 
 <style>
   :root {
@@ -881,6 +882,7 @@
           <option value="zh">简体中文</option>
           <option value="ru">Русский</option>
           <option value="ja">日本語</option>
+          <option value="ar">العربية</option>
         </select>
         <div class="field-hint" data-i18n="register.step1.language_hint">Se fijará como idioma de tu cuenta tras el registro</div>
       </div>
@@ -1635,9 +1637,8 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
     if (res.ok) {
       data = await res.json();
     } else if (res.status >= 500) {
-      // Fallo del servidor, no rechazo del código — se trata como un
-      // problema de red (ver más abajo): se deja avanzar y se reintenta
-      // en segundo plano desde index.html.
+      // Sin confirmación no se crea una prueba local que el servidor
+      // no haya autorizado. El mismo código se puede volver a enviar.
       networkOrServerError = true;
     } else if (res.status === 429) {
       // Límite de peticiones, no un código incorrecto -- antes caía en
@@ -1667,7 +1668,14 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
     networkOrServerError = true;
   }
 
-  // Todo correcto (o red caída, ver nota abajo) — guardar registro
+  if (networkOrServerError || data?.ok !== true || typeof data.token !== 'string' || !data.token) {
+    showToast(t('billing.error'));
+    btn.textContent = t('register.step2.submit_button');
+    checkStep2Ready();
+    return;
+  }
+
+  // Registro y token confirmados por el servidor — guardar registro
   clearInterval(timerInterval);
 
   // timestamp es la fecha que index.html/paywall.html usan para calcular
@@ -1679,6 +1687,7 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   // de calcular 30 días nuevos -- sin inventar un camino de "sin trial"
   // aparte del que ya existe.
   const registration = {
+    cardTrialRequired: data?.cardTrialRequired === true,
     name:      step1Data.name,
     email:     step1Data.email,
     verified:  true,
@@ -1699,18 +1708,6 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
   // (misma cuenta, dispositivo nuevo), se aplica de inmediato al perfil
   // local recién creado.
   if (data?.plan) localStorage.setItem('identity_plan', data.plan);
-
-  if (networkOrServerError) {
-    // Sin red o error 5xx en el momento exacto de verificar — el registro
-    // local ya quedó guardado, así que dejamos avanzar igual que antes de
-    // este cambio. Se guarda el código junto a la bandera de reintento
-    // para que _reintentarRegistroPendiente() en index.html pueda volver
-    // a intentar la verificación completa más tarde (el código sigue
-    // siendo válido 10 minutos en el servidor).
-    console.error('[IDENTIFLY] register-complete: fallo de red o servidor al verificar ' + step1Data.email);
-    localStorage.setItem('identity_kv_sync_pending', 'true');
-    localStorage.setItem('identity_pending_verify_code', codeBuffer);
-  }
 
   // Código de respaldo permanente para la recuperación de cuenta
   const backupCode = generateCode();
@@ -1751,7 +1748,9 @@ document.getElementById('btn-step2').addEventListener('click', async () => {
 
 // =================== ENTRAR A LA APP ===================
 document.getElementById('btn-enter-app').addEventListener('click', () => {
-  window.location.href = '/index.html';
+  const saved = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+  const activePlan = ['pro', 'lifetime'].includes(localStorage.getItem('identity_plan'));
+  window.location.href = saved.cardTrialRequired && !activePlan ? '/paywall.html' : '/index.html';
 });
 
 // =================== TOAST ===================

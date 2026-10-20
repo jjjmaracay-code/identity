@@ -19,7 +19,7 @@ const i18nDir = path.join(__dirname, '..', 'i18n');
 // es.json es la fuente de verdad: todas las demás claves nacen ahí.
 const SOURCE_LANG = 'es';
 // Los otros 11 idiomas que deben tener exactamente las mismas claves.
-const OTHER_LANGS = ['ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja'];
+const OTHER_LANGS = ['ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar'];
 
 function loadLang(lang) {
   const raw = readFileSync(path.join(i18nDir, lang + '.json'), 'utf8');

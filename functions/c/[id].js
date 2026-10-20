@@ -161,36 +161,36 @@ export async function onRequestGet(context) {
   const vcardB64 = btoa(unescape(encodeURIComponent(buildVCardPublic(r))));
 
   const servicesHtml = (r.services && r.services.length)
-    ? `<section class="sec"><h2>${r.modality === 'company' ? 'Productos y servicios' : 'Servicios'}</h2><ul class="services">${r.services.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul></section>`
+    ? `<section class="sec"><h2 data-i18n="${r.modality === 'company' ? 'index.business.section_services_company' : 'index.business.section_services'}">${r.modality === 'company' ? 'Productos y servicios' : 'Servicios'}</h2><ul class="services">${r.services.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul></section>`
     : '';
 
   const galleryHtml = (r.gallery && r.gallery.length)
-    ? `<section class="sec"><h2>Galería</h2><div class="gallery">${r.gallery.map(g => `<img src="${escapeAttr(g)}" alt="" loading="lazy">`).join('')}</div></section>`
+    ? `<section class="sec"><h2 data-i18n="index.business.section_gallery">Galería</h2><div class="gallery">${r.gallery.map(g => `<img src="${escapeAttr(g)}" alt="" loading="lazy">`).join('')}</div></section>`
     : '';
 
   const locHtml = (r.address || r.hours || r.serviceArea)
-    ? `<section class="sec"><h2>${r.modality === 'company' ? 'Dónde estamos' : 'Zona y horario'}</h2>
-        ${r.serviceArea ? `<p class="muted"><strong>Zona de servicio:</strong> ${escapeHtml(r.serviceArea)}</p>` : ''}
-        ${r.address ? `<p class="muted"><strong>Dirección:</strong> ${escapeHtml(r.address)}</p>` : ''}
-        ${r.hours ? `<p class="muted"><strong>Horario:</strong> ${escapeHtml(r.hours)}</p>` : ''}
+    ? `<section class="sec"><h2 data-i18n="${r.modality === 'company' ? 'index.business.section_address' : 'index.business.section_area'}">${r.modality === 'company' ? 'Dónde estamos' : 'Zona y horario'}</h2>
+        ${r.serviceArea ? `<p class="muted"><strong data-i18n="index.business.field_service_area">Zona de servicio</strong>: ${escapeHtml(r.serviceArea)}</p>` : ''}
+        ${r.address ? `<p class="muted"><strong data-i18n="index.edit.address_label">Dirección</strong>: ${escapeHtml(r.address)}</p>` : ''}
+        ${r.hours ? `<p class="muted"><strong data-i18n="index.business.field_hours">Horario</strong>: ${escapeHtml(r.hours)}</p>` : ''}
       </section>`
     : '';
 
   const contactLinks = [];
-  if (r.phone && telLimpio(r.phone)) contactLinks.push(`<a class="link-btn" href="tel:${escapeAttr(telLimpio(r.phone))}">Llamar</a>`);
-  if (r.email) contactLinks.push(`<a class="link-btn" href="mailto:${escapeAttr(r.email)}">Escribir</a>`);
-  if (r.web) contactLinks.push(`<a class="link-btn" href="${escapeAttr(r.web)}" target="_blank" rel="noopener nofollow">Web</a>`);
+  if (r.phone && telLimpio(r.phone)) contactLinks.push(`<a class="link-btn" href="tel:${escapeAttr(telLimpio(r.phone))}" data-i18n="index.business.action_call">Llamar</a>`);
+  if (r.email) contactLinks.push(`<a class="link-btn" href="mailto:${escapeAttr(r.email)}" data-i18n="index.business.action_write">Escribir</a>`);
+  if (r.web) contactLinks.push(`<a class="link-btn" href="${escapeAttr(r.web)}" target="_blank" rel="noopener nofollow" data-i18n="index.business.field_web">Web</a>`);
   for (const key of SOCIAL_KEYS) {
     if (r.social && r.social[key]) contactLinks.push(`<a class="link-btn" href="${escapeAttr(r.social[key])}" target="_blank" rel="noopener nofollow">${SOCIAL_LABELS[key]}</a>`);
   }
   if (r.contactPerson) {
     contactLinks.unshift(`<p class="muted" style="width:100%">${escapeHtml(r.contactPerson)}${r.contactRole ? ' · ' + escapeHtml(r.contactRole) : ''}</p>`);
   }
-  const contactHtml = contactLinks.length ? `<section class="sec"><h2>Contacto</h2><div class="links">${contactLinks.join('')}</div></section>` : '';
+  const contactHtml = contactLinks.length ? `<section class="sec"><h2 data-i18n="index.business.section_contact">Contacto</h2><div class="links">${contactLinks.join('')}</div></section>` : '';
 
   const href = actionHref(r);
   const mainActionHtml = href
-    ? `<a class="main-action" href="${escapeAttr(href)}" ${/^https?:/i.test(href) ? 'target="_blank" rel="noopener nofollow"' : ''}>${escapeHtml(ACTION_LABELS[r.primaryAction] || 'Contactar')}</a>`
+    ? `<a class="main-action" data-i18n="index.business.action_${Object.hasOwn(ACTION_LABELS, r.primaryAction) ? r.primaryAction : 'contact'}" href="${escapeAttr(href)}" ${/^https?:/i.test(href) ? 'target="_blank" rel="noopener nofollow"' : ''}>${escapeHtml(ACTION_LABELS[r.primaryAction] || 'Contactar')}</a>`
     : '';
 
   const logoHtml = renderLogoBlock(r, design, theme);
@@ -199,6 +199,7 @@ export async function onRequestGet(context) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="${escapeAttr(r.tagline || r.displayName)}">
+<link rel="stylesheet" href="/i18n/rtl.css">
 <title>${escapeHtml(r.displayName)} · IDENTIFLY BUSINESS</title>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -230,15 +231,15 @@ export async function onRequestGet(context) {
 <body>
   <div class="wrap">
     ${logoHtml}
-    <div class="name">${escapeHtml(r.displayName)}</div>
-    ${r.tagline ? `<div class="tagline">${escapeHtml(r.tagline)}</div>` : ''}
-    ${r.description ? `<p class="desc">${escapeHtml(r.description)}</p>` : ''}
+    <div class="name" dir="auto">${escapeHtml(r.displayName)}</div>
+    ${r.tagline ? `<div class="tagline" dir="auto">${escapeHtml(r.tagline)}</div>` : ''}
+    ${r.description ? `<p class="desc" dir="auto">${escapeHtml(r.description)}</p>` : ''}
     ${mainActionHtml}
     ${servicesHtml}
     ${galleryHtml}
     ${locHtml}
     ${contactHtml}
-    <button class="save-contact" id="btn-save-contact" type="button" data-vcard="${escapeAttr(vcardB64)}" data-nombre="${escapeAttr((r.displayName || 'contacto').replace(/[^\w\- ]/g, '').trim() || 'contacto')}">Guardar contacto</button>
+    <button class="save-contact" id="btn-save-contact" type="button" data-vcard="${escapeAttr(vcardB64)}" data-nombre="${escapeAttr((r.displayName || 'contacto').replace(/[^\w\- ]/g, '').trim() || 'contacto')}" data-i18n="share.card.save_button">Guardar contacto</button>
     <div class="foot">IDENTIFLY BUSINESS</div>
     <div class="growth-signature"><a href="/register.html" rel="noreferrer" referrerpolicy="no-referrer" data-i18n="growth.create_yours">Crea la tuya</a></div>
   </div>

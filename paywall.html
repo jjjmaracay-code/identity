@@ -6,11 +6,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-title" content="IDENTIFLY"/>
-  <title>IDENTIFLY · Plan</title>
+  <title data-i18n="billing.title">IDENTIFLY · Plan</title>
   <link rel="canonical" href="https://www.identifly.app/paywall"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet"/>
   <style>
+    [hidden] { display:none !important; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --green: #aaff00;
@@ -333,270 +334,74 @@
       50%     { filter: drop-shadow(0 0 12px #aaff00) drop-shadow(0 0 30px #aaff00) drop-shadow(0 0 60px rgba(170,255,0,0.5)); }
     }
   </style>
+  <link rel="stylesheet" href="/i18n/rtl.css">
 </head>
 <body>
-
-  <img src="assets/logo-wings.png" alt="IDENTIFLY" style="width:100px;height:76px;object-fit:contain;mix-blend-mode:screen;filter:drop-shadow(0 0 8px #aaff00) drop-shadow(0 0 20px rgba(170,255,0,0.6));animation:aleteo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;margin-bottom:8px;"/>
-
+  <img src="/assets/logo-wings.png" alt="" style="width:100px;height:76px;object-fit:contain;margin-bottom:8px">
   <div class="brand" aria-label="Aidentiflay">IDENTIFLY</div>
-  <div class="tagline">Identidad digital segura</div>
-  <div class="trial-badge" id="trial-info">Periodo de prueba finalizado</div>
-
+  <div class="tagline" data-i18n="billing.title">Elige tu plan</div>
+  <div class="trial-badge" id="trial-info" role="status"></div>
+  <p id="billing-status" role="status" style="max-width:420px;text-align:center;line-height:1.6;margin:12px auto"></p>
   <div class="plans">
-
-    <!-- PRO -->
     <div class="plan-card featured">
-      <div class="plan-badge">Más popular</div>
+      <div class="plan-badge" data-i18n="index.plans.most_popular">MÁS POPULAR</div>
       <div class="plan-name">Pro</div>
-      <div class="plan-price"><sup>€</sup>2<span style="font-size:20px">.99</span></div>
-      <div class="plan-period">por mes — cancela cuando quieras</div>
+      <div class="plan-price" dir="ltr"><sup>€</sup>2<span style="font-size:20px">.99</span></div>
+      <div class="plan-period" data-i18n="index.plans.pro_period">por mes — cancela cuando quieras</div>
       <ul class="plan-features">
-        <li>Perfil completo de contacto</li>
-        <li>QR estándar funcional</li>
-        <li>Importador de datos</li>
-        <li>Video de fondo en tarjeta</li>
-        <li>Personalización completa del QR</li>
-        <li>Soporte prioritario</li>
+        <li data-i18n="billing.feature_profile">Perfil completo de contacto</li>
+        <li data-i18n="billing.feature_qr">QR estándar funcional</li>
+        <li data-i18n="billing.feature_import">Importador de datos</li>
+        <li data-i18n="index.plans.feature_video">Vídeo de fondo en tarjeta</li>
+        <li data-i18n="index.plans.feature_qr">Personalización completa del QR</li>
+        <li data-i18n="index.plans.feature_support">Soporte prioritario</li>
       </ul>
-      <button class="btn-plan pro" onclick="openModal('pro')">Quiero Pro — 2.99€/mes</button>
+      <p id="trial-offer" hidden data-i18n="billing.trial_offer" style="font-size:13px;line-height:1.6;margin:12px 0"></p>
+      <button type="button" class="btn-plan pro" id="btn-pro" data-i18n="index.plans.pro_button">QUIERO PRO</button>
     </div>
-
-    <!-- LIFETIME -->
     <div class="plan-card">
+      <div class="plan-badge" data-i18n="index.plans.best_value">MEJOR VALOR</div>
       <div class="plan-name">Lifetime</div>
-      <div class="plan-price"><sup>€</sup>14<span style="font-size:20px">.99</span></div>
-      <div class="plan-period">pago único — tuyo para siempre</div>
+      <div class="plan-price" dir="ltr"><sup>€</sup>14<span style="font-size:20px">.99</span></div>
+      <div class="plan-period" data-i18n="index.plans.lifetime_period">pago único — tuyo para siempre</div>
       <ul class="plan-features">
-        <li>Todo lo de Pro</li>
-        <li>Sin pagos recurrentes</li>
-        <li>Acceso a todas las funciones futuras</li>
-        <li>Soporte de por vida</li>
+        <li data-i18n="billing.lifetime_all_pro">Todo lo de Pro</li>
+        <li data-i18n="billing.lifetime_no_recurring">Sin pagos recurrentes</li>
+        <li data-i18n="billing.lifetime_future">Acceso a todas las funciones futuras</li>
+        <li data-i18n="billing.lifetime_support">Soporte de por vida</li>
       </ul>
-      <button class="btn-plan lifetime" onclick="openModal('lifetime')">Pago único — 14.99€</button>
+      <button type="button" class="btn-plan lifetime" id="btn-lifetime" data-i18n="index.plans.lifetime_button">PAGO ÚNICO</button>
     </div>
-
   </div>
-
-  <!-- "Ya pagué un plan" -- mismo estilo secundario que index.html, i18n
-       solo para este botón y su aviso offline (ver el bloque de script
-       de i18n más abajo); el resto de esta página sigue en español fijo
-       como hasta ahora. Reutiliza la clave index.edit.link_purchase_link,
-       ya traducida a los 5 idiomas, para no duplicar texto. -->
-  <button type="button" id="link-vincular-compra-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 12px;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter','Noto Sans Devanagari','Noto Sans SC','Noto Sans JP',system-ui,-apple-system,sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
-
-  <!-- Salidas SIEMPRE visibles mientras no hay plan de pago (eliminado
-       el plan Free, punto 2 del lote de textos legales): quien no quiere
-       pagar puede llevarse sus datos (vCard) o borrarlos del todo -- en
-       ningún caso queda atrapado sin salida en esta pantalla. -->
-  <button type="button" id="btn-export-vcard-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 12px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:none;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Exportar mi tarjeta (vCard)</button>
-  <button type="button" id="btn-delete-account-paywall" style="display:block;width:100%;max-width:360px;margin:0 auto 24px;padding:11px;border-radius:10px;border:1px solid rgba(255,60,60,0.4);background:none;color:rgba(255,100,100,0.85);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Eliminar todos mis datos</button>
-
-  <div class="footer-note">
-    Tu perfil y tus datos de contacto se guardan solo en tu dispositivo.<br>
-    Para gestionar tu suscripción guardamos únicamente tu email y tu plan.
-  </div>
-
-  <!-- MODAL -->
-  <div class="modal-overlay" id="modal">
+  <button type="button" class="btn-plan" id="btn-cancel-subscription" hidden data-i18n="billing.cancel" style="max-width:360px;margin:0 auto 14px">Cancelar renovación</button>
+  <button type="button" class="btn-cancel" id="btn-back-app" hidden data-i18n="index.plans.skip_button">Continuar con mi plan actual</button>
+  <button type="button" class="btn-cancel" id="link-vincular-compra-paywall" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
+  <button type="button" class="btn-cancel" id="btn-export-vcard-paywall" data-i18n="billing.export">Exportar mi tarjeta (vCard)</button>
+  <button type="button" class="btn-cancel" id="btn-delete-account-paywall" data-i18n="index.delete.button">Eliminar todos mis datos</button>
+  <div class="footer-note" data-i18n="billing.footer">Tu perfil se guarda en tu dispositivo. Stripe gestiona la tarjeta y los cobros.</div>
+  <div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-box">
-      <div class="modal-title" id="modal-title">Próximamente</div>
-      <div class="modal-sub" id="modal-sub">Introduce tu email para continuar al pago. Con este email podrás vincular tu compra en tus dispositivos.</div>
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-sub" data-i18n="billing.modal_email">La compra se vinculará al email verificado de tu cuenta.</div>
       <div id="modal-form">
-        <input class="modal-input" type="email" id="notify-email" placeholder="tu@email.com"/>
-        <label style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 14px;font-size:11.5px;line-height:1.5;color:var(--muted);cursor:pointer;text-align:left;">
-          <input type="checkbox" id="waiver-check" style="margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:var(--green);cursor:pointer;">
-          <span>Acepto que el servicio empiece de inmediato y entiendo que pierdo el derecho de desistimiento de 14 días.</span>
+        <input class="modal-input" type="email" id="notify-email" readonly aria-label="Email"/>
+        <label class="checkbox-text" style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 14px;font-size:11.5px;line-height:1.5;color:var(--muted);cursor:pointer;">
+          <input type="checkbox" id="waiver-check" style="margin-top:2px;flex-shrink:0;width:16px;height:16px;accent-color:var(--green)">
+          <span data-i18n="billing.waiver">Acepto que el servicio empiece de inmediato y entiendo que pierdo el derecho de desistimiento de 14 días.</span>
         </label>
-        <button class="btn-notify" id="btn-checkout" onclick="goToCheckout()" disabled>Continuar al pago</button>
-        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <label class="checkbox-text" id="trial-consent-label" hidden style="display:flex;gap:8px;margin:4px 0 14px;font-size:11.5px;line-height:1.6;color:var(--muted)">
+          <input type="checkbox" id="trial-check" style="width:16px;height:16px;accent-color:var(--green)">
+          <span data-i18n="billing.trial_consent"></span>
+        </label>
+        <button type="button" class="btn-notify" id="btn-checkout" disabled data-i18n="billing.checkout">Continuar a Stripe</button>
+        <button type="button" class="btn-cancel" id="btn-close-modal" data-i18n="index.plans.close_button">Cerrar</button>
       </div>
-      <div class="success-msg" id="success-msg">Anotado. Te avisamos en cuanto esté listo.</div>
     </div>
   </div>
-
-  <!-- Cargado solo por el botón "Ya pagué un plan" de más abajo (ver su
-       comentario) -- el resto de esta página no usa i18n. -->
   <script src="/i18n/loader.js"></script>
-  <!-- storage-wipe.js: borrado completo tras "Eliminar todos mis datos".
-       vcard.js: buildVCardFromProfile(), compartida con index.html, para
-       "Exportar mi tarjeta (vCard)". -->
+  <script src="/plan-cache.js"></script>
   <script src="/storage-wipe.js"></script>
   <script src="/vcard.js"></script>
-  <script>
-    // Mostrar días restantes o estado del trial. Plan gratuito eliminado
-    // (punto 2 del lote de textos legales): cuando la prueba termina sin
-    // un plan de pago, el mensaje deja claro que hace falta elegir un
-    // plan para seguir usando la app -- ya no existe "continuar gratis".
-    const reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
-    if (reg.timestamp) {
-      const start = new Date(reg.timestamp);
-      const now = new Date();
-      const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-      const remaining = 30 - days;
-      const badge = document.getElementById('trial-info');
-      if (remaining > 0) {
-        badge.textContent = `Periodo de prueba — quedan ${remaining} días`;
-      } else {
-        badge.textContent = 'Tu prueba ha terminado. Elige un plan para seguir usando IDENTIFLY.';
-      }
-    }
-
-    let currentPlan = null;
-
-    const waiverCheck = document.getElementById('waiver-check');
-    // El botón solo se habilita con la casilla marcada -- esto por sí
-    // solo es una comodidad de UI, saltable desde la consola; la
-    // comprobación que de verdad importa es la del servidor en
-    // create-checkout.js (rechaza sin waiverAccepted:true).
-    waiverCheck.addEventListener('change', () => {
-      document.getElementById('btn-checkout').disabled = !waiverCheck.checked;
-    });
-
-    function openModal(plan) {
-      currentPlan = plan;
-      const titles = { pro: 'Pro — 2.99€/mes', lifetime: 'Lifetime — 14.99€' };
-      document.getElementById('modal-title').textContent = titles[plan];
-      document.getElementById('modal-form').style.display = 'block';
-      document.getElementById('success-msg').style.display = 'none';
-      document.getElementById('notify-email').value = reg.email || '';
-      // La elección no se recuerda entre aperturas del modal -- cada vez
-      // que se abre (incluso para el mismo plan) hay que volver a marcarla.
-      waiverCheck.checked = false;
-      document.getElementById('btn-checkout').disabled = true;
-      document.getElementById('modal').classList.add('open');
-    }
-
-    function closeModal() {
-      document.getElementById('modal').classList.remove('open');
-    }
-
-    async function goToCheckout() {
-      const email = document.getElementById('notify-email').value.trim();
-      if (!email || !email.includes('@')) {
-        alert('Introduce un email válido');
-        return;
-      }
-      if (!waiverCheck.checked) return; // defensa adicional -- el botón ya debería estar desactivado
-      const btn = document.getElementById('btn-checkout');
-      btn.disabled = true;
-      btn.textContent = 'Conectando...';
-
-      try {
-        const res = await fetch('/api/create-checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan: currentPlan, email, waiverAccepted: true })
-        });
-        const data = await res.json();
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          alert(data.error || 'Error al conectar con el pago');
-          btn.disabled = !waiverCheck.checked;
-          btn.textContent = 'Continuar al pago';
-        }
-      } catch (err) {
-        alert('Error de conexión');
-        btn.disabled = !waiverCheck.checked;
-        btn.textContent = 'Continuar al pago';
-      }
-    }
-
-    (async function checkPaymentReturn() {
-      const params = new URLSearchParams(window.location.search);
-      const sessionId = params.get('session_id');
-      if (!sessionId) return;
-
-      try {
-        const res = await fetch(`/api/check-session?session_id=${sessionId}`);
-        const data = await res.json();
-        if (data.paid && data.plan) {
-          localStorage.setItem('identity_plan', data.plan);
-          alert('¡Pago confirmado! Tu plan ' + data.plan + ' está activo.');
-          window.location.href = '/index.html';
-        }
-      } catch (err) {
-        console.error('Error verificando pago:', err);
-      }
-    })();
-
-    // "Ya pagué un plan — vincular mi compra": navega a index.html con
-    // ?vincular=1. Ese parámetro (ver index.html/_verificarTrialServidor)
-    // SOLO evita que la verificación de trial rebote de vuelta aquí y
-    // abre la recuperación de acceso ya existente -- nunca concede ningún
-    // plan por sí mismo, así que no abre ningún atajo del paywall. Espera
-    // a que cargue el diccionario de idioma (window.i18nReady, ver
-    // i18n/loader.js) antes de aplicar el texto del botón y de tener
-    // t() disponible para el aviso offline.
-    window.i18nReady.finally(() => {
-      document.getElementById('link-vincular-compra-paywall')?.addEventListener('click', () => {
-        if (!navigator.onLine) {
-          alert(t('index.recover_access.offline_notice'));
-          return;
-        }
-        window.location.href = '/?vincular=1';
-      });
-    });
-
-    // "Exportar mi tarjeta (vCard)" -- salida siempre visible mientras no
-    // hay plan de pago (punto 2 del lote): el perfil local (identity_data)
-    // nunca se pierde solo por no pagar, así que quien no quiere pagar
-    // puede llevarse sus datos sin necesidad de usar la app.
-    document.getElementById('btn-export-vcard-paywall').addEventListener('click', () => {
-      let profileData = {};
-      try { profileData = JSON.parse(localStorage.getItem('identity_data') || '{}'); } catch (e) {}
-      const vcard = buildVCardFromProfile(profileData);
-      downloadVCardFile(vcard, (profileData.name || 'contacto').replace(/[^a-zA-Z0-9]+/g, '_') + '.vcf');
-    });
-
-    // "Eliminar todos mis datos" -- mismo flujo de delete-account.js que
-    // index.html (ver su botón "Baja voluntaria"): si hay registro de
-    // servidor, borra primero ahí; el borrado local (storage-wipe.js) solo
-    // ocurre si el servidor confirma, o si no hay registro que borrar.
-    document.getElementById('btn-delete-account-paywall').addEventListener('click', async () => {
-      if (!confirm('¿Seguro que quieres eliminar todos tus datos de IDENTIFLY? Esta acción no se puede deshacer.')) return;
-      const btn = document.getElementById('btn-delete-account-paywall');
-
-      if (!reg || !reg.email) {
-        await borrarTodoElAlmacenamiento();
-        window.location.replace('/index.html');
-        return;
-      }
-      if (!navigator.onLine) {
-        alert('Necesitas conexión para eliminar tu cuenta del servidor.');
-        return;
-      }
-      const token = localStorage.getItem('identity_access_token');
-      btn.disabled = true;
-      btn.textContent = 'Eliminando...';
-      try {
-        const res = await fetch('/api/delete-account', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: reg.email, token })
-        });
-        if (res.ok) {
-          await borrarTodoElAlmacenamiento();
-          window.location.replace('/index.html');
-          return;
-        }
-        const data = await res.json().catch(() => ({}));
-        if (res.status === 401 && data.error === 'no_verificado') {
-          if (confirm('No pudimos verificar tu cuenta en el servidor. ¿Borrar solo los datos de este dispositivo?')) {
-            await borrarTodoElAlmacenamiento();
-            window.location.replace('/index.html');
-            return;
-          }
-        } else {
-          alert('Error al eliminar la cuenta. Inténtalo de nuevo.');
-        }
-      } catch (err) {
-        alert('Error de conexión al eliminar la cuenta.');
-      }
-      btn.disabled = false;
-      btn.textContent = 'Eliminar todos mis datos';
-    });
-  </script>
-
+  <script src="/billing.js"></script>
 </body>
 </html>

@@ -33,11 +33,16 @@
   // caracteres de navigator.language en minúsculas, lo que ya cubre
   // "es-ES"->es, "pt-BR"->pt, "zh-TW"/"zh-HK"/"zh-CN"->zh,
   // "en-US"->en, "fr-CA"->fr, "de-AT"->de, etc. sin lógica aparte.
-  var SUPPORTED_LANGS = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja'];
+  var SUPPORTED_LANGS = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar'];
   var DICT = {};
   // La demo pública usa solo el idioma del navegador o su selector, sin
   // consultar ni persistir ningún dato del dispositivo o de una cuenta.
   var ISOLATED = document.documentElement.hasAttribute('data-i18n-isolated');
+
+  function updateDocumentLanguage(lang) {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }
 
   function detectLanguage() {
     if (!ISOLATED) {
@@ -75,7 +80,7 @@
   // CSS :lang(hi)/:lang(zh)/:lang(ja) (ver letter-spacing/text-transform
   // en el <style> de cada página) -- sin esto :lang() nunca coincide con
   // nada, porque el <html lang="..."> del documento nunca cambiaba.
-  try { document.documentElement.lang = LANG; } catch (e) {}
+  try { updateDocumentLanguage(LANG); } catch (e) {}
 
   window.t = function (key) {
     return Object.prototype.hasOwnProperty.call(DICT, key) ? DICT[key] : key;
@@ -128,7 +133,7 @@
       .then(function (dict) {
         DICT = dict || {};
         window.currentLanguage = lang;
-        try { document.documentElement.lang = lang; } catch (e) {}
+        try { updateDocumentLanguage(lang); } catch (e) {}
         if (!ISOLATED) {
           try { localStorage.setItem('identity_language_pref', lang); } catch (e) {}
         }
@@ -148,7 +153,7 @@
       if (dict) return dict;
       if (LANG === 'es') return {};
       window.currentLanguage = 'es';
-      try { document.documentElement.lang = 'es'; } catch (e) {}
+      try { updateDocumentLanguage('es'); } catch (e) {}
       return fetch('/i18n/es.json')
         .then(function (res) { return res.ok ? res.json() : {}; })
         .catch(function () { return {}; });
