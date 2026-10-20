@@ -19,31 +19,11 @@
 <meta name="twitter:title" content="Contacto compartido — IDENTIFLY">
 <meta name="twitter:description" content="Toca para ver la información de contacto compartida contigo. Enlace de un solo uso.">
 <meta name="twitter:image" content="https://identifly.app/icons/icon-512.png">
-<style>
-  body { background:#080808; color:#fff; font-family:Arial,'Noto Sans Devanagari','Noto Sans SC','Noto Sans JP',system-ui,-apple-system,sans-serif; min-height:100vh; margin:0;
-         display:flex; align-items:center; justify-content:center; padding:24px; }
-  .card { max-width:420px; width:100%; background:#111; border:1px solid #AAFF00; border-radius:16px; padding:32px 24px; text-align:center; }
-  .logo { font-size:20px; font-weight:900; letter-spacing:8px; color:#AAFF00; text-shadow:0 0 10px #AAFF00; margin-bottom:24px; }
-  /* El letter-spacing/uppercase de marca rompe el devanagari (hindi) y
-     afea el CJK -- ver el mismo bloque en index.html para el porqué
-     completo. document.documentElement.lang lo fija i18n/loader.js.
-     .logo (el logotipo IDENTIFLY) es la única excepción: conserva su
-     espaciado de marca en los 12 idiomas. */
-  html:lang(hi) *, html:lang(zh) *, html:lang(ja) * { letter-spacing: normal !important; text-transform: none !important; }
-  html:lang(hi) .logo, html:lang(zh) .logo, html:lang(ja) .logo { letter-spacing: 8px !important; }
-  .name { font-size:22px; font-weight:900; margin-bottom:4px; }
-  .job  { font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:20px; }
-  .row  { text-align:left; font-size:13px; color:rgba(255,255,255,0.75); margin-bottom:10px; }
-  .row strong { color:#AAFF00; display:block; font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; }
-  .watermark { font-size:10px; color:rgba(255,255,255,0.25); margin-top:24px; line-height:1.6; }
-  .btn { display:inline-block; margin-top:20px; background:#AAFF00; color:#000; font-weight:900; letter-spacing:1px;
-         padding:12px 24px; border-radius:8px; text-decoration:none; font-size:13px; }
-  .used-msg { font-size:15px; color:rgba(255,255,255,0.7); line-height:1.6; margin-top:8px; }
-  .error-icon { font-size:40px; margin-bottom:12px; }
-</style>
+<link rel="stylesheet" href="/public-card.css">
 </head>
 <body>
   <div class="card" id="card" data-i18n="share.card.loading">Cargando...</div>
+  <footer class="growth-signature"><span>IDENTIFLY</span> · <a href="/register.html" rel="noreferrer" referrerpolicy="no-referrer" data-i18n="growth.create_yours">Crea la tuya</a></footer>
 
   <script src="/i18n/loader.js"></script>
   <script>

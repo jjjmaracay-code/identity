@@ -18,6 +18,8 @@
 <script src="/device-id.js"></script>
 <script src="/i18n/loader.js"></script>
 <link rel="stylesheet" href="business.css?v=27">
+<link rel="stylesheet" href="/growth.css">
+<script src="/growth-share.js" defer></script>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -3447,6 +3449,7 @@
       </div>
     </div>
     <button class="btn-consent" id="btn-consent-accept" disabled data-i18n="index.consent.accept_button">He leído todo — Acepto y entro</button>
+    <a class="growth-demo-entry" href="/demo.html" data-i18n="growth.demo_open">Ver demostración</a>
   </div>
 </div>
 
@@ -3487,6 +3490,7 @@
   <button class="pin-enter pin-enter-anim" id="pin-enter-btn" disabled style="animation-delay:0.85s" data-i18n="index.pin.enter_button">Entrar</button>
   <a href="/install.html" class="pin-enter-anim" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.85s" data-i18n="index.pin.install_link">¿Primera vez? Instala la app en tu móvil</a>
   <a href="/register.html" id="link-no-account" class="pin-enter-anim" style="display:none;margin-top:8px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.95s" data-i18n="index.pin.register_link">¿No tienes cuenta? Regístrate</a>
+  <a class="growth-demo-entry" href="/demo.html" data-i18n="growth.demo_open">Ver demostración</a>
 </div>
 
 <!-- =================== PANTALLA PRINCIPAL =================== -->
@@ -3572,6 +3576,19 @@
           <span style="font-size:9px;font-weight:500;letter-spacing:0.5px;text-transform:none;opacity:0.7;" data-i18n="index.business.open_subtitle">Tu actividad, tu tarjeta pública</span>
         </span>
       </button>
+    </div>
+
+    <div class="growth-recommend">
+      <button type="button" id="btn-recommend" aria-controls="growth-share-fallback" aria-expanded="false" data-i18n="growth.recommend">Recomienda a un amigo</button>
+      <div class="growth-share-fallback" id="growth-share-fallback" hidden>
+        <label for="growth-share-url" data-i18n="growth.copy_link">Copiar enlace</label>
+        <input id="growth-share-url" type="url" value="https://www.identifly.app/" readonly autocomplete="off" spellcheck="false">
+        <div class="growth-share-actions">
+          <button type="button" id="growth-copy-link" data-i18n="growth.copy_link">Copiar enlace</button>
+          <button type="button" id="growth-share-close" data-i18n="growth.close">Cerrar</button>
+        </div>
+        <div id="growth-share-status" role="status" aria-live="polite"></div>
+      </div>
     </div>
 
     <!-- ===== UBICACIÓN DE EMERGENCIA ===== -->

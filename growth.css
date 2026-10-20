@@ -1,0 +1,13 @@
+/* Accesos de I2; independientes de la tarjeta y de sus controles de QR. */
+.growth-demo-entry { display:block; padding:12px; margin:8px auto 0; color:#AAFF00; text-align:center; font:inherit; font-size:12px; line-height:1.5; text-underline-offset:3px; max-width:320px; }
+.growth-demo-entry:focus-visible, .growth-recommend :focus-visible { outline:2px solid #AAFF00; outline-offset:3px; }
+.growth-recommend { width:100%; max-width:320px; margin:14px auto 0; font-size:12px; line-height:1.5; }
+.growth-recommend button { min-height:44px; padding:10px 12px; border:1px solid rgba(170,255,0,0.3); border-radius:10px; background:transparent; color:#AAFF00; font:inherit; cursor:pointer; }
+#btn-recommend { width:100%; }
+.growth-share-fallback { padding:12px; margin-top:8px; border:1px solid rgba(170,255,0,0.3); border-radius:10px; background:#111; }
+.growth-share-fallback[hidden] { display:none; }
+.growth-share-fallback label { display:block; margin-bottom:8px; color:#e8e8e8; }
+.growth-share-fallback input { box-sizing:border-box; width:100%; min-height:44px; border:1px solid #666; border-radius:6px; padding:8px; background:#080808; color:#e8e8e8; font:inherit; }
+.growth-share-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.growth-share-actions button { flex:1; }
+#growth-share-status { color:#e8e8e8; margin-top:8px; }

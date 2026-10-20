@@ -35,23 +35,28 @@
   // "en-US"->en, "fr-CA"->fr, "de-AT"->de, etc. sin lógica aparte.
   var SUPPORTED_LANGS = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja'];
   var DICT = {};
+  // La demo pública usa solo el idioma del navegador o su selector, sin
+  // consultar ni persistir ningún dato del dispositivo o de una cuenta.
+  var ISOLATED = document.documentElement.hasAttribute('data-i18n-isolated');
 
   function detectLanguage() {
-    try {
-      var reg = JSON.parse(localStorage.getItem('identity_registration') || 'null');
-      if (reg && reg.language && SUPPORTED_LANGS.indexOf(reg.language) !== -1) {
-        return reg.language;
-      }
-    } catch (e) {}
-    // Elección manual antes de registrarse (p.ej. desde el selector de la
-    // pantalla de consentimiento, o el propio selector de register.html
-    // antes de completar el registro) -- se guarda en setLanguage() de
-    // más abajo. Una vez existe identity_registration.language (cuenta ya
-    // registrada), esa es la fuente de verdad y esta queda ignorada.
-    try {
-      var pref = localStorage.getItem('identity_language_pref');
-      if (pref && SUPPORTED_LANGS.indexOf(pref) !== -1) return pref;
-    } catch (e) {}
+    if (!ISOLATED) {
+      try {
+        var reg = JSON.parse(localStorage.getItem('identity_registration') || 'null');
+        if (reg && reg.language && SUPPORTED_LANGS.indexOf(reg.language) !== -1) {
+          return reg.language;
+        }
+      } catch (e) {}
+      // Elección manual antes de registrarse (p.ej. desde el selector de la
+      // pantalla de consentimiento, o el propio selector de register.html
+      // antes de completar el registro) -- se guarda en setLanguage() de
+      // más abajo. Una vez existe identity_registration.language (cuenta ya
+      // registrada), esa es la fuente de verdad y esta queda ignorada.
+      try {
+        var pref = localStorage.getItem('identity_language_pref');
+        if (pref && SUPPORTED_LANGS.indexOf(pref) !== -1) return pref;
+      } catch (e) {}
+    }
     var navLangs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
     for (var i = 0; i < navLangs.length; i++) {
       var code = String(navLangs[i] || '').slice(0, 2).toLowerCase();
@@ -124,7 +129,9 @@
         DICT = dict || {};
         window.currentLanguage = lang;
         try { document.documentElement.lang = lang; } catch (e) {}
-        try { localStorage.setItem('identity_language_pref', lang); } catch (e) {}
+        if (!ISOLATED) {
+          try { localStorage.setItem('identity_language_pref', lang); } catch (e) {}
+        }
         applyI18n(document);
         return DICT;
       });
