@@ -429,7 +429,10 @@
 // que activate() purgue la v34 y los dispositivos que ya la tuvieran
 // cacheada reciban index.html/paywall.html/register.html/recovery.html
 // actualizados, igual que en v30-v34.
-const APP_VERSION = '39';
+// v40: I2 Crecimiento. Demo ficticia aislada, firma pública de registro
+// y recomendación mediante enlace público. Se guardan también sus recursos
+// para que la demo funcione sin conexión en la app instalada.
+const APP_VERSION = '40';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -438,6 +441,11 @@ const CACHE_URLS = [
   '/recovery',
   '/paywall',
   '/install',
+  '/demo',
+  '/demo.js',
+  '/public-card.css',
+  '/growth.css',
+  '/growth-share.js',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

@@ -1,0 +1,41 @@
+/* La demo y los enlaces de un solo uso comparten presentación, no datos
+   ni lógica: el consumo del token permanece exclusivamente en share.html. */
+body { background:#080808; color:#fff; font-family:Arial,'Noto Sans Devanagari','Noto Sans SC','Noto Sans JP',system-ui,-apple-system,sans-serif; min-height:100vh; margin:0;
+       display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; }
+.card { max-width:420px; width:100%; box-sizing:border-box; background:#111; border:1px solid #AAFF00; border-radius:16px; padding:32px 24px; text-align:center; }
+.logo { font-size:20px; font-weight:900; letter-spacing:8px; color:#AAFF00; text-shadow:0 0 10px #AAFF00; margin-bottom:24px; }
+/* El letter-spacing/uppercase de marca rompe el devanagari (hindi) y
+   afea el CJK -- ver el mismo bloque en index.html. La marca IDENTIFLY
+   conserva su espaciado en los 12 idiomas. */
+html:lang(hi) *, html:lang(zh) *, html:lang(ja) * { letter-spacing:normal !important; text-transform:none !important; }
+html:lang(hi) .logo, html:lang(zh) .logo, html:lang(ja) .logo { letter-spacing:8px !important; }
+.name { font-size:22px; font-weight:900; margin-bottom:4px; }
+.job { font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:20px; }
+.row { text-align:left; font-size:13px; color:rgba(255,255,255,0.75); margin-bottom:10px; }
+.row strong { color:#AAFF00; display:block; font-size:10px; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; }
+.watermark { font-size:10px; color:rgba(255,255,255,0.25); margin-top:24px; line-height:1.6; }
+.btn { display:inline-block; margin-top:20px; background:#AAFF00; color:#000; font-weight:900; letter-spacing:1px;
+       padding:12px 24px; border-radius:8px; text-decoration:none; font-size:13px; }
+.used-msg { font-size:15px; color:rgba(255,255,255,0.7); line-height:1.6; margin-top:8px; }
+.error-icon { font-size:40px; margin-bottom:12px; }
+.growth-signature { margin-top:16px; text-align:center; font-size:12px; line-height:1.5; color:rgba(255,255,255,0.7); }
+.growth-signature a { display:inline-flex; align-items:center; min-height:44px; color:inherit; text-underline-offset:3px; }
+.growth-signature a:focus-visible { outline:2px solid #AAFF00; outline-offset:3px; border-radius:2px; }
+.demo-page { justify-content:flex-start; padding:24px 16px; }
+.demo-wrap { width:100%; max-width:420px; }
+.demo-nav { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:24px; font-size:13px; }
+.demo-nav a { color:#AAFF00; display:inline-flex; align-items:center; min-height:44px; }
+.demo-language-label { margin-left:auto; }
+.demo-nav select { background:#111; color:#fff; border:1px solid #555; border-radius:8px; padding:10px 8px; font:inherit; max-width:100%; min-height:44px; }
+.demo-nav :focus-visible, .demo-page .btn:focus-visible { outline:2px solid #AAFF00; outline-offset:3px; }
+.demo-badge { display:table; margin:0 auto 12px; border:1px solid #AAFF00; color:#AAFF00; border-radius:999px; padding:8px 16px; font-size:12px; font-weight:700; text-align:center; overflow-wrap:anywhere; }
+.demo-intro, .demo-note { font-size:13px; line-height:1.6; color:rgba(255,255,255,0.75); text-align:center; }
+.demo-intro { margin:0 0 20px; }
+.demo-note { margin:16px 0 0; }
+.demo-brand { display:block; object-fit:contain; margin:0 auto 16px; }
+.demo-qr { box-sizing:border-box; width:236px; max-width:100%; margin:24px auto 0; padding:8px; background:#fff; border-radius:8px; }
+.demo-qr:empty { display:none; }
+.demo-qr svg { display:block; max-width:100%; height:auto; margin:auto; }
+.demo-page .btn { border:0; cursor:pointer; font-family:inherit; line-height:1.5; min-height:44px; max-width:100%; }
+.demo-page .btn:disabled { opacity:0.5; cursor:default; }
+.demo-page .name, .demo-page .row { overflow-wrap:anywhere; }

@@ -223,6 +223,8 @@ export async function onRequestGet(context) {
   .gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid ${theme.hairline}}
   .save-contact{display:block;width:100%;min-height:48px;font-family:inherit;text-align:center;margin-top:28px;padding:13px;border-radius:12px;border:1px solid ${theme.hairline};background:transparent;color:${theme.muted};font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
   .foot{margin-top:24px;text-align:center;font-size:10px;color:${theme.muted};opacity:0.6;letter-spacing:1px}
+  .growth-signature{text-align:center;margin-top:8px;font-size:12px;line-height:1.5;color:${theme.text};opacity:0.8}
+  .growth-signature a{display:inline-flex;align-items:center;min-height:44px;letter-spacing:normal;text-underline-offset:3px}
   :focus-visible{outline:2px solid ${theme.accent};outline-offset:2px}
 </style></head>
 <body>
@@ -238,7 +240,9 @@ export async function onRequestGet(context) {
     ${contactHtml}
     <button class="save-contact" id="btn-save-contact" type="button" data-vcard="${escapeAttr(vcardB64)}" data-nombre="${escapeAttr((r.displayName || 'contacto').replace(/[^\w\- ]/g, '').trim() || 'contacto')}">Guardar contacto</button>
     <div class="foot">IDENTIFLY BUSINESS</div>
+    <div class="growth-signature"><a href="/register.html" rel="noreferrer" referrerpolicy="no-referrer" data-i18n="growth.create_yours">Crea la tuya</a></div>
   </div>
+  <script src="/i18n/loader.js"></script>
   <script>
     // El vCard vive en data-vcard del propio botón (base64): una sola
     // fuente, que también usa la vista "Tarjeta publicada" de la app.

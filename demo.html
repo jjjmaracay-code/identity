@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es" data-i18n-isolated>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title data-i18n="growth.demo_title">IDENTIFLY · Demostración</title>
+  <link rel="stylesheet" href="/public-card.css">
+  <script src="/i18n/loader.js" defer></script>
+  <script src="/vcard.js" defer></script>
+  <script src="/vendor/qr-code-styling/qr-code-styling.js" defer></script>
+  <script src="/demo.js" defer></script>
+</head>
+<body class="demo-page">
+  <main class="demo-wrap">
+    <nav class="demo-nav">
+      <a href="/" data-i18n="growth.demo_back">Volver</a>
+      <label for="demo-language" class="demo-language-label" data-i18n="register.step1.language_label">Idioma</label>
+      <select id="demo-language" aria-label="Idioma" data-i18n-aria="register.step1.language_label">
+        <option value="es">Español</option>
+        <option value="ca">Català</option>
+        <option value="eu">Euskara</option>
+        <option value="gl">Galego</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Português</option>
+        <option value="hi">हिन्दी</option>
+        <option value="zh">简体中文</option>
+        <option value="ru">Русский</option>
+        <option value="ja">日本語</option>
+      </select>
+    </nav>
+    <p class="demo-badge" data-i18n="growth.demo_badge">DEMOSTRACIÓN</p>
+    <p class="demo-intro" data-i18n="growth.demo_intro">Tarjeta de ejemplo con datos ficticios.</p>
+    <section class="card" aria-labelledby="demo-name">
+      <img class="demo-brand" src="/assets/logo-wings.png" alt="IDENTIFLY" width="96" height="96">
+      <div class="logo" aria-hidden="true">IDENTIFLY</div>
+      <h1 class="name" id="demo-name">Alex Demo</h1>
+      <p class="job" data-i18n="growth.demo_role">Diseñadora de producto</p>
+      <div class="row"><strong data-i18n="share.card.label_company">Empresa</strong><span data-i18n="growth.demo_company">Estudio Ejemplo</span></div>
+      <div class="row"><strong data-i18n="share.card.label_email">Email</strong><span>alex.demo@example.com</span></div>
+      <div class="demo-qr" id="demo-qr" role="img" aria-label="QR de demostración" data-i18n-aria="growth.demo_qr_label"></div>
+      <p class="demo-note" id="demo-qr-error" role="status" hidden data-i18n="growth.demo_qr_error">No se pudo generar el QR de ejemplo.</p>
+      <button class="btn" id="demo-download" type="button" disabled data-i18n="growth.demo_download">Descargar contacto de ejemplo</button>
+      <p class="demo-note" data-i18n="growth.demo_note">Esta tarjeta es ficticia y no se publica.</p>
+    </section>
+    <footer class="growth-signature">IDENTIFLY · <a href="/register.html" rel="noreferrer" referrerpolicy="no-referrer" data-i18n="growth.create_yours">Crea la tuya</a></footer>
+  </main>
+</body>
+</html>
