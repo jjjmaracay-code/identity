@@ -434,7 +434,7 @@
 // y recomendación mediante enlace público. Se guardan también sus recursos
 // para que la demo funcione sin conexión en la app instalada.
 // v41: árabe, dirección RTL, fuentes y recursos de traducción locales.
-const APP_VERSION = '42';
+const APP_VERSION = '43';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
