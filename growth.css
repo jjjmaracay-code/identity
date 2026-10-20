@@ -1,13 +1,83 @@
-/* Accesos de I2; independientes de la tarjeta y de sus controles de QR. */
-.growth-demo-entry { display:block; padding:12px; margin:8px auto 0; color:#AAFF00; text-align:center; font:inherit; font-size:12px; line-height:1.5; text-underline-offset:3px; max-width:320px; }
-.growth-demo-entry:focus-visible, .growth-recommend :focus-visible { outline:2px solid #AAFF00; outline-offset:3px; }
-.growth-recommend { width:100%; max-width:320px; margin:14px auto 0; font-size:12px; line-height:1.5; }
-.growth-recommend button { min-height:44px; padding:10px 12px; border:1px solid rgba(170,255,0,0.3); border-radius:10px; background:transparent; color:#AAFF00; font:inherit; cursor:pointer; }
-#btn-recommend { width:100%; }
-.growth-share-fallback { padding:12px; margin-top:8px; border:1px solid rgba(170,255,0,0.3); border-radius:10px; background:#111; }
+/* I2: accesos y recomendacion; estilos limitados a sus componentes. */
+.growth-demo-entry {
+  display:block; padding:12px; margin:8px auto 0; max-width:320px;
+  color:#AAFF00; text-align:center; font:inherit; font-size:12px;
+  line-height:1.5; text-underline-offset:3px;
+}
+.growth-demo-entry:focus-visible,
+.growth-recommend :focus-visible {
+  outline:3px solid #AAFF00; outline-offset:4px;
+}
+.growth-recommend {
+  box-sizing:border-box; width:100%; max-width:320px;
+  margin:18px auto 0; padding:12px;
+  border:1px solid rgba(170,255,0,.28); border-radius:20px;
+  background:linear-gradient(145deg,rgba(170,255,0,.09),rgba(170,255,0,.015) 65%),#10120e;
+  box-shadow:0 12px 28px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.05);
+  font:inherit; font-size:13px; line-height:1.5;
+}
+.growth-recommend button {
+  box-sizing:border-box; min-height:46px; padding:12px 14px;
+  border:1px solid rgba(170,255,0,.3); border-radius:12px;
+  background:#171c12; color:#e8f0de; font:inherit;
+  font-weight:600; line-height:1.4; cursor:pointer;
+  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.growth-recommend #btn-recommend {
+  display:block; width:100%; min-height:52px; padding:14px 16px;
+  border-color:#AAFF00; border-radius:13px;
+  background:linear-gradient(135deg,#c3ff4d,#AAFF00);
+  color:#172000; font-size:14px; font-weight:750; letter-spacing:.15px;
+  box-shadow:0 5px 18px rgba(170,255,0,.15),inset 0 1px 0 rgba(255,255,255,.4);
+}
+@media (hover:hover) {
+  .growth-recommend button:hover {
+    background:#253018; border-color:rgba(170,255,0,.7);
+  }
+  .growth-recommend #btn-recommend:hover {
+    background:linear-gradient(135deg,#d2ff7a,#baff29);
+    box-shadow:0 6px 22px rgba(170,255,0,.25);
+  }
+}
+.growth-recommend button:active { box-shadow:inset 0 2px 5px rgba(0,0,0,.18); }
+.growth-recommend button:disabled { opacity:.6; cursor:wait; }
+.growth-share-fallback {
+  box-sizing:border-box; margin-top:12px; padding:14px 12px;
+  border:1px solid rgba(170,255,0,.18); border-radius:14px;
+  background:rgba(0,0,0,.24);
+}
 .growth-share-fallback[hidden] { display:none; }
-.growth-share-fallback label { display:block; margin-bottom:8px; color:#e8e8e8; }
-.growth-share-fallback input { box-sizing:border-box; width:100%; min-height:44px; border:1px solid #666; border-radius:6px; padding:8px; background:#080808; color:#e8e8e8; font:inherit; }
-.growth-share-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-.growth-share-actions button { flex:1; }
-#growth-share-status { color:#e8e8e8; margin-top:8px; }
+.growth-share-fallback label {
+  display:block; margin-bottom:9px; color:#edf3e6;
+  font-size:12px; font-weight:650; letter-spacing:.2px;
+}
+.growth-share-fallback input {
+  box-sizing:border-box; width:100%; min-height:46px;
+  border:1px solid rgba(170,255,0,.25); border-radius:10px;
+  padding:11px 12px; background:#080b06; color:#eef5e6;
+  font:inherit; font-size:12px;
+}
+.growth-share-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.growth-share-actions button { flex:1 1 100px; }
+#growth-share-status { color:#e8e8e8; margin-top:10px; font-size:12px; }
+#growth-share-status:empty { margin-top:0; }
+@media (prefers-reduced-motion:reduce) {
+  .growth-recommend button { transition:none; }
+}
+
+/* RECOMMEND-RESPONSIVE: mantener el contenido dentro de la tarjeta. */
+.growth-recommend { min-width:0; }
+.growth-recommend #btn-recommend {
+  white-space:normal; overflow-wrap:anywhere;
+}
+.growth-share-fallback input {
+  min-width:0; max-width:100%;
+}
+.growth-share-actions button {
+  min-width:0; white-space:normal; overflow-wrap:anywhere;
+}
+@media (max-width:360px) {
+  .growth-recommend { padding:10px; border-radius:16px; }
+  .growth-recommend #btn-recommend { padding:13px 10px; }
+  .growth-share-fallback { padding:12px 10px; }
+}
