@@ -7960,13 +7960,16 @@ document.getElementById('btn-qr-apply-header').addEventListener('click', applyQR
 
 // =================== COMPARTIR QR ===================
 async function generateShareLink() {
+  const email = _reg.email;
+  const token = localStorage.getItem('identity_access_token');
+  if (!email || !token) throw new Error('Es necesario verificar la cuenta para compartir');
   const res = await fetch('/api/share-qr', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ vcard: buildVCard(), name: profileData.name || '' })
+    body: JSON.stringify({ email, token, vcard: buildVCard(), name: profileData.name || '' })
   });
   const data = await res.json();
-  if (!data.token) throw new Error('No se pudo generar el enlace');
+  if (!res.ok || !data.token) throw new Error('No se pudo generar el enlace');
   return `${window.location.origin}/share.html?token=${data.token}`;
 }
 

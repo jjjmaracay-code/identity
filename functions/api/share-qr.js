@@ -1,3 +1,5 @@
+import { ShareRequestError, shareResponse, readShareBody, authenticateShareCreator, validateShareContact, reserveShareQuota } from '../_shared/share-security.js';
+
 function generateToken() {
   return crypto.randomUUID().replace(/-/g, '');
 }
@@ -5,28 +7,23 @@ function generateToken() {
 export async function onRequestPost(context) {
   const { request, env } = context;
   try {
-    const { vcard, name } = await request.json();
-    if (!vcard) {
-      return new Response(JSON.stringify({ error: 'Falta vcard' }), {
-        status: 400, headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    const body = await readShareBody(request);
+    const emailKey = await authenticateShareCreator(env, body);
+    const { vcard, name } = validateShareContact(body);
+    await reserveShareQuota(env.SHARE_KV, emailKey);
 
     const token = generateToken();
     await env.SHARE_KV.put('share:' + token, JSON.stringify({
       vcard,
-      name: name || '',
+      name,
       createdAt: new Date().toISOString(),
       used: false
     }), { expirationTtl: 60 * 60 * 24 * 30 }); // 30 días si nunca se usa
 
-    return new Response(JSON.stringify({ token }), {
-      status: 200, headers: { 'Content-Type': 'application/json' }
-    });
+    return shareResponse({ token });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: { 'Content-Type': 'application/json' }
-    });
+    if (err instanceof ShareRequestError) return shareResponse({ error: err.code }, err.status, err.retryAfter);
+    return shareResponse({ error: 'compartir_no_disponible' }, 503);
   }
 }
 

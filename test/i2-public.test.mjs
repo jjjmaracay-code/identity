@@ -76,13 +76,15 @@ test('la firma de share.html queda fuera de la tarjeta dinámica y no arrastra e
 
 test('el enlace de un solo uso se consume una vez y conserva la vCard original', async () => {
   const values = new Map();
-  const env = { SHARE_KV: {
+  const env = { PLANS_KV: { async get(key) {
+    return key === 'reg:creator@example.com' ? JSON.stringify({ token: 'creator-token' }) : null;
+  } }, SHARE_KV: {
     async get(key) { return values.get(key) || null; },
     async put(key, value) { values.set(key, value); }
   } };
   const vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:Ejemplo\nEMAIL:demo@example.com\nEND:VCARD';
   const created = await sharePost({ env, request: new Request('https://example.com/api/share-qr', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Ejemplo', vcard })
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'creator@example.com', token: 'creator-token', name: 'Ejemplo', vcard })
   }) });
   assert.equal(created.status, 200);
   const { token } = await created.json();
@@ -114,7 +116,7 @@ test('el Service Worker incluye todos los recursos I2 y sigue excluyendo API y t
   const listeners = {};
   const context = { self: { location: { origin: 'https://example.com' }, addEventListener(name, fn) { listeners[name] = fn; } }, URL };
   vm.runInNewContext(read('sw.js') + '\nself.testURLs = CACHE_URLS; self.testVersion = APP_VERSION;', context);
-  assert.equal(context.self.testVersion, '43');
+  assert.equal(context.self.testVersion, '44');
   for (const url of ['/demo', '/demo.js', '/public-card.css', '/growth.css', '/growth-share.js', '/vcard.js', '/vendor/qr-code-styling/qr-code-styling.js', '/i18n/loader.js']) {
     assert.ok(context.self.testURLs.includes(url), url);
   }
