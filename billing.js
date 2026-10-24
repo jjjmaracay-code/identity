@@ -6,9 +6,26 @@
   const cred = { email: reg.email, token };
   let status = null, currentPlan = null, busy = false;
   const txt = key => t('billing.' + key);
+  const salesOpen = () => status?.checkoutEnabled === true;
+  const pausedMessages = {
+    es: 'Las contrataciones estarán disponibles próximamente.',
+    en: 'New purchases and card trials are temporarily unavailable.',
+    ca: 'Les noves compres i proves amb targeta no estan disponibles temporalment.',
+    eu: 'Erosketa berriak eta txartel bidezko probak ez daude erabilgarri aldi baterako.',
+    gl: 'As novas compras e probas con tarxeta non están dispoñibles temporalmente.',
+    fr: 'Les nouveaux achats et essais avec carte sont temporairement indisponibles.',
+    de: 'Neue Käufe und Testangebote mit Karte sind vorübergehend nicht verfügbar.',
+    pt: 'Novas compras e testes com cartão estão temporariamente indisponíveis.',
+    hi: 'नई खरीदारी और कार्ड से परीक्षण अस्थायी रूप से उपलब्ध नहीं हैं।',
+    zh: '新购买和绑卡试用暂时不可用。',
+    ru: 'Новые покупки и пробные периоды с картой временно недоступны.',
+    ja: '新規購入とカード登録によるトライアルは一時的にご利用いただけません。',
+    ar: 'عمليات الشراء الجديدة والفترات التجريبية بالبطاقة غير متاحة مؤقتًا.'
+  };
+  const pausedText = () => pausedMessages[document.documentElement.lang] || pausedMessages.es;
   const trialOffered = () => status?.trialEligible === true;
   const isTrial = () => currentPlan === 'pro' && trialOffered();
-  function canSubmit() { return $('waiver-check').checked && (!isTrial() || $('trial-check').checked); }
+  function canSubmit() { return salesOpen() && $('waiver-check').checked && (!isTrial() || $('trial-check').checked); }
   async function post(path, body = {}) {
     const res = await fetch('/api/' + path, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -20,17 +37,19 @@
   }
   function render() {
     const offered = trialOffered();
-    $('trial-offer').hidden = !offered;
+    $('trial-offer').hidden = !offered || !salesOpen();
     $('btn-pro').textContent = offered ? txt('start_trial') : t('index.plans.pro_button');
     const active = status && !status.bloqueado;
     $('btn-back-app').hidden = !active;
     $('btn-cancel-subscription').hidden = !status?.hasSubscription || status?.cancelAtPeriodEnd;
-    $('btn-pro').disabled = !!(active && ['pro', 'lifetime'].includes(status.plan));
+    $('btn-pro').disabled = !salesOpen() || !!(active && ['pro', 'lifetime'].includes(status.plan));
     $('btn-lifetime').disabled = $('btn-pro').disabled;
     if (status?.cancelAtPeriodEnd) $('billing-status').textContent = txt('cancelled');
     else if (status?.trialActive) $('billing-status').textContent = txt('trial_remaining').replace('{n}', status.diasRestantes);
     else if (offered) $('billing-status').textContent = txt('card_required');
     else if (active && status.plan !== 'free') $('billing-status').textContent = txt('active');
+    $('checkout-notice').hidden = salesOpen();
+    $('checkout-notice').textContent = pausedText();
     if (status?.bloqueado && !offered) $('trial-info').textContent = t('index.edit.trial_expired');
   }
   async function refresh() {
@@ -39,6 +58,7 @@
     if (data.ok) { status = data; identityPlanCache.write(data); render(); }
   }
   function openModal(plan) {
+    if (!salesOpen()) { alert(pausedText()); return; }
     if (!cred.email || !cred.token) { alert(txt('need_auth')); return; }
     currentPlan = plan;
     $('modal-title').textContent = isTrial() ? txt('start_trial') : plan === 'pro' ? 'Pro — €2.99' : 'Lifetime — €14.99';
@@ -57,7 +77,10 @@
       if (!data.url || new URL(data.url).origin !== 'https://checkout.stripe.com') throw new Error('invalid_checkout');
       window.location.href = data.url;
     } catch (err) {
-      alert(txt(err.code === 'activation_pending' ? 'pending' : err.code === 'no_verificado' ? 'need_auth' : 'error'));
+      if (err.code === 'checkout_paused') {
+        status = { ...status, checkoutEnabled: false }; render(); $('modal').classList.remove('open');
+      }
+      alert(err.code === 'checkout_paused' ? pausedText() : txt(err.code === 'activation_pending' ? 'pending' : err.code === 'no_verificado' ? 'need_auth' : 'error'));
       busy = false; $('btn-checkout').disabled = !canSubmit(); $('btn-checkout').textContent = txt('checkout');
     }
   }

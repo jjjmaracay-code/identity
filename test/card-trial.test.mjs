@@ -30,7 +30,7 @@ async function call(handler, env, body) {
 }
 async function fixture(flag = 'true') {
   const env = {
-    PLANS_KV: new KV(), IP_HASH_SALT: 'test-only', STRIPE_CARD_TRIAL_ENABLED: flag,
+    IDENTIFLY_CHECKOUT_ENABLED: 'true', PLANS_KV: new KV(), IP_HASH_SALT: 'test-only', STRIPE_CARD_TRIAL_ENABLED: flag,
     STRIPE_SECRET_KEY: 'sk_test_fixture', STRIPE_PRICE_PRO: 'price_fixture_pro',
     STRIPE_PRICE_LIFETIME: 'price_fixture_lifetime', STRIPE_WEBHOOK_SECRET: 'whsec_fixture',
     BUSINESS_DO: { idFromName: x => x, get: () => ({ fetch: async () => new Response('{}') }) },

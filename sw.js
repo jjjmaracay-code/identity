@@ -435,7 +435,8 @@
 // para que la demo funcione sin conexión en la app instalada.
 // v41: árabe, dirección RTL, fuentes y recursos de traducción locales.
 // v44: enviar credenciales al crear enlaces; renovar también el index cacheado.
-const APP_VERSION = '44';
+// v45: pausa de nuevas contrataciones en servidor y aviso en paywall.
+const APP_VERSION = '45';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

@@ -1,7 +1,10 @@
+import { checkoutEnabled } from '../_shared/checkout-policy.js';
 import { authenticateBilling, readRecord, accountId, stripeRequest, jsonResponse } from '../_shared/card-trial.js';
 import { computePaidActive } from '../_shared/plan-access.js';
 
 export async function onRequestPost({ request, env }) {
+  // Antes de leer el cuerpo, KV o Stripe: tampoco se devuelve una sesión pendiente.
+  if (!checkoutEnabled(env)) return jsonResponse({ error: 'checkout_paused' }, 503);
   let checkoutEmail;
   try {
     const body = await request.json();

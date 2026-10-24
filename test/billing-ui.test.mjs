@@ -23,7 +23,7 @@ async function fixture(options={}) {
   const values=new Map(Object.entries({identity_registration:JSON.stringify({email:'trial@example.com',language:lang,cardTrialRequired:true}),
     identity_access_token:'token-fixture',identity_data:JSON.stringify({name:'Álex Fixture',email:'alex@example.com'})}));
   const calls=[],alerts=[],downloads=[],blobs=new Map();let wiped=0;
-  const status={ok:true,plan:'free',bloqueado:true,cardTrialRequired:true,trialEligible:true,hasSubscription:false,cancelAtPeriodEnd:false,...options.status};
+  const status={checkoutEnabled:true,ok:true,plan:'free',bloqueado:true,cardTrialRequired:true,trialEligible:true,hasSubscription:false,cancelAtPeriodEnd:false,...options.status};
   const context={document,Blob,URL,console,history:{replaceState(){}},navigator:{languages:[lang],onLine:true},
     location:{href:'https://www.identifly.app/paywall.html',replace(url){this.href=url;}},
     localStorage:{getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)},
@@ -33,7 +33,7 @@ async function fixture(options={}) {
       const body=JSON.parse(init.body); calls.push({url,body});
       let data,ok=true;
       if(url==='/api/check-plan')data={...status};
-      else if(url==='/api/create-checkout')data={url:'https://checkout.stripe.com/c/pay/cs_test_fixture'};
+      else if(url==='/api/create-checkout'){if(options.checkoutPaused){ok=false;data={error:'checkout_paused'};}else data={url:'https://checkout.stripe.com/c/pay/cs_test_fixture'};}
       else if(url==='/api/cancel-subscription'){
         if(options.cancelFails){ok=false;data={error:'cancellation_unconfirmed'};}
         else {data={ok:true,cancelAtPeriodEnd:true};status.cancelAtPeriodEnd=true;}
@@ -100,4 +100,23 @@ test('pago: exportar usa identity_data y un fallo de baja conserva todos los dat
  await f.document.getElementById('btn-delete-account-paywall').fire('click');
  assert.equal(f.wiped,0);assert.ok(f.values.get('identity_data'));
  assert.equal(f.alerts.at(-1),f.dict['index.delete_confirm.server_error_toast']);
+});
+
+test('pausa: sin permiso explícito no abre compras ni pruebas; mantiene acceso y cancelación',async()=>{
+ for(const enabled of [false,undefined]) {
+  const f=await fixture({status:{checkoutEnabled:enabled,plan:'lifetime',bloqueado:false,hasSubscription:true,trialEligible:false}}),$=id=>f.document.getElementById(id);
+  assert.equal($('btn-pro').disabled,true);assert.equal($('btn-lifetime').disabled,true);assert.equal($('trial-offer').hidden,true);
+  assert.equal($('btn-back-app').hidden,false);assert.equal($('btn-cancel-subscription').hidden,false);
+  await $('btn-pro').fire('click');assert.equal($('modal').classList.contains('open'),false);
+  assert.equal(f.calls.filter(c=>c.url==='/api/create-checkout').length,0);
+  assert.equal($('checkout-notice').hidden,false);assert.match($('checkout-notice').textContent,/próximamente/);
+  assert.equal($('billing-status').textContent,f.dict['billing.active']);
+ }
+});
+test('pausa: una pestaña abierta antes del cierre informa y no redirige a Stripe',async()=>{
+ const f=await fixture({checkoutPaused:true}),$=id=>f.document.getElementById(id);
+ await $('btn-pro').fire('click');$('waiver-check').checked=true;$('trial-check').checked=true;
+ await $('btn-checkout').fire('click');assert.match(f.alerts.at(-1),/próximamente/);
+ assert.equal($('btn-pro').disabled,true);assert.equal($('btn-lifetime').disabled,true);
+ assert.equal($('modal').classList.contains('open'),false);assert.ok(!f.context.location.href.includes('checkout.stripe.com'));
 });

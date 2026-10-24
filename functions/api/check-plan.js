@@ -1,3 +1,4 @@
+import { checkoutEnabled } from '../_shared/checkout-policy.js';
 // Verifica el plan/estado del trial de un usuario. Requiere el token
 // opaco emitido en el registro (register-complete.js), o reclamado vía
 // claim-token.js para cuentas registradas antes de que ese mecanismo
@@ -68,6 +69,7 @@ export async function onRequestPost(context) {
     : Math.max(0, TRIAL_DAYS - status.diasTranscurridos);
   const ua = request.headers.get('User-Agent');
   const respuestaNormal = () => new Response(JSON.stringify({
+    checkoutEnabled: checkoutEnabled(env),
     ok: true, plan: status.plan, registeredAt: status.registeredAt,
     diasRestantes, bloqueado: status.bloqueado, cardTrialRequired: status.cardTrialRequired,
     trialEligible: status.trialEligible, trialActive: status.trialActive, trialEndsAt: status.trialEndsAt,
