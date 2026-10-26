@@ -5118,7 +5118,7 @@ function mostrarLimiteDispositivos(data) {
     input.type = 'radio';
     input.name = 'device-limit-choice';
     input.value = d.deviceId;
-    if (esLifetime) { input.checked = true; _deviceLimitSelectedId = d.deviceId; }
+    if (esLifetime && (data.deviceLimit || 1) === 1) { input.checked = true; _deviceLimitSelectedId = d.deviceId; }
     input.addEventListener('change', () => {
       _deviceLimitSelectedId = d.deviceId;
       actualizarBotonConfirmarDispositivos();

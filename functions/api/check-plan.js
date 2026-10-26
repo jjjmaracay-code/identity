@@ -19,7 +19,7 @@ import { checkoutEnabled } from '../_shared/checkout-policy.js';
 import { TRIAL_DAYS, getPlanStatus } from '../_shared/plan-access.js';
 import {
   recordDeviceSeen, isValidDeviceId, getDevicesList, findDevice, isDeviceActive,
-  countActiveDevices, PLAN_DEVICE_LIMITS, isDeviceLimitEnforced, getOrSetDeviceLimitActivatedAt,
+  countActiveDevices, PLAN_DEVICE_LIMITS, getAccountDeviceLimit, isDeviceLimitEnforced, getOrSetDeviceLimitActivatedAt,
 } from '../_shared/devices.js';
 
 function genericReject() {
@@ -68,7 +68,10 @@ export async function onRequestPost(context) {
     ? Math.max(0, Math.ceil((Date.parse(status.trialEndsAt) - Date.now()) / 86400000))
     : Math.max(0, TRIAL_DAYS - status.diasTranscurridos);
   const ua = request.headers.get('User-Agent');
+  const deviceLimit = status.trialActive ? null : await getAccountDeviceLimit(emailKey, status.plan);
+  const accountOverride = deviceLimit && deviceLimit !== PLAN_DEVICE_LIMITS[status.plan] ? { deviceLimit } : {};
   const respuestaNormal = () => new Response(JSON.stringify({
+    ...accountOverride,
     checkoutEnabled: checkoutEnabled(env),
     ok: true, plan: status.plan, registeredAt: status.registeredAt,
     diasRestantes, bloqueado: status.bloqueado, cardTrialRequired: status.cardTrialRequired,
@@ -110,13 +113,13 @@ export async function onRequestPost(context) {
   // Dispositivo NUEVO (no está todavía en la lista) -- aquí sí se mira el
   // límite por plan (regla 2). Prueba/free: sin entrada en
   // PLAN_DEVICE_LIMITS, sin límite nuevo.
-  const limite = status.trialActive ? null : PLAN_DEVICE_LIMITS[status.plan];
+  const limite = deviceLimit;
   if (limite && countActiveDevices(lista) >= limite) {
     if (enforced) {
       await getOrSetDeviceLimitActivatedAt(env);
       console.log('[device-limit] bloqueo real: device_limit', JSON.stringify({ emailKey, plan: status.plan, activos: countActiveDevices(lista), limite }));
       return new Response(JSON.stringify({
-        ok: false, code: 'device_limit', plan: status.plan,
+        ok: false, code: 'device_limit', plan: status.plan, ...accountOverride,
         devices: lista.filter(isDeviceActive).map(d => ({ deviceId: d.deviceId, tipo: d.tipo, lastSeen: d.lastSeen })),
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }

@@ -45,6 +45,23 @@ const LIFETIME_TRANSFER_COOLDOWN_MS = 24 * 3600 * 1000;
 // entrada aquí (prueba/free) no tiene límite nuevo.
 export const PLAN_DEVICE_LIMITS = { pro: 3, lifetime: 1 };
 
+// Server-controlled exception for one explicitly authorized account. No clear-text
+// email or client-supplied limit is published. This does not grant a paid plan.
+const ACCOUNT_DEVICE_LIMITS = new Map([
+  ['b5ba82f4c6a9336170511a96a963b0aef1c9b5986a54459f7a5a66fe6da9e270', 5],
+]);
+export function deviceLimitForFingerprint(fingerprint, plan) {
+  const normal = PLAN_DEVICE_LIMITS[plan];
+  return normal ? (ACCOUNT_DEVICE_LIMITS.get(fingerprint) || normal) : null;
+}
+export async function getAccountDeviceLimit(emailKey, plan) {
+  const normal = PLAN_DEVICE_LIMITS[plan];
+  if (!normal || typeof emailKey !== 'string') return normal || null;
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(emailKey.toLowerCase()));
+  const fingerprint = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+  return deviceLimitForFingerprint(fingerprint, plan);
+}
+
 // Interruptor único para TODO el bloqueo de las fases 4-5 (regla 1). Si
 // no vale exactamente 'true' (comparación estricta de string -- así
 // llegará la variable de entorno en Cloudflare Pages), el servidor NUNCA
@@ -139,7 +156,7 @@ function evictOldestIfOverCap(lista) {
 // "nuevo" aquí -- el límite solo afecta a altas genuinamente nuevas.
 export async function isNewDeviceOverLimit(env, emailKey, deviceId, plan) {
   if (!isValidDeviceId(deviceId)) return false;
-  const limite = PLAN_DEVICE_LIMITS[plan];
+  const limite = await getAccountDeviceLimit(emailKey, plan);
   if (!limite) return false;
   const lista = await getDevicesList(env, emailKey);
   if (findDevice(lista, deviceId)) return false;
