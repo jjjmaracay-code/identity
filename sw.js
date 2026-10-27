@@ -436,7 +436,8 @@
 // v41: árabe, dirección RTL, fuentes y recursos de traducción locales.
 // v44: enviar credenciales al crear enlaces; renovar también el index cacheado.
 // v45: pausa de nuevas contrataciones en servidor y aviso en paywall.
-const APP_VERSION = '45';
+// v46: relieve de los botones principales; colores y lógica conservados.
+const APP_VERSION = '46';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -451,6 +452,7 @@ const CACHE_URLS = [
   '/billing.js',
   '/public-card.css',
   '/growth.css',
+  '/button-depth.css?v=46',
   '/growth-share.js',
   '/manifest.json',
   '/icons/icon-192.png',
