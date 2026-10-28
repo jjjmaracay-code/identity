@@ -82,7 +82,7 @@ test('HTTP local: el precache completo carga y sirve la demo y sus recursos cuan
         }
       },
       caches: {
-        async open(name) { assert.equal(name, 'identity-v46'); return cache; },
+        async open(name) { assert.equal(name, 'identity-v47'); return cache; },
         async match(request, options = {}) {
           const url = key(request);
           for (const [stored, response] of entries) {

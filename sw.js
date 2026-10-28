@@ -437,7 +437,8 @@
 // v44: enviar credenciales al crear enlaces; renovar también el index cacheado.
 // v45: pausa de nuevas contrataciones en servidor y aviso en paywall.
 // v46: relieve de los botones principales; colores y lógica conservados.
-const APP_VERSION = '46';
+// v47: deliberate editing for personal and business forms.
+const APP_VERSION = '47';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -453,6 +454,8 @@ const CACHE_URLS = [
   '/public-card.css',
   '/growth.css',
   '/button-depth.css?v=46',
+  '/form-edit-lock.js?v=47',
+  '/form-edit-lock.css?v=47',
   '/growth-share.js',
   '/manifest.json',
   '/icons/icon-192.png',

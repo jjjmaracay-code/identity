@@ -2972,6 +2972,23 @@
 
 </style>
 <link rel="stylesheet" href="/button-depth.css?v=46">
+<link rel="stylesheet" href="/form-edit-lock.css?v=47">
+<script src="/form-edit-lock.js?v=47" defer></script>
+<script id="form-edit-lock-guard">
+// The read-only state also protects custom controls if the floating control fails to load.
+(function(){
+  function protect(event){
+    if(!(event.target instanceof Element))return;
+    const root=event.target.closest('fieldset[data-form-edit-root][disabled]');
+    if(!root)return;
+    const surface=root.closest('[data-form-edit-surface]');
+    if(surface&&event.target.closest(surface.dataset.formEditPass||'[data-form-edit-pass]'))return;
+    event.preventDefault();event.stopImmediatePropagation();
+  }
+  for(const name of ['click','beforeinput','submit'])window.addEventListener(name,protect,true);
+  window.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')protect(event);},true);
+})();
+</script>
 </head>
 <body>
 <div id="boot-gate"></div>
@@ -3738,7 +3755,7 @@
 </div>
 
 <!-- =================== PANTALLA EDITAR =================== -->
-<div id="screen-edit">
+<div id="screen-edit" data-form-edit-surface="identity" data-form-edit-product="identity" data-form-edit-open-class="open">
   <!-- Indicadores de scroll — hermanos de #screen-edit-scroll (el que
        realmente scrollea), no hijos suyos, para que queden anclados
        visualmente sin moverse con el contenido. Mismo patrón que
@@ -3788,10 +3805,11 @@
       <button class="edit-tab-btn" data-target="sec-seguridad" data-i18n="index.edit.tab_security">Seguridad</button>
       <button class="edit-tab-btn" data-target="sec-cuenta" data-i18n="index.edit.tab_account">Cuenta</button>
     </div>
-    <button class="edit-tab-save-btn" id="btn-save-tabbar" aria-label="Guardar identidad" title="Guardar identidad" data-i18n-aria="index.edit.save_aria" data-i18n-title="index.edit.save_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
+    <fieldset class="fel-action-root" data-form-edit-root disabled><button class="edit-tab-save-btn" id="btn-save-tabbar" aria-label="Guardar identidad" title="Guardar identidad" data-i18n-aria="index.edit.save_aria" data-i18n-title="index.edit.save_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button></fieldset>
   </div>
 
-  <div class="edit-section gallery-section" id="sec-diseno">
+  <aside class="fel-banner" data-form-edit-fallback>Solo lectura. Usa el candado azul para editar. Si no aparece, recarga la aplicación.</aside>
+  <fieldset class="edit-section gallery-section" id="sec-diseno" data-form-edit-root disabled>
     <div class="edit-section-title" data-i18n="index.edit.design_title">Imagen de tarjeta y fondo</div>
 
     <!-- Galería integrada -->
@@ -3824,9 +3842,9 @@
     <div class="btn-upload-media" id="btn-ocr-doc" style="margin-top:10px;" data-i18n="index.edit.ocr_button">Extraer datos de documento</div>
     <div style="font-size:9.5px;color:rgba(255,255,255,0.35);font-family:'Inter',sans-serif;line-height:1.5;letter-spacing:0.3px;margin-top:6px;text-align:center;" data-i18n="index.edit.ocr_local_notice">Se procesa en tu dispositivo: el archivo no se envía a ningún servidor.</div>
     <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx" style="display:none">
-  </div>
+  </fieldset>
 
-  <div class="edit-section qr-style-selector">
+  <fieldset class="edit-section qr-style-selector" data-form-edit-root disabled>
     <div class="edit-section-title" data-i18n="index.edit.qr_style_title">Estilo del QR</div>
     <div style="display:flex;gap:10px;align-items:center;">
       <div id="qr-mini-preview" style="width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#f5f5f5;display:flex;align-items:center;justify-content:center;border:1px solid rgba(170,255,0,0.2);"></div>
@@ -3834,9 +3852,9 @@
         Personalizar diseño
       </button>
     </div>
-  </div>
+  </fieldset>
 
-  <div class="edit-section" id="sec-perfil">
+  <fieldset class="edit-section" id="sec-perfil" data-form-edit-root disabled>
     <button class="btn-import" id="btn-open-import" data-i18n="index.edit.import_button">IMPORTAR DATOS AUTOMATICAMENTE</button>
     <div class="edit-section-title" data-i18n="index.edit.personal_info_title">Información personal</div>
     <div class="field-group">
@@ -4009,9 +4027,9 @@
         <input class="field-input" id="f-address" type="text" placeholder="Madrid, España" autocomplete="street-address" data-i18n-placeholder="index.edit.address_placeholder">
       </div>
     </div>
-  </div>
+  </fieldset>
 
-  <div class="edit-section">
+  <fieldset class="edit-section" data-form-edit-root disabled>
     <div class="edit-section-title" data-i18n="index.edit.social_title">Redes y perfiles</div>
     <div class="field-group">
       <div class="field-wrap">
@@ -4049,9 +4067,9 @@
         <div class="field-hint" data-i18n="index.edit.tiktok_hint">tiktok.com/@usuario</div>
       </div>
     </div>
-  </div>
+  </fieldset>
 
-  <div class="edit-section" id="sec-privacidad">
+  <fieldset class="edit-section" id="sec-privacidad" data-form-edit-root disabled>
     <div class="edit-section-title" data-i18n="index.edit.privacy_title">¿Qué incluir en el QR?</div>
     <div class="field-group">
       <div class="field-toggle-wrap">
@@ -4167,10 +4185,10 @@
         </div>
       </div>
     </div>
-  </div>
+  </fieldset>
 
   <!-- SECCIÓN 2FA -->
-  <div class="edit-section" id="sec-seguridad">
+  <fieldset class="edit-section" id="sec-seguridad" data-form-edit-root disabled>
     <div class="edit-section-title" data-i18n="index.twofa.title">Doble factor de autenticación (2FA)</div>
     <div class="twofa-info" data-i18n="index.twofa.info">
       Con 2FA activo, tras introducir tu contraseña necesitarás un segundo factor para entrar.
@@ -4191,9 +4209,9 @@
       </div>
 
     </div>
-  </div>
+  </fieldset>
 
-  <button class="btn-save" id="btn-save" data-i18n="index.edit.save_button">Guardar identidad</button>
+  <fieldset class="fel-action-root" data-form-edit-root disabled><button class="btn-save" id="btn-save" data-i18n="index.edit.save_button">Guardar identidad</button></fieldset>
 
   <!-- ACTUALIZAR APLICACIÓN — vuelve a descargar el código de la app sin
        tocar ningún dato guardado (ver window.identiflyActualizarApp). -->
@@ -4208,7 +4226,7 @@
     <div class="delete-account-info" data-i18n-html="index.delete.zone_info_html">
       Borra tu tarjeta de este dispositivo y tu cuenta de nuestros servidores. Si tienes un plan activo, se cancelará sin reembolso. Esta acción es <strong>irreversible</strong>.
     </div>
-    <button class="btn-delete-account" id="btn-delete-account">
+    <fieldset class="fel-action-root" data-form-edit-root disabled><button class="btn-delete-account" id="btn-delete-account">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
         <polyline points="3 6 5 6 21 6"/>
         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -4216,7 +4234,7 @@
         <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
       </svg>
       <span data-i18n="index.delete.button">Eliminar todos mis datos — Baja voluntaria</span>
-    </button>
+    </button></fieldset>
   </div>
   </div><!-- fin screen-edit-scroll -->
 </div>
@@ -4471,7 +4489,7 @@
 </div>
 
 <!-- ===== IDENTIFLY BUSINESS · EDITOR ===== -->
-<div id="screen-business-editor">
+<div id="screen-business-editor" data-form-edit-surface="business" data-form-edit-product="identity" data-form-edit-open-class="open">
   <div class="myqr-header">
     <div class="myqr-header-titles">
       <div class="myqr-title">IDENTIFLY BUSINESS</div>
@@ -4484,8 +4502,9 @@
          renderPublicBlock en business.js). Arriba para que siempre sea
          lo primero que se ve al entrar. -->
     <div id="biz-public-block"></div>
-    <div id="biz-editor-form"></div>
-    <button type="button" class="biz-secondary-link" id="btn-biz-pull-server" data-i18n="index.business.pull_server_button">Recuperar última versión publicada del servidor</button>
+    <aside class="fel-banner" data-form-edit-fallback>Solo lectura. Usa el candado azul para editar. Si no aparece, recarga la aplicación.</aside>
+  <fieldset id="biz-editor-form" data-form-edit-root disabled></fieldset>
+    <fieldset class="fel-action-root" data-form-edit-root disabled><button type="button" class="biz-secondary-link" id="btn-biz-pull-server" data-i18n="index.business.pull_server_button">Recuperar última versión publicada del servidor</button></fieldset>
   </div>
   <!-- Pie compacto: dos acciones principales separadas (dispositivo /
        Internet) y navegación secundaria en una sola línea. Despublicar y
@@ -4493,8 +4512,8 @@
        cabecera ya vuelve al inicio. -->
   <div class="biz-editor-footer">
     <div class="biz-footer-main">
-      <button type="button" class="btn-myqr-action" id="btn-biz-save-local" data-i18n="index.business.save_short">Guardar</button>
-      <button type="button" class="btn-myqr-action biz-publish-main" id="btn-biz-publish" data-i18n="index.business.publish_short">Publicar</button>
+      <fieldset class="fel-action-root" data-form-edit-root disabled><button type="button" class="btn-myqr-action" id="btn-biz-save-local" data-i18n="index.business.save_short">Guardar</button></fieldset>
+      <fieldset class="fel-action-root" data-form-edit-root disabled><button type="button" class="btn-myqr-action biz-publish-main" id="btn-biz-publish" data-i18n="index.business.publish_short">Publicar</button></fieldset>
     </div>
     <div class="biz-footer-hint" data-i18n="index.business.footer_hint">Guardar: solo en este dispositivo · Publicar: visible en Internet</div>
     <div class="biz-footer-secondary">

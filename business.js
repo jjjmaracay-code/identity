@@ -1121,7 +1121,7 @@
     } else if (tipoBloque === 'unpublished') {
       cuerpo = `<p class="biz-public-hint">${escapeHtml(tf('index.business.public_unpublished_desc', 'El enlace y su QR ya no muestran la tarjeta. Si la reactivas, vuelve a estar disponible en la misma dirección.'))}</p>
         ${est.url ? `<p class="biz-public-url-off">${escapeHtml(est.url)}</p>` : ''}
-        <button type="button" class="btn-myqr-action" id="btn-biz-reactivate">${escapeHtml(tf('index.business.reactivate_button', 'Reactivar publicación'))}</button>`;
+        <fieldset class="fel-action-root" data-form-edit-root disabled><button type="button" class="btn-myqr-action" id="btn-biz-reactivate">${escapeHtml(tf('index.business.reactivate_button', 'Reactivar publicación'))}</button></fieldset>`;
     } else {
       // Compartir es la acción principal; Copiar y Abrir, secundarias en
       // una fila. "Abrir tarjeta" la muestra DENTRO de la app con un
@@ -1130,7 +1130,7 @@
       // la misma ventana sin ningún modo de volver.
       cuerpo = `<div class="biz-public-pending" id="biz-public-pending" hidden>
           <p>${escapeHtml(tf('index.business.pending_notice', 'Tienes cambios sin publicar: el enlace muestra la última versión publicada.'))}</p>
-          <button type="button" class="btn-myqr-action" id="biz-public-update">${escapeHtml(tf('index.business.update_short', 'Actualizar publicación'))}</button>
+          <fieldset class="fel-action-root" data-form-edit-root disabled><button type="button" class="btn-myqr-action" id="biz-public-update">${escapeHtml(tf('index.business.update_short', 'Actualizar publicación'))}</button></fieldset>
         </div>
         <label class="biz-public-label" for="biz-public-url">${escapeHtml(tf('index.business.public_url_label', 'Enlace público'))}</label>
         <input type="text" class="biz-public-url" id="biz-public-url" readonly value="${escapeHtml(est.url)}">
@@ -1148,7 +1148,7 @@
             <button type="button" class="btn-myqr-action" id="biz-qr-download" disabled>${escapeHtml(tf('index.business.qr_download_button', 'Descargar QR'))}</button>
           </div>
         </div>
-        <button type="button" class="biz-secondary-link biz-danger-link" id="btn-biz-unpublish">${escapeHtml(tf('index.business.unpublish_button', 'Despublicar'))}</button>`;
+        <fieldset class="fel-action-root" data-form-edit-root disabled><button type="button" class="biz-secondary-link biz-danger-link" id="btn-biz-unpublish">${escapeHtml(tf('index.business.unpublish_button', 'Despublicar'))}</button></fieldset>`;
     }
     bloque.innerHTML = `<section class="biz-public-card" aria-labelledby="biz-public-title">${cabecera}${cuerpo}</section>`;
 
