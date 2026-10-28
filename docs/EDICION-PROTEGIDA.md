@@ -2,6 +2,8 @@
 
 Los editores de tarjeta personal y Business se abren en lectura. La pestaña azul del borde permanece visible al desplazarse y muestra «Bloqueada» o «Editando».
 
+La pestaña es semitransparente y se superpone al borde sin reservar espacio lateral ni reducir el ancho de la planilla. El candado y su estado conservan contraste y el área de pulsación.
+
 1. Pulsar el candado abre un diálogo; no habilita directamente los campos.
 2. «Activar edición» permite modificar y guardar mediante los flujos existentes.
 3. Pulsar de nuevo el candado conserva las entradas y bloquea los controles. El candado no provoca un guardado. El autoguardado previo de la tarjeta personal mantiene su funcionamiento.

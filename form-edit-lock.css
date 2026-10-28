@@ -1,15 +1,15 @@
-/* Shared deliberate-editing control. No value, storage or account styling is changed. */
+/* Floating translucent tab: no extra padding or width reservation on the forms. */
 :where(fieldset[data-form-edit-root]){min-inline-size:0;min-width:0;margin-inline:0;padding:0;border:0;font:inherit;color:inherit}
 .fel-action-root{display:contents!important}
 [data-form-edit-root][disabled] :is(input,select,textarea){opacity:1;-webkit-text-fill-color:currentColor}
-.fel-tab{position:fixed;inset-inline-end:0;top:var(--fel-top,50%);transform:translateY(-50%);z-index:880;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:46px;min-width:44px;height:144px;padding:12px 8px;border:1px solid #7cdeff;border-inline-end:0;border-radius:17px 0 0 17px;background:linear-gradient(110deg,#125e95,#0b213e 75%);color:#c9f3ff;font:850 11px/1.2 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.4px;cursor:pointer;box-shadow:inset 1px 1px 0 #c9f6ff88,inset 0 -3px 0 #0005,0 4px 0 #031021,-4px 0 20px #169bff50;transition:filter .12s ease,box-shadow .12s ease;-webkit-tap-highlight-color:transparent;touch-action:pan-y}
-.fel-tab[data-state=editing]{background:linear-gradient(110deg,#34c5ff,#1165ad 75%);color:#001c32;border-color:#bbf3ff;box-shadow:inset 1px 1px 0 #e4fbff99,inset 0 -3px 0 #0005,0 4px 0 #031021,-4px 0 24px #23b9ff80}
+.fel-tab{position:fixed;inset-inline-end:0;top:var(--fel-top,50%);transform:translateY(-50%);z-index:880;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:46px;min-width:44px;height:144px;padding:12px 8px;border:1px solid #7cdeff99;border-inline-end:0;border-radius:17px 0 0 17px;background:linear-gradient(110deg,#125e954d,#0b213e3d 75%);color:#dcf7ff;text-shadow:0 1px 3px #041022;font:850 11px/1.2 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.4px;cursor:pointer;box-shadow:inset 1px 1px 0 #c9f6ff88,inset 0 -3px 0 #0005,0 3px 0 #03102166,-4px 0 16px #169bff30;transition:filter .12s ease,box-shadow .12s ease;-webkit-tap-highlight-color:transparent;touch-action:pan-y}
+.fel-tab[data-state=editing]{background:linear-gradient(110deg,#229edb70,#0b305360 75%);color:#e9fbff;border-color:#bbf3ff;box-shadow:inset 1px 1px 0 #e4fbff99,inset 0 -3px 0 #0005,0 3px 0 #03102166,-4px 0 20px #23b9ff50}
 .fel-tab-text{writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;max-height:92px;overflow:hidden}
 .fel-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 22px;width:22px;height:22px}
 .fel-icon svg{display:block;width:100%;height:100%}
 .fel-tab:active{filter:brightness(1.25);box-shadow:inset 1px 1px 0 #e4fbff99,0 1px 0 #031021,-4px 0 30px #55d4ffbb}
 .fel-tab:focus-visible,.fel-dialog :is(button,a):focus-visible{outline:3px solid #f2fbff;outline-offset:4px}
-[dir=rtl] .fel-tab{border-radius:0 17px 17px 0;box-shadow:inset -1px 1px 0 #c9f6ff88,inset 0 -3px 0 #0005,0 4px 0 #031021,4px 0 20px #169bff50}
+[dir=rtl] .fel-tab{border-radius:0 17px 17px 0;box-shadow:inset -1px 1px 0 #c9f6ff88,inset 0 -3px 0 #0005,0 3px 0 #03102166,4px 0 16px #169bff30}
 .fel-banner{box-sizing:border-box;display:flex;align-items:center;gap:10px;min-width:0;padding:12px 14px;margin:18px 0 16px;border:1px solid #327ca4;border-radius:13px;background:linear-gradient(120deg,#123249,#0b2033);color:#c8ebff;font:550 12px/1.6 Inter,system-ui,sans-serif;text-align:start;overflow-wrap:anywhere}
 .fel-banner>.fel-icon,.fel-banner>span:first-child{display:flex;align-items:center;flex:0 0 20px;width:20px;color:#75d9ff}
 [data-form-edit-state=editing]>.fel-banner,[data-form-edit-state=editing] .fel-banner{border-color:#7ccfff;color:#dcf4ff;background:linear-gradient(120deg,#174568,#0d2e4a)}
@@ -26,9 +26,6 @@
 .fel-notice{position:fixed;inset-inline:18px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:885;max-width:440px;margin-inline:auto;padding:12px 16px;border:1px solid #5dbee8;border-radius:13px;background:#0c2b43f5;color:#e1f7ff;font:600 12px/1.7 Inter,system-ui,sans-serif;box-shadow:0 6px 30px #0006;pointer-events:none;text-align:center}
 .fel-tab[hidden],.fel-banner[hidden],.fel-notice[hidden]{display:none!important}
 @media(max-width:860px){
- body[data-form-edit-product=atabey]{padding-inline-end:max(60px,calc(48px + env(safe-area-inset-right)))!important}
- [data-form-edit-surface=identity] #screen-edit-scroll{padding-inline-end:max(66px,calc(48px + env(safe-area-inset-right)))}
- [data-form-edit-surface=business] :is(#business-editor-scroll,.biz-editor-footer){padding-inline-end:max(66px,calc(48px + env(safe-area-inset-right)))}
  [data-form-edit-surface] :is(input,select,textarea){min-width:0}
  .fel-tab{width:44px;height:132px;padding:10px 7px;gap:8px;font-size:10px;border-radius:15px 0 0 15px}
  [dir=rtl] .fel-tab{border-radius:0 15px 15px 0}
