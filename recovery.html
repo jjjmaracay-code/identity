@@ -544,6 +544,8 @@
 
 </style>
 <link rel="stylesheet" href="/button-depth.css?v=46">
+<link rel="stylesheet" href="/keyboard-comfort.css?v=1">
+<script defer src="/keyboard-comfort.js?v=1"></script>
 </head>
 <body>
 
@@ -629,7 +631,7 @@
         Busca en tu email el mensaje "Tu código de respaldo IDENTITY"
       </div>
 
-      <div class="pin-keypad">
+      <div class="pin-keypad" data-keyboard="num" data-keyboard-display="#backup-display" data-keyboard-action="#btn-phase1" data-keyboard-auto="show">
         <button class="key-btn" data-target="backup" data-val="1">1</button>
         <button class="key-btn" data-target="backup" data-val="2">2</button>
         <button class="key-btn" data-target="backup" data-val="3">3</button>
@@ -674,7 +676,7 @@
       <div class="code-timer"><span data-i18n="recovery.phase2.timer_prefix">El código expira en</span> <span id="temp-timer">10:00</span></div>
       <button class="resend-btn" id="btn-resend-temp" disabled data-i18n="recovery.phase2.resend_button">Reenviar código</button>
 
-      <div class="pin-keypad">
+      <div class="pin-keypad" data-keyboard="num" data-keyboard-display="#temp-display" data-keyboard-action="#btn-phase2" data-keyboard-auto="show">
         <button class="key-btn green-key" data-target="temp" data-val="1">1</button>
         <button class="key-btn green-key" data-target="temp" data-val="2">2</button>
         <button class="key-btn green-key" data-target="temp" data-val="3">3</button>
@@ -719,7 +721,7 @@
       </div>
       <div class="pwd-hint-static" data-i18n="recovery.phase3.static_hint">Contraseña mínima de 8 caracteres, incluye mínimo una letra mayúscula, un número y un símbolo.</div>
 
-      <div id="qwerty-kbd-np"></div>
+      <div id="qwerty-kbd-np" data-keyboard="qwerty" data-keyboard-display="#np-dots" data-keyboard-action="#btn-phase3" data-keyboard-auto="show"></div>
     </div>
 
     <button class="btn-primary green-btn" id="btn-phase3" disabled data-i18n="recovery.phase3.save_button">Guardar nueva contraseña</button>

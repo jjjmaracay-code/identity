@@ -438,11 +438,14 @@
 // v45: pausa de nuevas contrataciones en servidor y aviso en paywall.
 // v46: relieve de los botones principales; colores y lógica conservados.
 // v47: deliberate editing for personal and business forms.
-const APP_VERSION = '48';
+// v49: larger built-in keyboards, minimal viewport alignment.
+const APP_VERSION = '49';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
   '/',
+  '/keyboard-comfort.css?v=1',
+  '/keyboard-comfort.js?v=1',
   '/register',
   '/recovery',
   '/paywall',

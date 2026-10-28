@@ -779,6 +779,8 @@
 
 </style>
 <link rel="stylesheet" href="/button-depth.css?v=46">
+<link rel="stylesheet" href="/keyboard-comfort.css?v=1">
+<script defer src="/keyboard-comfort.js?v=1"></script>
 </head>
 <body>
 <div id="boot-gate"></div>
@@ -904,7 +906,7 @@
         <span class="pwd-req" id="r1-up" data-i18n="register.common.req_upper">Al menos 1 mayúscula</span>
       </div>
 
-      <div id="qwerty-kbd-1"></div>
+      <div id="qwerty-kbd-1" data-keyboard="qwerty" data-keyboard-display="#pwd1-dots" data-keyboard-action="" data-keyboard-auto="interact"></div>
 
       <div class="security-badge">
         <div class="security-badge-text" data-i18n="register.step1.security_badge">Cuanto más larga y variada, más difícil de romper</div>
@@ -979,7 +981,7 @@
       <button class="resend-btn" id="btn-resend" disabled data-i18n="register.step2.resend_button">Reenviar código</button>
 
       <!-- Teclado numérico para código -->
-      <div class="pin-keypad" id="code-keypad">
+      <div class="pin-keypad" id="code-keypad" data-keyboard="num" data-keyboard-display="#screen-2 .code-display" data-keyboard-action="" data-keyboard-auto="show">
         <button class="key-btn" data-code="1">1</button>
         <button class="key-btn" data-code="2">2</button>
         <button class="key-btn" data-code="3">3</button>
@@ -1007,7 +1009,7 @@
       </div>
       <div class="pin-validation" id="pwd2-hint" data-i18n="register.step2.confirm_password_placeholder_hint">Confirma tu contraseña maestra</div>
 
-      <div id="qwerty-kbd-2"></div>
+      <div id="qwerty-kbd-2" data-keyboard="qwerty" data-keyboard-display="#pwd2-dots" data-keyboard-action="#btn-step2" data-keyboard-auto="interact"></div>
     </div>
 
     <!-- Checkbox paso 2 -->
