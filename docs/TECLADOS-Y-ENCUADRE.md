@@ -9,3 +9,7 @@ El desplazamiento es el mínimo necesario para mostrar el teclado y, cuando cabe
 En los pasos con datos personales por delante del teclado, el ajuste inicial espera una interacción para no saltarse esos datos. La ventana de impresión y los QR no se modifican. No cambian autenticación, planes, cobros, límites de dispositivos, cifrado o sincronización. Los dos recursos nuevos se incluyen en la caché instalada de la aplicación.
 
 La prueba de navegador usa las páginas de acceso reales con datos ficticios y respuestas locales. Comprueba tamaños de móvil y escritorio, horizontal, teclas y borrado, orden de registro, modos de movimiento, idiomas y ausencia de peticiones de escritura. Los ensayos de escritorio no sustituyen la revisión en los móviles físicos de los testers.
+
+## Giro del dispositivo y orientación de la aplicación
+
+Se sustituye el bloqueo vertical del manifiesto por `orientation: any`. El teclado responde tanto al cambio de tamaño del viewport visible como al evento de Screen Orientation cuando está disponible, con respaldo del evento `orientationchange`. El redimensionado vuelve a encuadrar el teclado activo después del giro, sin cambiar el foco, valores, autenticación ni datos guardados. Se respeta el bloqueo de giro del sistema operativo; la prueba con viewport simulado no certifica el sensor ni la instalación física en cada móvil.

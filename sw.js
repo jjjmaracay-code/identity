@@ -439,13 +439,14 @@
 // v46: relieve de los botones principales; colores y lógica conservados.
 // v47: deliberate editing for personal and business forms.
 // v49: larger built-in keyboards, minimal viewport alignment.
-const APP_VERSION = '49';
+// v50: allow portrait and landscape; reframe keyboards after orientation changes.
+const APP_VERSION = '50';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
   '/',
   '/keyboard-comfort.css?v=1',
-  '/keyboard-comfort.js?v=1',
+  '/keyboard-comfort.js?v=2',
   '/register',
   '/recovery',
   '/paywall',

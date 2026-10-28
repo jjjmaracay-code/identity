@@ -116,8 +116,8 @@ test('el Service Worker incluye todos los recursos I2 y sigue excluyendo API y t
   const listeners = {};
   const context = { self: { location: { origin: 'https://example.com' }, addEventListener(name, fn) { listeners[name] = fn; } }, URL };
   vm.runInNewContext(read('sw.js') + '\nself.testURLs = CACHE_URLS; self.testVersion = APP_VERSION;', context);
-  assert.equal(context.self.testVersion, '48');
-  for (const url of ['/demo', '/demo.js', '/public-card.css', '/growth.css', '/growth-share.js', '/vcard.js', '/vendor/qr-code-styling/qr-code-styling.js', '/i18n/loader.js']) {
+  assert.equal(context.self.testVersion, '50');
+  for (const url of ['/demo', '/demo.js', '/public-card.css', '/growth.css', '/growth-share.js', '/vcard.js', '/vendor/qr-code-styling/qr-code-styling.js', '/i18n/loader.js', '/manifest.json', '/keyboard-comfort.js?v=2']) {
     assert.ok(context.self.testURLs.includes(url), url);
   }
   for (const lang of ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar']) {

@@ -22,7 +22,8 @@
       const display=lookup(el,'keyboardDisplay'),r=el.getBoundingClientRect(),d=display?.getBoundingClientRect();
       const before=d&&d.height>0?Math.max(0,r.top-d.top):0,gap=el.dataset.keyboard==='num'?8:5;
       const ideal=el.dataset.keyboard==='num'?Math.min(92,Math.max(52,height*.12)):Math.min(70,Math.max(48,height*.092));
-      const fit=Math.floor((height-Math.min(before,height*.35)-(rows-1)*gap-8)/rows),value=Math.max(44,Math.min(ideal,fit));
+      const style=getComputedStyle(el),padding=['paddingTop','paddingBottom','borderTopWidth','borderBottomWidth'].reduce((sum,key)=>sum+(parseFloat(style[key])||0),0);
+      const fit=Math.floor((height-Math.min(before,height*.35)-(rows-1)*gap-padding-8)/rows),value=Math.max(44,Math.min(ideal,fit));
       const css=value.toFixed(2)+'px';if(el.style.getPropertyValue('--keyboard-key-height')!==css)el.style.setProperty('--keyboard-key-height',css);
     }
     function bounds(el,space){
@@ -54,7 +55,7 @@
         if(!old&&el.dataset.keyboardAuto!=='interact'&&!first)first=el;
       }
       if(first){manualBrowsing=false;queue(first);}
-      else if(last&&visible(last)&&!manualBrowsing&&!nativeEditing()){const r=last.getBoundingClientRect(),v=viewport(null);if(r.bottom>v.top&&r.top<v.bottom)queue(last);}
+      else if(last&&visible(last)&&!manualBrowsing&&!nativeEditing()){const r=last.getBoundingClientRect(),v=viewport(null);if(targetFor(document.activeElement)===last||r.bottom>v.top&&r.top<v.bottom)queue(last);}
     }
     let scanFrame=0;
     function schedule(){if(scanFrame)return;scanFrame=requestAnimationFrame(()=>{scanFrame=0;scan();});}
@@ -67,12 +68,13 @@
     const release=()=>{held=false;if(pending){const target=pending;pending=null;queue(target);}};
     document.addEventListener('pointerup',release,{capture:true,passive:true});document.addEventListener('pointercancel',release,{capture:true,passive:true});
     const manual=e=>{if(e.type==='wheel'||!targetFor(e.target)){manualBrowsing=true;pending=null;if(frame){cancelAnimationFrame(frame);frame=0;}}};document.addEventListener('wheel',manual,{capture:true,passive:true});document.addEventListener('touchmove',manual,{capture:true,passive:true});
-    const nativeEditing=()=>document.activeElement?.matches('input,textarea,select,[contenteditable=true]')&&document.activeElement.getClientRects().length>0;
+    const nativeEditing=()=>document.activeElement?.matches('input,textarea,select,[contenteditable=true]')&&document.activeElement.getClientRects().length>0&&!(document.activeElement.matches('[inputmode="none"]')&&targetFor(document.activeElement));
     document.addEventListener('focusin',e=>{const target=targetFor(e.target);if(target){manualBrowsing=false;queue(target);}});
     // Changes in screens and keyboard modes are observed without reading entered text.
     new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','inert','aria-hidden']});
-    const resize=()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{schedule();if(last&&visible(last)&&!nativeEditing()&&!manualBrowsing){const r=last.getBoundingClientRect(),v=viewport(null);if(r.bottom>v.top&&r.top<v.bottom)queue(last);}},120);};
+    const resize=()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{schedule();if(last&&visible(last)&&!nativeEditing()&&!manualBrowsing)queue(last);},120);};
     window.addEventListener('resize',resize,{passive:true});window.visualViewport?.addEventListener('resize',resize,{passive:true});
+    window.addEventListener('orientationchange',resize,{passive:true});window.screen?.orientation?.addEventListener?.('change',resize);
     window.addEventListener('blur',()=>{held=false;pending=null;});
     window.addEventListener('pageshow',schedule);document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule();});
     document.fonts?.ready.then(()=>{schedule();if(last&&visible(last)&&!nativeEditing()&&!manualBrowsing)queue(last);});schedule();
