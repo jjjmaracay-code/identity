@@ -27,3 +27,9 @@ La comprobación visual temporal en Chromium compara los estilos originales con 
 Se revisan los accesos principales a 320, 390, 768 y 1360 px en los trece idiomas existentes, además del relieve al pasar/pulsar y el movimiento reducido. Las pantallas se muestran con datos de presentación locales, sin acceder a cuentas reales ni publicar identidades. Son tamaños simulados de navegador, no pruebas físicas en todos los modelos de móvil.
 
 El navegador aislado produce una advertencia sobre un service worker en un contexto sandbox; se reproduce también con el HTML original sin la hoja nueva. No se cambia ese comportamiento en esta revisión visual.
+
+## Panel principal: relieve reforzado
+
+La versión 51 incorpora `main-action-depth.css` únicamente en la aplicación principal. Los controles inferiores de la tarjeta, incluidos QR SELECT, Business, recomendación, ubicación y enlaces de alertas, usan un canto verde visible, una base oscura y luz superior. Las acciones se hunden al pulsarlas. Los enlaces de alertas tienen separación adicional para que la base no alcance al siguiente control.
+
+Se conservan los fondos y colores originales, las dimensiones, los iconos, los nombres, los destinos y los manejadores existentes. La iluminación decorativa no recibe eventos. Movimiento reducido mantiene el relieve sin el desplazamiento nuevo. La nueva hoja se precarga para uso sin conexión. Esta revisión no cambia los QR ni los módulos de datos o de autenticación.

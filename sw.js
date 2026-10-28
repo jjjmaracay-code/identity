@@ -440,7 +440,8 @@
 // v47: deliberate editing for personal and business forms.
 // v49: larger built-in keyboards, minimal viewport alignment.
 // v50: allow portrait and landscape; reframe keyboards after orientation changes.
-const APP_VERSION = '50';
+// v51: stronger raised controls in the main card's action panel.
+const APP_VERSION = '51';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -458,6 +459,7 @@ const CACHE_URLS = [
   '/public-card.css',
   '/growth.css',
   '/button-depth.css?v=46',
+  '/main-action-depth.css?v=51',
   '/form-edit-lock.js?v=47',
   '/form-edit-lock.css?v=48',
   '/growth-share.js',

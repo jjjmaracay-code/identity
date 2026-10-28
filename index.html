@@ -2972,6 +2972,7 @@
 
 </style>
 <link rel="stylesheet" href="/button-depth.css?v=46">
+<link rel="stylesheet" href="/main-action-depth.css?v=51">
 <link rel="stylesheet" href="/form-edit-lock.css?v=48">
 <script src="/form-edit-lock.js?v=47" defer></script>
 <script id="form-edit-lock-guard">
@@ -3569,20 +3570,20 @@
   <div class="main-bottom">
     <div class="card-hint" id="flip-hint" data-i18n="index.main.flip_hint">↺ Toca la tarjeta para mostrar el QR</div>
     <div class="main-actions">
-      <button class="btn-action" id="btn-lock" data-i18n="index.main.lock_button">Bloquear</button>
-      <button class="btn-action primary" id="btn-share" data-i18n="index.main.share_button">Compartir QR</button>
+      <button class="btn-action main-depth-action" id="btn-lock" data-i18n="index.main.lock_button">Bloquear</button>
+      <button class="btn-action primary main-depth-action" id="btn-share" data-i18n="index.main.share_button">Compartir QR</button>
     </div>
 
     <div id="share-channels" style="display:none;margin-top:10px;grid-template-columns:repeat(4,1fr);gap:8px;">
-      <button class="btn-channel" id="btn-share-whatsapp" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_whatsapp">WhatsApp</button>
-      <button class="btn-channel" id="btn-share-telegram" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_telegram">Telegram</button>
-      <button class="btn-channel" id="btn-share-email" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_email">Correo</button>
-      <button class="btn-channel" id="btn-share-sms" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_sms">SMS</button>
+      <button class="btn-channel main-depth-action" id="btn-share-whatsapp" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_whatsapp">WhatsApp</button>
+      <button class="btn-channel main-depth-action" id="btn-share-telegram" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_telegram">Telegram</button>
+      <button class="btn-channel main-depth-action" id="btn-share-email" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_email">Correo</button>
+      <button class="btn-channel main-depth-action" id="btn-share-sms" style="background:rgba(170,255,0,0.06);color:var(--text);border:1px solid rgba(170,255,0,0.25);border-radius:14px;padding:12px 4px;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" data-i18n="index.main.channel_sms">SMS</button>
     </div>
 
     <!-- ===== MIS QR · REDES Y WEB ===== -->
     <div style="width:100%;max-width:320px;margin:16px auto 0;padding:0 2px;box-sizing:border-box;">
-      <button class="btn-myqr-open" id="btn-open-my-qr" type="button">
+      <button class="btn-myqr-open main-depth-action" id="btn-open-my-qr" type="button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="21"/><line x1="21" y1="14" x2="21" y2="21"/><line x1="17.5" y1="14" x2="17.5" y2="17.5"/><line x1="14" y1="17.5" x2="21" y2="17.5"/></svg>
         <span data-i18n="index.myqr.open_button">QR SELECT</span>
       </button>
@@ -3591,7 +3592,7 @@
     <!-- ===== IDENTIFLY BUSINESS (ampliación de pago — no sustituye la
          tarjeta personal ni QR SELECT) ===== -->
     <div style="width:100%;max-width:320px;margin:12px auto 0;padding:0 2px;box-sizing:border-box;">
-      <button class="btn-myqr-open" id="btn-open-business" type="button">
+      <button class="btn-myqr-open main-depth-action" id="btn-open-business" type="button">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
         <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.3;">
           <span style="font-weight:800;">IDENTIFLY BUSINESS</span>
@@ -3601,13 +3602,13 @@
     </div>
 
     <div class="growth-recommend">
-      <button type="button" id="btn-recommend" aria-controls="growth-share-fallback" aria-expanded="false" data-i18n="growth.recommend">Recomienda a un amigo</button>
+      <button class="main-depth-action" type="button" id="btn-recommend" aria-controls="growth-share-fallback" aria-expanded="false" data-i18n="growth.recommend">Recomienda a un amigo</button>
       <div class="growth-share-fallback" id="growth-share-fallback" hidden>
         <label for="growth-share-url" data-i18n="growth.copy_link">Copiar enlace</label>
         <input id="growth-share-url" type="url" value="https://www.identifly.app/" readonly autocomplete="off" spellcheck="false">
         <div class="growth-share-actions">
-          <button type="button" id="growth-copy-link" data-i18n="growth.copy_link">Copiar enlace</button>
-          <button type="button" id="growth-share-close" data-i18n="growth.close">Cerrar</button>
+          <button class="main-depth-action" type="button" id="growth-copy-link" data-i18n="growth.copy_link">Copiar enlace</button>
+          <button class="main-depth-action" type="button" id="growth-share-close" data-i18n="growth.close">Cerrar</button>
         </div>
         <div id="growth-share-status" role="status" aria-live="polite"></div>
       </div>
@@ -3625,7 +3626,7 @@
         Se obtiene una sola vez y no queda guardada en ningún sitio.
       </div>
 
-      <button id="btn-share-location" onclick="shareLocation()" style="
+      <button class="main-depth-action" id="btn-share-location" onclick="shareLocation()" style="
         width:100%;padding:14px;
         background:transparent;
         border:1px solid rgba(170,255,0,0.4);
@@ -3644,7 +3645,7 @@
         <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;letter-spacing:1px;" data-i18n="index.location.link_generated">
           Enlace generado — toca para abrir o comparte:
         </div>
-        <a id="location-link" href="#" target="_blank" rel="noopener" style="
+        <a class="main-depth-action main-depth-link" id="location-link" href="#" target="_blank" rel="noopener" style="
           display:block;padding:10px 12px;
           background:rgba(170,255,0,0.05);
           border:1px solid rgba(170,255,0,0.25);
@@ -3654,7 +3655,7 @@
           word-break:break-all;margin-bottom:8px;">
         </a>
         <div style="display:flex;gap:8px;">
-          <button onclick="sendLocationWhatsApp()" style="
+          <button class="main-depth-action" onclick="sendLocationWhatsApp()" style="
             flex:1;padding:10px;background:transparent;
             border:1px solid rgba(170,255,0,0.25);border-radius:12px;
             font-family:inherit;font-size:10px;font-weight:700;
@@ -3663,7 +3664,7 @@
             -webkit-tap-highlight-color:transparent;" data-i18n="index.location.whatsapp_button">
             WhatsApp
           </button>
-          <button onclick="copyLocationLink()" style="
+          <button class="main-depth-action" onclick="copyLocationLink()" style="
             flex:1;padding:10px;background:transparent;
             border:1px solid rgba(170,255,0,0.25);border-radius:12px;
             font-family:inherit;font-size:10px;font-weight:700;
@@ -3672,7 +3673,7 @@
             -webkit-tap-highlight-color:transparent;" data-i18n="index.location.copy_button">
             Copiar
           </button>
-          <button onclick="shareLocationNative()" style="
+          <button class="main-depth-action" onclick="shareLocationNative()" style="
             flex:1;padding:10px;background:transparent;
             border:1px solid rgba(170,255,0,0.25);border-radius:12px;
             font-family:inherit;font-size:10px;font-weight:700;
@@ -3699,7 +3700,7 @@
         Fuentes oficiales de acceso publico — sin registro.
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px;">
-        <a href="https://earthquake.usgs.gov/earthquakes/map/" target="_blank" rel="noopener" style="
+        <a class="main-depth-action main-depth-link" href="https://earthquake.usgs.gov/earthquakes/map/" target="_blank" rel="noopener" style="
           display:block;padding:12px 14px;
           background:rgba(170,255,0,0.03);
           border:1px solid rgba(170,255,0,0.15);
@@ -3710,7 +3711,7 @@
             Mapa en tiempo real · earthquake.usgs.gov
           </div>
         </a>
-        <a href="https://www.meteoalarm.org/" target="_blank" rel="noopener" style="
+        <a class="main-depth-action main-depth-link" href="https://www.meteoalarm.org/" target="_blank" rel="noopener" style="
           display:block;padding:12px 14px;
           background:rgba(170,255,0,0.03);
           border:1px solid rgba(170,255,0,0.15);
@@ -3721,7 +3722,7 @@
             Alertas meteorologicas oficiales · meteoalarm.org
           </div>
         </a>
-        <a href="https://www.proteccioncivil.es/alertas-y-emergencias" target="_blank" rel="noopener" style="
+        <a class="main-depth-action main-depth-link" href="https://www.proteccioncivil.es/alertas-y-emergencias" target="_blank" rel="noopener" style="
           display:block;padding:12px 14px;
           background:rgba(170,255,0,0.03);
           border:1px solid rgba(170,255,0,0.15);
