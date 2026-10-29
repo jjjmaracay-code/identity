@@ -445,14 +445,15 @@
 // v53: a separate measured row for the upward scroll cue and section carousel.
 // v54: native credential fields for password managers; local authentication unchanged.
 // v55: restore the login keyboard's original responsive width after native forms.
-const APP_VERSION = '55';
+// v56: satin keycap depth, with original responsive dimensions.
+const APP_VERSION = '56';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
   '/credential-autofill.js?v=54',
   '/credential-autofill.css?v=55',
   '/',
-  '/keyboard-comfort.css?v=1',
+  '/keyboard-comfort.css?v=2',
   '/keyboard-comfort.js?v=3',
   '/register',
   '/recovery',

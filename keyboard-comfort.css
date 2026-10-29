@@ -19,3 +19,56 @@
 :is(.form-card,.rec-card){width:100%;min-width:0;max-width:100%}
 
 [data-keyboard="num"]>button[id*="clr"]{font-size:clamp(15px,4.8vw,20px)}
+
+/* Satin keycaps: chamfered light edge, restrained base and curved reflection.
+   Presentation only; existing key actions and gesture handling are unchanged. */
+@media screen {
+  [data-keyboard] {
+    --keycap-top:#35451e;--keycap-mid:#1c2911;--keycap-bottom:#0c1308;
+    --keycap-edge:#beec6e66;--keycap-light:#edffd070;--keycap-base:#030701;
+    --keycap-ink:#f2ffe0;--keycap-accent:#c3ff67;--keycap-press:#aaff00;
+  }
+  [data-keyboard] button:not([hidden]) {
+    position:relative;isolation:isolate;
+    padding-inline:2px;border:1px solid var(--keycap-edge);
+    border-radius:13px 13px 11px 11px;
+    background:linear-gradient(155deg,var(--keycap-top),var(--keycap-mid) 48%,var(--keycap-bottom));
+    color:var(--keycap-ink);font-weight:600;
+    text-shadow:0 1px 2px #0009;
+    box-shadow:inset 0 1px 0 var(--keycap-light),inset 0 -1px 0 #0006,
+      0 4px 0 var(--keycap-base),0 7px 10px #0006;
+    transform:translateY(0);
+    transition:transform .1s ease,box-shadow .12s ease,border-color .12s ease;
+  }
+  [data-keyboard] button:not([hidden])::before {
+    content:'';position:absolute;pointer-events:none;
+    inset:2px 3px auto;height:36%;border-radius:10px 10px 48% 48%;
+    background:linear-gradient(145deg,#ffffff21,#ffffff03 58%,transparent);
+    border-top:1px solid var(--keycap-light);opacity:.8;
+  }
+  [data-keyboard] button:is(.qwerty-action,.qwerty-done,.del) {
+    color:var(--keycap-accent);border-color:var(--keycap-edge);
+  }
+  [data-keyboard] button.qwerty-shift-on {
+    border-color:var(--keycap-accent);color:var(--keycap-accent)!important;
+    box-shadow:inset 0 1px 0 var(--keycap-light),inset 0 -1px 0 #0006,
+      0 4px 0 var(--keycap-base),0 0 10px var(--keycap-edge);
+  }
+  [data-keyboard] button:focus-visible {
+    outline:2px solid var(--keycap-accent);outline-offset:3px;
+  }
+  [data-keyboard] button:is(:active,.kbd-pressed,.atabey-key-pressed):not(:disabled) {
+    background:linear-gradient(155deg,#eaffbc,var(--keycap-press) 60%,#c3ff67)!important;
+    border-color:#eaffbc!important;color:#111c03!important;text-shadow:0 1px 0 #ffffff66;
+    box-shadow:inset 0 1px 0 #fff9,inset 0 -1px 0 #0003,
+      0 1px 0 var(--keycap-base),0 0 12px #aaff007a!important;
+    transform:translateY(3px)!important;transition:none!important;
+  }
+  [data-keyboard] button:disabled {opacity:.45;box-shadow:inset 0 1px 0 var(--keycap-light),0 2px 0 var(--keycap-base);}
+}
+@media screen and (hover:hover) and (pointer:fine) {
+  [data-keyboard] button:not(:disabled):hover {border-color:var(--keycap-accent);}
+}
+@media(prefers-reduced-motion:reduce) {
+  [data-keyboard] button:is(:active,.kbd-pressed,.atabey-key-pressed):not(:disabled) {transform:none!important;transition:none!important;}
+}
