@@ -778,5 +778,6 @@
   "billing.feature_profile": "Complete contact profile",
   "billing.feature_qr": "Working standard QR",
   "billing.feature_import": "Data importer",
-  "billing.trial_remaining": "{n} trial days remain. Afterwards, Pro renews at €2.99/month unless you cancel renewal."
+  "billing.trial_remaining": "{n} trial days remain. Afterwards, Pro renews at €2.99/month unless you cancel renewal.",
+  "index.pin.credential_account_mismatch": "The email does not match the identity saved on this device."
 }

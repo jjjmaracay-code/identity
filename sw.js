@@ -443,13 +443,16 @@
 // v51: stronger raised controls in the main card's action panel.
 // v52: keep the edit-lock notice outside the profile section carousel.
 // v53: a separate measured row for the upward scroll cue and section carousel.
-const APP_VERSION = '53';
+// v54: native credential fields for password managers; local authentication unchanged.
+const APP_VERSION = '54';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
+  '/credential-autofill.js?v=54',
+  '/credential-autofill.css?v=54',
   '/',
   '/keyboard-comfort.css?v=1',
-  '/keyboard-comfort.js?v=2',
+  '/keyboard-comfort.js?v=3',
   '/register',
   '/recovery',
   '/paywall',

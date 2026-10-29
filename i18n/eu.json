@@ -778,5 +778,6 @@
   "billing.feature_profile": "Kontaktu-profil osoa",
   "billing.feature_qr": "QR estandar erabilgarria",
   "billing.feature_import": "Datu-inportatzailea",
-  "billing.trial_remaining": "Probaldiko {n} egun geratzen dira. Ondoren, Pro 2.99 €/hil ordainduta berrituko da, berritzea ezeztatu ezean."
+  "billing.trial_remaining": "Probaldiko {n} egun geratzen dira. Ondoren, Pro 2.99 €/hil ordainduta berrituko da, berritzea ezeztatu ezean.",
+  "index.pin.credential_account_mismatch": "Helbide elektronikoa ez dator bat gailu honetan gordetako identitatearekin."
 }

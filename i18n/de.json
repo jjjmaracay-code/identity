@@ -778,5 +778,6 @@
   "billing.feature_profile": "Vollständiges Kontaktprofil",
   "billing.feature_qr": "Funktionsfähiger Standard-QR",
   "billing.feature_import": "Datenimport",
-  "billing.trial_remaining": "Noch {n} Testtage. Danach wird Pro für 2.99 €/Monat verlängert, sofern du die Verlängerung nicht kündigst."
+  "billing.trial_remaining": "Noch {n} Testtage. Danach wird Pro für 2.99 €/Monat verlängert, sofern du die Verlängerung nicht kündigst.",
+  "index.pin.credential_account_mismatch": "Die E-Mail-Adresse stimmt nicht mit der auf diesem Gerät gespeicherten Identität überein."
 }

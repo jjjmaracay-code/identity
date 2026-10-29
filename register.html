@@ -16,6 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="/i18n/loader.js"></script>
 <script src="/password-utils.js"></script>
+<script src="/credential-autofill.js?v=54"></script>
+<link rel="stylesheet" href="/credential-autofill.css?v=54">
 <script src="/device-id.js"></script>
 <link rel="stylesheet" href="/growth.css">
 <link rel="stylesheet" href="/i18n/rtl.css">
@@ -780,7 +782,7 @@
 </style>
 <link rel="stylesheet" href="/button-depth.css?v=46">
 <link rel="stylesheet" href="/keyboard-comfort.css?v=1">
-<script defer src="/keyboard-comfort.js?v=2"></script>
+<script defer src="/keyboard-comfort.js?v=3"></script>
 </head>
 <body>
 <div id="boot-gate"></div>
@@ -805,7 +807,7 @@
 <div class="reg-form">
 
   <!-- =================== PASO 1 =================== -->
-  <div class="screen active" id="screen-1">
+  <form method="post" autocomplete="on" onsubmit="event.preventDefault()" novalidate class="credential-form screen active" id="screen-1">
     <a class="growth-demo-entry" href="/demo.html" data-i18n="growth.demo_open">Ver demostración</a>
 
     <div class="form-card" id="personal-fields-card">
@@ -823,7 +825,7 @@
 
       <div class="field-wrap">
         <div class="field-label" data-i18n="register.step1.email_label">Correo electrónico</div>
-        <input class="field-input" id="r-email" type="email" placeholder="tu@email.com" autocomplete="email" data-i18n-placeholder="register.step1.email_placeholder">
+        <input class="field-input" id="r-email" name="username" type="email" placeholder="tu@email.com" autocomplete="username" data-i18n-placeholder="register.step1.email_placeholder">
         <div class="domain-btns">
           <button type="button" class="domain-btn" data-domain="@gmail.com" data-i18n="register.step1.domain_gmail">@gmail.com</button>
           <button type="button" class="domain-btn" data-domain="@hotmail.com" data-i18n="register.step1.domain_hotmail">@hotmail.com</button>
@@ -896,7 +898,8 @@
 
       <!-- Display contraseña -->
       <div class="pwd-dots-wrap">
-        <div class="pwd-dots empty" id="pwd1-dots">· · · · · · · ·</div>
+        <label class="credential-label credential-password-label" id="credential-label-pwd1-dots" for="pwd1-dots" data-i18n="register.step1.password_title">Crea tu contraseña maestra</label>
+        <input class="pwd-dots empty credential-input" id="pwd1-dots" name="new-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="· · · · · · · ·" data-credential-field disabled>
         <button type="button" class="eye-btn" id="eye-pwd1" aria-label="Ver contraseña" data-i18n-aria="register.common.eye_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
       <div class="pwd-strength" id="str-pwd1">
@@ -921,7 +924,7 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-step1" disabled data-i18n="register.step1.submit_button">
+    <button type="submit" class="btn-primary" id="btn-step1" disabled data-i18n="register.step1.submit_button">
       Continuar — Enviar código al correo
     </button>
 
@@ -931,11 +934,13 @@
 
     <a href="/index.html" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;" data-i18n="register.step1.login_link">¿Ya tienes cuenta? Inicia sesión</a>
 
-  </div><!-- fin screen-1 -->
+  </form><!-- fin screen-1 -->
 
 
   <!-- =================== PASO 2 =================== -->
-  <div class="screen" id="screen-2">
+  <form method="post" autocomplete="on" onsubmit="event.preventDefault()" novalidate class="credential-form screen" id="screen-2">
+    <input id="credential-username-screen-2" name="username" type="email" autocomplete="username" hidden>
+
 
     <div class="form-card">
       <div class="form-card-title" data-i18n="register.step2.readonly_title">Datos verificados — solo lectura</div>
@@ -978,22 +983,22 @@
         <span data-i18n="register.step2.timer_prefix">El código expira en</span> <span id="timer-count">10:00</span>
       </div>
 
-      <button class="resend-btn" id="btn-resend" disabled data-i18n="register.step2.resend_button">Reenviar código</button>
+      <button type="button" class="resend-btn" id="btn-resend" disabled data-i18n="register.step2.resend_button">Reenviar código</button>
 
       <!-- Teclado numérico para código -->
       <div class="pin-keypad" id="code-keypad" data-keyboard="num" data-keyboard-display="#screen-2 .code-display" data-keyboard-action="" data-keyboard-auto="show">
-        <button class="key-btn" data-code="1">1</button>
-        <button class="key-btn" data-code="2">2</button>
-        <button class="key-btn" data-code="3">3</button>
-        <button class="key-btn" data-code="4">4</button>
-        <button class="key-btn" data-code="5">5</button>
-        <button class="key-btn" data-code="6">6</button>
-        <button class="key-btn" data-code="7">7</button>
-        <button class="key-btn" data-code="8">8</button>
-        <button class="key-btn" data-code="9">9</button>
-        <button class="key-btn" id="clr-code" data-i18n="register.step2.clr">CLR</button>
-        <button class="key-btn" data-code="0">0</button>
-        <button class="key-btn del" id="del-code">⌫</button>
+        <button type="button" class="key-btn" data-code="1">1</button>
+        <button type="button" class="key-btn" data-code="2">2</button>
+        <button type="button" class="key-btn" data-code="3">3</button>
+        <button type="button" class="key-btn" data-code="4">4</button>
+        <button type="button" class="key-btn" data-code="5">5</button>
+        <button type="button" class="key-btn" data-code="6">6</button>
+        <button type="button" class="key-btn" data-code="7">7</button>
+        <button type="button" class="key-btn" data-code="8">8</button>
+        <button type="button" class="key-btn" data-code="9">9</button>
+        <button type="button" class="key-btn" id="clr-code" data-i18n="register.step2.clr">CLR</button>
+        <button type="button" class="key-btn" data-code="0">0</button>
+        <button type="button" class="key-btn del" id="del-code">⌫</button>
       </div>
     </div>
 
@@ -1004,7 +1009,8 @@
       </div>
 
       <div class="pwd-dots-wrap">
-        <div class="pwd-dots empty" id="pwd2-dots">· · · · · · · ·</div>
+        <label class="credential-label credential-password-label" id="credential-label-pwd2-dots" for="pwd2-dots" data-i18n="register.step2.confirm_password_title">Confirma tu contraseña maestra</label>
+        <input class="pwd-dots empty credential-input" id="pwd2-dots" name="confirm-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="· · · · · · · ·" data-credential-field disabled>
         <button type="button" class="eye-btn" id="eye-pwd2" aria-label="Ver contraseña" data-i18n-aria="register.common.eye_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
       <div class="pin-validation" id="pwd2-hint" data-i18n="register.step2.confirm_password_placeholder_hint">Confirma tu contraseña maestra</div>
@@ -1020,11 +1026,11 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-step2" disabled data-i18n="register.step2.submit_button">
+    <button type="submit" class="btn-primary" id="btn-step2" disabled data-i18n="register.step2.submit_button">
       Verificar y crear mi identidad
     </button>
 
-  </div><!-- fin screen-2 -->
+  </form><!-- fin screen-2 -->
 
 
   <!-- =================== ÉXITO =================== -->
@@ -1327,11 +1333,12 @@ function updatePwdDisplay(num) {
   const dotsEl = document.getElementById(dotsId);
   const visible = num === 1 ? pwd1Visible : pwd2Visible;
   if (dotsEl) {
+    dotsEl.type = visible ? 'text' : 'password';
     if (buf.length === 0) {
-      dotsEl.textContent = '· · · · · · · ·';
+      dotsEl.value = '';
       dotsEl.classList.add('empty'); dotsEl.classList.remove('valid');
     } else {
-      dotsEl.textContent = visible ? buf : '●'.repeat(buf.length);
+      dotsEl.value = buf;
       dotsEl.classList.remove('empty');
       dotsEl.classList.toggle('valid', validatePwd(buf).valid);
     }
@@ -1483,7 +1490,8 @@ function generateCode() {
 }
 
 // =================== PASO 1 — ENVIAR CÓDIGO ===================
-document.getElementById('btn-step1').addEventListener('click', async () => {
+document.getElementById('screen-1').addEventListener('submit', async event => {
+  event?.preventDefault();
   const name  = document.getElementById('r-firstname').value.trim() + ' ' + document.getElementById('r-lastname').value.trim();
   const email = document.getElementById('r-email').value.trim();
   const phoneCountryCode = document.getElementById('r-phone-country').value;
@@ -1529,6 +1537,7 @@ document.getElementById('btn-step1').addEventListener('click', async () => {
   // en el servidor (ver register-complete.js, que es quien lo valida de
   // verdad).
   step1Data = { name, email, pwd: pwd1Buffer, phoneCountryCode, phoneNumber, language };
+  document.getElementById('credential-username-screen-2').value = email;
 
   try {
     const sendRes = await fetch('/api/send-email', {
@@ -1611,7 +1620,8 @@ document.getElementById('btn-resend').addEventListener('click', async () => {
 });
 
 // =================== PASO 2 — VERIFICAR ===================
-document.getElementById('btn-step2').addEventListener('click', async () => {
+document.getElementById('screen-2').addEventListener('submit', async event => {
+  event?.preventDefault();
   // Verificar contraseñas — esto sigue siendo local, no depende del
   // servidor (no hay nada sensible que filtrar comprobando esto en el cliente).
   if (pwd2Buffer !== pwd1Buffer) {
@@ -1913,5 +1923,11 @@ function showToast(msg) {
   </div>
 </div>
 
+<script>
+const registrationCredentialFields = IdentityAutofill.bind([
+  {id:'pwd1-dots',get:()=>pwd1Buffer,set:value=>{pwd1Buffer=value;updatePwdDisplay(1);}},
+  {id:'pwd2-dots',get:()=>pwd2Buffer,set:value=>{pwd2Buffer=value;updatePwdDisplay(2);}}
+]);
+</script>
 </body>
 </html>

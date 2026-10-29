@@ -778,5 +778,6 @@
   "billing.feature_profile": "संपूर्ण संपर्क प्रोफ़ाइल",
   "billing.feature_qr": "काम करने वाला मानक QR",
   "billing.feature_import": "डेटा आयातक",
-  "billing.trial_remaining": "परीक्षण के {n} दिन बाकी हैं। इसके बाद, नवीनीकरण रद्द न करने पर Pro €2.99/माह पर नवीनीकृत होगा।"
+  "billing.trial_remaining": "परीक्षण के {n} दिन बाकी हैं। इसके बाद, नवीनीकरण रद्द न करने पर Pro €2.99/माह पर नवीनीकृत होगा।",
+  "index.pin.credential_account_mismatch": "ईमेल इस डिवाइस पर सहेजी गई पहचान से मेल नहीं खाता।"
 }

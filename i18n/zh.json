@@ -778,5 +778,6 @@
   "billing.feature_profile": "完整联系资料",
   "billing.feature_qr": "可用的标准二维码",
   "billing.feature_import": "数据导入工具",
-  "billing.trial_remaining": "试用还剩{n}天。之后，除非你取消续订，Pro将按每月€2.99自动续订。"
+  "billing.trial_remaining": "试用还剩{n}天。之后，除非你取消续订，Pro将按每月€2.99自动续订。",
+  "index.pin.credential_account_mismatch": "电子邮箱与此设备上保存的身份不匹配。"
 }

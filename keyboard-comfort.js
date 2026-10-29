@@ -71,7 +71,7 @@
     const nativeEditing=()=>document.activeElement?.matches('input,textarea,select,[contenteditable=true]')&&document.activeElement.getClientRects().length>0&&!(document.activeElement.matches('[inputmode="none"]')&&targetFor(document.activeElement));
     document.addEventListener('focusin',e=>{const target=targetFor(e.target);if(target){manualBrowsing=false;queue(target);}});
     // Changes in screens and keyboard modes are observed without reading entered text.
-    new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','inert','aria-hidden']});
+    new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','inert','aria-hidden','data-credential-native']});
     const resize=()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{schedule();if(last&&visible(last)&&!nativeEditing()&&!manualBrowsing)queue(last);},120);};
     window.addEventListener('resize',resize,{passive:true});window.visualViewport?.addEventListener('resize',resize,{passive:true});
     window.addEventListener('orientationchange',resize,{passive:true});window.screen?.orientation?.addEventListener?.('change',resize);

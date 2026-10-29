@@ -778,5 +778,6 @@
   "billing.feature_profile": "Perfil de contacto completo",
   "billing.feature_qr": "QR estándar funcional",
   "billing.feature_import": "Importador de datos",
-  "billing.trial_remaining": "Quedan {n} días de proba. Despois, Pro renóvase por 2.99 €/mes se non cancelas a renovación."
+  "billing.trial_remaining": "Quedan {n} días de proba. Despois, Pro renóvase por 2.99 €/mes se non cancelas a renovación.",
+  "index.pin.credential_account_mismatch": "O correo non coincide coa identidade gardada neste dispositivo."
 }

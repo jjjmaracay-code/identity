@@ -13,6 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="storage-wipe.js"></script>
 <script src="/password-utils.js"></script>
+<script src="/credential-autofill.js?v=54"></script>
+<link rel="stylesheet" href="/credential-autofill.css?v=54">
 <script src="/i18n/loader.js"></script>
 <link rel="stylesheet" href="/i18n/rtl.css">
 
@@ -545,7 +547,7 @@
 </style>
 <link rel="stylesheet" href="/button-depth.css?v=46">
 <link rel="stylesheet" href="/keyboard-comfort.css?v=1">
-<script defer src="/keyboard-comfort.js?v=2"></script>
+<script defer src="/keyboard-comfort.js?v=3"></script>
 </head>
 <body>
 
@@ -697,7 +699,9 @@
   </div><!-- fin screen-phase2 -->
 
   <!-- =================== FASE 3: NUEVA CONTRASEÑA =================== -->
-  <div class="screen" id="screen-phase3">
+  <form method="post" autocomplete="on" onsubmit="event.preventDefault()" novalidate class="credential-form screen" id="screen-phase3">
+    <input id="credential-username-screen-phase3" name="username" type="email" autocomplete="username" hidden>
+
 
     <div class="rec-card green">
       <div class="rec-card-title" style="color:rgba(170,255,0,0.7);border-color:rgba(170,255,0,0.1);" data-i18n="recovery.phase3.title">Fase 3 — Nueva contraseña maestra</div>
@@ -709,7 +713,8 @@
       </div>
 
       <div class="pwd-dots-wrap">
-        <div class="pwd-dots empty" id="np-dots">· · · · · · · ·</div>
+        <label class="credential-label credential-password-label" id="credential-label-np-dots" for="np-dots" data-i18n="recovery.phase3.title">Nueva contraseña maestra</label>
+        <input class="pwd-dots empty credential-input" id="np-dots" name="new-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="· · · · · · · ·" data-credential-field disabled>
         <button type="button" class="eye-btn" id="eye-np" aria-label="Ver contraseña" data-i18n-aria="recovery.phase3.eye_aria"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
       </div>
       <div class="pwd-validation" id="newpwd-hint" data-i18n="recovery.phase3.hint">Mínimo 8 caracteres, 1 número y 1 símbolo</div>
@@ -724,9 +729,9 @@
       <div id="qwerty-kbd-np" data-keyboard="qwerty" data-keyboard-display="#np-dots" data-keyboard-action="#btn-phase3" data-keyboard-auto="show"></div>
     </div>
 
-    <button class="btn-primary green-btn" id="btn-phase3" disabled data-i18n="recovery.phase3.save_button">Guardar nueva contraseña</button>
+    <button type="submit" class="btn-primary green-btn" id="btn-phase3" disabled data-i18n="recovery.phase3.save_button">Guardar nueva contraseña</button>
 
-  </div><!-- fin screen-phase3 -->
+  </form><!-- fin screen-phase3 -->
 
   <!-- =================== CONFIRMAR BORRADO =================== -->
   <div class="screen" id="screen-delete">
@@ -988,12 +993,13 @@ function updateDisplay(target) {
 
   } else if (target === 'newpwd') {
     const dotsEl = document.getElementById('np-dots');
+    if (dotsEl) dotsEl.type = npVisible ? 'text' : 'password';
     if (dotsEl) {
       if (newPwdBuffer.length === 0) {
-        dotsEl.textContent = '· · · · · · · ·';
+        dotsEl.value = '';
         dotsEl.classList.add('empty'); dotsEl.classList.remove('valid');
       } else {
-        dotsEl.textContent = npVisible ? newPwdBuffer : '●'.repeat(newPwdBuffer.length);
+        dotsEl.value = newPwdBuffer;
         dotsEl.classList.remove('empty');
         dotsEl.classList.toggle('valid', validatePwd(newPwdBuffer).valid);
       }
@@ -1170,7 +1176,8 @@ document.getElementById('btn-resend-temp').addEventListener('click', async () =>
 });
 
 // =================== FASE 3: NUEVA CONTRASEÑA ===================
-document.getElementById('btn-phase3').addEventListener('click', async () => {
+document.getElementById('screen-phase3').addEventListener('submit', async event => {
+  event?.preventDefault();
   if (!validatePwd(newPwdBuffer).valid) return;
   // savePassword() (password-utils.js) hashea con sal nueva y borra
   // identity_attempts/identity_block_until junto con cualquier resto de
@@ -1246,6 +1253,12 @@ window.addEventListener('load', () => {
     startBlockTimer(1800);
   }
 });
+</script>
+<script>
+document.getElementById('credential-username-screen-phase3').value = reg.email || '';
+const recoveryCredentialFields = IdentityAutofill.bind([
+  {id:'np-dots',get:()=>newPwdBuffer,set:value=>{newPwdBuffer=value;updateDisplay('newpwd');}}
+]);
 </script>
 </body>
 </html>

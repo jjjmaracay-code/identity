@@ -778,5 +778,6 @@
   "billing.feature_profile": "Perfil de contacte complet",
   "billing.feature_qr": "QR estàndard funcional",
   "billing.feature_import": "Importador de dades",
-  "billing.trial_remaining": "Queden {n} dies de prova. Després, Pro es renova per 2.99 €/mes si no cancel·les la renovació."
+  "billing.trial_remaining": "Queden {n} dies de prova. Després, Pro es renova per 2.99 €/mes si no cancel·les la renovació.",
+  "index.pin.credential_account_mismatch": "El correu no coincideix amb la identitat desada en aquest dispositiu."
 }

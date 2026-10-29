@@ -778,5 +778,6 @@
   "billing.feature_profile": "完全な連絡先プロフィール",
   "billing.feature_qr": "利用可能な標準QRコード",
   "billing.feature_import": "データインポート",
-  "billing.trial_remaining": "無料体験は残り{n}日です。自動更新を停止しない場合、その後Proは月額€2.99で更新されます。"
+  "billing.trial_remaining": "無料体験は残り{n}日です。自動更新を停止しない場合、その後Proは月額€2.99で更新されます。",
+  "index.pin.credential_account_mismatch": "メールアドレスがこの端末に保存された本人情報と一致しません。"
 }

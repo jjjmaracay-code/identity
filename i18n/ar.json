@@ -751,5 +751,6 @@
   "billing.feature_profile": "ملف اتصال كامل",
   "billing.feature_qr": "رمز QR قياسي يعمل",
   "billing.feature_import": "أداة استيراد البيانات",
-  "billing.trial_remaining": "تبقى {n} يومًا من الفترة التجريبية. بعد ذلك، تُجدَّد Pro مقابل 2.99 € شهريًا ما لم تلغِ التجديد."
+  "billing.trial_remaining": "تبقى {n} يومًا من الفترة التجريبية. بعد ذلك، تُجدَّد Pro مقابل 2.99 € شهريًا ما لم تلغِ التجديد.",
+  "index.pin.credential_account_mismatch": "البريد الإلكتروني لا يطابق الهوية المحفوظة على هذا الجهاز."
 }
