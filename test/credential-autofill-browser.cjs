@@ -51,6 +51,14 @@ const errors=[],requests=[];let browser;
  console.log('PASS: account creation/confirmation and new-password recovery use associated native forms; real local hashes and existing registration API checks are retained.');
 
  const layout=await context(),lp=await loginPage(layout);for(const [width,height]of [[320,568],[390,844],[844,390],[1360,900]]){await lp.setViewportSize({width,height});for(const lang of ['es','en','de','hi','zh','ja','ar']){await lp.evaluate(lang=>setLanguage(lang),lang);await lp.locator('#pin-dots-display').focus();assert.equal(await lp.locator('#qwerty-kbd-pin').isVisible(),false);assert.equal(await lp.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);assert.ok(await lp.locator('#pin-dots-display').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=16));await lp.locator('#pin-dots-display').evaluate(e=>e.blur());}}
+ // Original login dimensions measured before native forms (c447164).
+ for(const [width,height,expectedWidth,expectedKeyHeight]of [[320,568,288,50.05],[390,844,358,70],[430,932,398,70],[844,390,480,48],[1360,900,480,70]]){
+  await lp.setViewportSize({width,height});await lp.locator('#pin-dots-display').evaluate(e=>e.blur());await lp.locator('#qwerty-kbd-pin').waitFor({state:'visible'});await lp.waitForTimeout(240);
+  const size=await lp.locator('#qwerty-kbd-pin').evaluate(e=>({width:e.getBoundingClientRect().width,keyHeight:e.querySelector('button').getBoundingClientRect().height}));
+  assert.ok(Math.abs(size.width-expectedWidth)<1,'Restore original keyboard width at '+width+': '+JSON.stringify(size));
+  assert.ok(Math.abs(size.keyHeight-expectedKeyHeight)<1,'Preserve original key height at '+width+': '+JSON.stringify(size));
+ }
+ console.log('PASS: original keyboard width and key height restored at 320/390/430/844/1360px.');
  await lp.setViewportSize({width:390,height:844});await lp.evaluate(()=>setLanguage('es'));await lp.locator('#identity-login-email').scrollIntoViewIfNeeded();await lp.screenshot({path:'/tmp/identifly-native-autofill.png'});await layout.close();
  for(const r of requests){assert.ok(!r.body.includes(password)&&!r.url.includes(password));assert.ok(!r.body.includes('CreatedFixture!9')&&!r.body.includes('ResetFixture!9'));}
  assert.deepEqual(errors,[]);console.log('PASS: narrow/landscape/desktop/RTL layouts, native text size, no password transmission, no browser errors.');

@@ -25,3 +25,7 @@ Estas pruebas utilizan Chromium y respuestas locales. No validan el diálogo del
 - Apple: [Enabling Password AutoFill on an HTML input element](https://developer.apple.com/documentation/security/enabling-password-autofill-on-an-html-input-element).
 - Chromium: [Password Form Styles that Chromium Understands](https://www.chromium.org/developers/design-documents/form-styles-that-chromium-understands/).
 - Google: [Build a sign-in form that follows best practice](https://developer.chrome.com/docs/modern-web-guidance/guides/forms/autofill-sign-in-form).
+
+## Tamaño del teclado · versión 55
+
+El formulario nativo limitaba involuntariamente el ancho del teclado a 340 píxeles. Se restablece el límite anterior de 480 píxeles, ajustándose al espacio disponible. Comparación en navegador con el código anterior al autorrelleno: a 390 píxeles de pantalla el teclado vuelve de 340 a 358 píxeles; a 430 vuelve de 340 a 398; en horizontal y escritorio recupera 480 píxeles. En pantallas de 320 ya tenía los 288 píxeles disponibles. Las alturas de las teclas y sus fuentes se conservan. Se comprueban estas dimensiones junto con el acceso y el autorrelleno.
