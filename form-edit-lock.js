@@ -85,8 +85,12 @@
     const dialog=make('dialog',{class:'fel-dialog','aria-labelledby':heading.id},[icon(false),heading,description,keep,make('div',{class:'fel-dialog-actions'},[confirm,cancel])]);
     const toast=make('div',{class:'fel-notice',role:'status','aria-live':'polite',hidden:''});
     const c={surface,locked:true,saved:new WeakMap(),customLocked:new WeakSet(),actionAria:new WeakMap(),label,tab,banner,bannerIcon,bannerText,heading,description,keep,confirm,cancel,dialog,toast,shown:false};contexts.push(c);
-    surface.querySelectorAll('[data-form-edit-fallback]').forEach(item=>item.remove());
-    const first=roots(c)[0];if(first)first.before(banner);surface.append(tab,dialog,toast);apply(c,true);updateVisibility(c);
+    // Keep the notice in its own planned row. The first protected root can be
+    // the Save button inside the section carousel, rather than the form itself.
+    const placeholders=[...surface.querySelectorAll('[data-form-edit-fallback]')];
+    if(placeholders.length){placeholders[0].replaceWith(banner);placeholders.slice(1).forEach(item=>item.remove());}
+    else {const first=roots(c).find(root=>!root.classList.contains('fel-action-root'))||roots(c)[0];if(first)(first.closest('.edit-tabs-bar')||first).before(banner);}
+    surface.append(tab,dialog,toast);apply(c,true);updateVisibility(c);
     tab.addEventListener('click',e=>{if(isGhost(e)){prevent(e);return;}request(c);});
     cancel.addEventListener('click',()=>closeDialog(c));confirm.addEventListener('click',e=>{if(isGhost(e)){prevent(e);return;}if(!ownerAvailable(c)){closeDialog(c);notice(c,12);return;}apply(c,false);closeDialog(c);});
     dialog.addEventListener('keydown',e=>{if(e.key==='Escape')e.stopPropagation();});

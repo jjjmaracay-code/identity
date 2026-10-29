@@ -441,7 +441,8 @@
 // v49: larger built-in keyboards, minimal viewport alignment.
 // v50: allow portrait and landscape; reframe keyboards after orientation changes.
 // v51: stronger raised controls in the main card's action panel.
-const APP_VERSION = '51';
+// v52: keep the edit-lock notice outside the profile section carousel.
+const APP_VERSION = '52';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -460,7 +461,7 @@ const CACHE_URLS = [
   '/growth.css',
   '/button-depth.css?v=46',
   '/main-action-depth.css?v=51',
-  '/form-edit-lock.js?v=47',
+  '/form-edit-lock.js?v=52',
   '/form-edit-lock.css?v=48',
   '/growth-share.js',
   '/manifest.json',
