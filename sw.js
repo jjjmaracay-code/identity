@@ -442,7 +442,8 @@
 // v50: allow portrait and landscape; reframe keyboards after orientation changes.
 // v51: stronger raised controls in the main card's action panel.
 // v52: keep the edit-lock notice outside the profile section carousel.
-const APP_VERSION = '52';
+// v53: a separate measured row for the upward scroll cue and section carousel.
+const APP_VERSION = '53';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

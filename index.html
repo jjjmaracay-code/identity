@@ -1224,7 +1224,7 @@
 
   .edit-tabs-bar {
     position: sticky;
-    top: 0;
+    top: var(--edit-scroll-cue-space, 72px);
     z-index: 50;
     display: flex;
     align-items: center;
@@ -1293,7 +1293,7 @@
   }
 
   #sec-diseno, #sec-perfil, #sec-privacidad, #sec-seguridad, #sec-cuenta {
-    scroll-margin-top: 84px;
+    scroll-margin-top: var(--edit-navigation-clearance, 156px);
   }
 
   .btn-close {
@@ -2429,6 +2429,18 @@
   }
 
   .scroll-indicator-top.hidden { opacity: 0; }
+
+  /* Give the upward cue its own row above the sticky section controls. */
+  #edit-scroll-indicator-top {
+    height: auto;
+    min-height: 60px;
+    padding: 8px 20px 10px;
+    text-align: center;
+  }
+  #edit-scroll-indicator-top .scroll-text {
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
 
   .scroll-arrow-up {
     display: flex;
@@ -8217,6 +8229,28 @@ const screenEditScrollEl = document.getElementById('screen-edit-scroll');
 if (screenEditScrollEl) {
   screenEditScrollEl.addEventListener('scroll', actualizarIndicadoresScrollEdit);
 }
+
+// Measure translated/wrapped text as well as viewport changes, without
+// moving focus, scrolling the form or changing the editing lock.
+function measureEditNavigation() {
+  const screen = document.getElementById('screen-edit');
+  const cue = document.getElementById('edit-scroll-indicator-top');
+  const bar = document.getElementById('edit-tabs-bar');
+  if (!screen || !cue || !bar) return;
+  const space = Math.ceil(cue.getBoundingClientRect().height) + 12;
+  screen.style.setProperty('--edit-scroll-cue-space', space + 'px');
+  screen.style.setProperty('--edit-navigation-clearance',
+    (space + Math.ceil(bar.getBoundingClientRect().height) + 12) + 'px');
+}
+if (typeof ResizeObserver !== 'undefined') {
+  const editNavigationObserver = new ResizeObserver(measureEditNavigation);
+  for (const id of ['edit-scroll-indicator-top', 'edit-tabs-bar']) {
+    const element = document.getElementById(id);
+    if (element) editNavigationObserver.observe(element);
+  }
+}
+window.addEventListener('resize', measureEditNavigation);
+measureEditNavigation();
 
 function openEdit() {
   const d = profileData;
