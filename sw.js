@@ -448,7 +448,8 @@
 // v56: satin keycap depth, with original responsive dimensions.
 // v57: optional passkeys, local recovery and prepared Wallet integration.
 // v58: grouped security/account panels and restrained 3D surfaces.
-const APP_VERSION = '58';
+// v59: same-page token recovery and account-bound delayed replies.
+const APP_VERSION = '59';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -457,7 +458,7 @@ const CACHE_URLS = [
   '/account-tools.js?v=57',
   '/account-tools.css?v=58',
   '/account-layout.css?v=58',
-  '/account-access.js?v=57',
+  '/account-access.js?v=59',
   '/account-wallet.js?v=58',
   '/local-recovery.js?v=57',
   '/credential-autofill.js?v=54',

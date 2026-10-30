@@ -3012,7 +3012,7 @@
 <script defer src="/account-tools-i18n.js?v=58"></script>
 <script defer src="/account-tools.js?v=57"></script>
 <script defer src="/local-recovery.js?v=57"></script>
-<script defer src="/account-access.js?v=57"></script>
+<script defer src="/account-access.js?v=59"></script>
 <script defer src="/account-wallet.js?v=58"></script>
 </head>
 <body data-account-product="identity">
@@ -4686,6 +4686,20 @@ if (_vincularCompra) {
 
 const _reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
 
+// Only a confirmed token issued to this page's unchanged account may refresh
+// the optional helpers. A storage change from another tab never rebinds them.
+const identityToolsAccount=()=>{let r={};try{r=JSON.parse(localStorage.getItem('identity_registration')||'{}');}catch(_){}return JSON.stringify([String(r.email||'').trim().toLowerCase(),r.timestamp||'',localStorage.getItem('identity_access_token')]);};
+let identityToolsInitialAccount=identityToolsAccount();
+function identityToolsAcceptToken(expected,token){
+  if(expected!==identityToolsAccount()||typeof token!=='string'||!token)return false;
+  const belongsToPage=identityToolsInitialAccount===expected;
+  localStorage.setItem('identity_access_token',token);
+  if(belongsToPage)identityToolsInitialAccount=identityToolsAccount();
+  window.AccountTools?.invalidate();
+  window.dispatchEvent(new Event('identity:account-token-confirmed'));
+  return true;
+}
+
 // true solo si este dispositivo tiene un registro de servidor real
 // (email verificado + token) -- no basta con identity_registration
 // a secas. index.html se apoya en esto para decidir si puede dejar
@@ -4782,9 +4796,10 @@ function _bloqueadoRedirigirOVincular() {
 // los 10 minutos posteriores a su envío (ver send-email.js) — pasado ese
 // tiempo, register-complete.js lo rechazará y el reintento dejará de
 // poder completarse (el usuario tendría que registrarse de nuevo).
-(async function _reintentarRegistroPendiente() {
+const identityRegistrationRetry=(async function _reintentarRegistroPendiente() {
   if (localStorage.getItem('identity_kv_sync_pending') !== 'true') return;
   if (!_reg.email) return;
+  const expectedAccount=identityToolsAccount();
   const pendingCode = localStorage.getItem('identity_pending_verify_code') || '';
   try {
     const res = await fetch('/api/register-complete', {
@@ -4794,7 +4809,8 @@ function _bloqueadoRedirigirOVincular() {
     });
     if (res.ok) {
       const data = await res.json();
-      if (data.token) localStorage.setItem('identity_access_token', data.token);
+      if(expectedAccount!==identityToolsAccount())return;
+      if (data.token && !identityToolsAcceptToken(expectedAccount,data.token)) return;
       if (data.cardTrialRequired) {
         _reg.cardTrialRequired = true;
         localStorage.setItem('identity_registration', JSON.stringify(_reg));
@@ -4813,6 +4829,11 @@ function _bloqueadoRedirigirOVincular() {
 // redirección igualmente se aplica — es una zona de dinero real, se
 // prioriza corrección sobre evitar el pequeño salto de pantalla.
 (async function _verificarTrialServidor() {
+  const bootAccount=identityToolsAccount();
+  // Finish a legacy registration retry before claiming another token for
+  // the same account. Both operations must not race to replace credentials.
+  await identityRegistrationRetry;
+  if(bootAccount!==identityToolsAccount()&&identityToolsInitialAccount!==identityToolsAccount())return;
   // Sin registro local, nada que verificar aquí -- el caso "?vincular=1
   // sin _reg.email" ya lo abre, incondicionalmente, el bloque de
   // DOMContentLoaded de más arriba.
@@ -4826,6 +4847,7 @@ function _bloqueadoRedirigirOVincular() {
   // la limitación de seguridad conocida de este mecanismo).
   let claimData = null;
   if (!token) {
+    const expectedAccount=identityToolsAccount();
     try {
       const claimRes = await fetch('/api/claim-token', {
         method: 'POST',
@@ -4833,11 +4855,13 @@ function _bloqueadoRedirigirOVincular() {
         body: JSON.stringify({ email: _reg.email, registeredAt: _reg.timestamp, deviceId: getOrCreateDeviceId() })
       });
       claimData = await claimRes.json();
-      if (claimData.ok && claimData.token) {
+      if(expectedAccount!==identityToolsAccount())return;
+      if (claimRes.ok && claimData.ok && claimData.token) {
+        if(!identityToolsAcceptToken(expectedAccount,claimData.token))return;
         token = claimData.token;
-        localStorage.setItem('identity_access_token', token);
       }
     } catch (_) { /* sin red — se reintentará en la próxima carga */ }
+    if(expectedAccount!==identityToolsAccount()&&identityToolsInitialAccount!==identityToolsAccount())return;
   }
 
   if (!token) {
@@ -4855,6 +4879,7 @@ function _bloqueadoRedirigirOVincular() {
     return;
   }
 
+  const expectedAccount=identityToolsAccount();
   try {
     const res = await fetch('/api/check-plan', {
       method: 'POST',
@@ -4862,6 +4887,7 @@ function _bloqueadoRedirigirOVincular() {
       body: JSON.stringify({ email: _reg.email, token, deviceId: getOrCreateDeviceId() })
     });
     const data = await res.json();
+    if(expectedAccount!==identityToolsAccount())return;
 
     // Dispositivo revocado por una transferencia real (ver
     // transfer-device.js). Condición deliberadamente exacta y estricta
@@ -4906,6 +4932,7 @@ function _bloqueadoRedirigirOVincular() {
     if (_trialBloqueadoLocal()) _bloqueadoRedirigirOVincular();
 
   } catch (_) {
+    if(expectedAccount!==identityToolsAccount())return;
     // Fallo de red real (no una respuesta explícita del servidor): margen
     // de gracia de 14 días (antes, 24 horas -- ver GRACIA_SIN_RED_DIAS)
     // reutilizando el último veredicto de servidor verificado con éxito —
@@ -10756,8 +10783,6 @@ document.getElementById('identity-login-email').addEventListener('keydown', even
 
 <script>
 // Narrow adapter: the new helpers never alter registration, billing or TOTP policy.
-const identityToolsAccount=()=>{let r={};try{r=JSON.parse(localStorage.getItem('identity_registration')||'{}');}catch(_){}return JSON.stringify([String(r.email||'').trim().toLowerCase(),r.timestamp||'',localStorage.getItem('identity_access_token')]);};
-const identityToolsInitialAccount=identityToolsAccount();
 window.IdentityAccountBridge = {
   stamp:()=>JSON.stringify(['identity_registration','identity_access_token','identity_pin','identity_totp_secret','identity_2fa_config','identity_totp_salt','identity_device_id'].map(k=>localStorage.getItem(k))),
   unlocked:()=>identityToolsInitialAccount===identityToolsAccount() && document.getElementById('screen-main').classList.contains('visible') && !document.getElementById('screen-2fa-verify').classList.contains('open'),

@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(!B.unlocked())return;const initial=B.stamp();if(!await A.prompt('remove'))return;ensure(initial);
   const g=await grant();if(g)await A.request('identity','remove',{...account(),credential_id:g.id});ensure(initial);localStorage.removeItem(GRANT);await refresh();status.textContent='';
  });
- window.addEventListener('storage',()=>refresh().catch(()=>{}));refresh().catch(()=>{});
+ window.addEventListener('storage',()=>refresh().catch(()=>{}));
+ window.addEventListener('identity:account-token-confirmed',()=>refresh().catch(()=>{}));refresh().catch(()=>{});
 });
 })();
