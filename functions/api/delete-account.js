@@ -204,7 +204,7 @@ export async function onRequestPost(context) {
     // A failed remote deletion must not be reported as a complete account deletion.
     try {
       const tools=await fetch('https://doctorqr-backend-production.up.railway.app/api/passkeys/identity/purge', {
-        method:'POST',redirect:'error',signal:AbortSignal.timeout(8000),
+        method:'POST',redirect:'manual',signal:AbortSignal.timeout(8000),
         headers:{'Content-Type':'application/json','Origin':'https://www.identifly.app'},
         body:JSON.stringify({email:emailKey,token})
       });

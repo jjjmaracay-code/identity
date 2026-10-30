@@ -11,7 +11,10 @@ export async function onRequestPost({request,params}) {
  const [kind,...rest]=path.split('/');
  try {
   const upstream=await fetch('https://doctorqr-backend-production.up.railway.app/api/'+kind+'/identity/'+rest.join('/'),{
-   method:'POST',redirect:'error',signal:AbortSignal.timeout(12000),headers:{'Content-Type':'application/json','Origin':origin},body:raw});
+   method:'POST',redirect:'manual',signal:AbortSignal.timeout(12000),headers:{'Content-Type':'application/json','Origin':origin},body:raw});
+  // Workers supports manual/follow, not redirect:error. Reject redirects
+  // explicitly so account tokens can never be forwarded to another origin.
+  if(upstream.status>=300&&upstream.status<400)throw Error('upstream_redirect');
   const headers={'Content-Type':upstream.headers.get('Content-Type')||'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
   if(upstream.headers.has('Content-Disposition'))headers['Content-Disposition']=upstream.headers.get('Content-Disposition');
   return new Response(upstream.body,{status:upstream.status,headers});
