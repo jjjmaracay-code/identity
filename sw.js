@@ -447,16 +447,18 @@
 // v55: restore the login keyboard's original responsive width after native forms.
 // v56: satin keycap depth, with original responsive dimensions.
 // v57: optional passkeys, local recovery and prepared Wallet integration.
-const APP_VERSION = '57';
+// v58: grouped security/account panels and restrained 3D surfaces.
+const APP_VERSION = '58';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
   '/vendor/simplewebauthn/browser.umd.min.js?v=14',
-  '/account-tools-i18n.js?v=57',
+  '/account-tools-i18n.js?v=58',
   '/account-tools.js?v=57',
-  '/account-tools.css?v=57',
+  '/account-tools.css?v=58',
+  '/account-layout.css?v=58',
   '/account-access.js?v=57',
-  '/account-wallet.js?v=57',
+  '/account-wallet.js?v=58',
   '/local-recovery.js?v=57',
   '/credential-autofill.js?v=54',
   '/credential-autofill.css?v=55',

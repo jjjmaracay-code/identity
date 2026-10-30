@@ -31,5 +31,7 @@ hi:['पहले IDENTIFLY BUSINESS में अपना पेशेवर �
 keys.push('publicCard');for(const [lang,values]of Object.entries(texts)){values.push(extra[lang][0]);values[3]=extra[lang][1];}
 const walletLabels={es:['Añadir a Apple Wallet','Añadir a Google Wallet'],en:['Add to Apple Wallet','Add to Google Wallet'],fr:['Ajouter à Apple Wallet','Ajouter à Google Wallet'],de:['Zu Apple Wallet hinzufügen','Zu Google Wallet hinzufügen'],pt:['Adicionar à Apple Wallet','Adicionar à Google Wallet'],ca:['Afegir a Apple Wallet','Afegir a Google Wallet'],gl:['Engadir a Apple Wallet','Engadir a Google Wallet'],eu:['Gehitu Apple Wallet-era','Gehitu Google Wallet-era'],ar:['إضافة إلى Apple Wallet','إضافة إلى Google Wallet'],ru:['Добавить в Apple Wallet','Добавить в Google Wallet'],zh:['添加到 Apple Wallet','添加到 Google Wallet'],ja:['Apple Wallet に追加','Google Wallet に追加'],hi:['Apple Wallet में जोड़ें','Google Wallet में जोड़ें']};
 keys.push('walletApple','walletGoogle');for(const [lang,values]of Object.entries(texts))values.push(...walletLabels[lang]);
+const accountTitles={es:'Tu cuenta',en:'Your account',fr:'Votre compte',de:'Ihr Konto',pt:'A sua conta',ca:'El teu compte',gl:'A túa conta',eu:'Zure kontua',ar:'حسابك',ru:'Ваш аккаунт',zh:'您的账户',ja:'アカウント',hi:'आपका खाता'};
+keys.push('accountTitle');for(const [lang,values]of Object.entries(texts))values.push(accountTitles[lang]);
 window.AccountToolsText=key=>{const lang=(window.currentLanguage||document.documentElement.lang||'es').split('-')[0];return(texts[lang]||texts.en)[keys.indexOf(key)]||key;};
 })();

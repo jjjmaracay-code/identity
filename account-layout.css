@@ -1,0 +1,50 @@
+/* Profile settings only: original lime/black palette, clear groups and restrained tactile depth. */
+#screen-edit .identity-settings-panel{min-width:0;margin-block:28px;padding:20px;border:1px solid #aaff0040;border-radius:22px;background:linear-gradient(150deg,#19210c,#090d05);box-shadow:inset 0 1px 0 #ffffff35,inset 0 -2px 0 #0007,0 6px 0 #020400,0 16px 30px #0005}
+#screen-edit .settings-panel-heading{margin:0 0 18px;color:var(--green);font:750 17px/1.4 Inter,system-ui,sans-serif;letter-spacing:.3px;text-transform:none}
+#screen-edit .identity-security-grid{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:20px}
+#screen-edit .identity-totp-card{min-width:0;margin:0;padding:18px;border:1px solid #aaff0038;border-radius:18px;background:linear-gradient(150deg,#171f0d,#0a0e06);box-shadow:inset 0 1px 0 #ffffff2a,inset 0 -2px 0 #0006,0 4px 0 #020400}
+#screen-edit .identity-totp-card .edit-section-title{margin:0 0 14px;padding-bottom:12px;font-size:12px;line-height:1.65;letter-spacing:1.1px;color:#d4f8a2}
+#screen-edit .identity-totp-card .twofa-info{margin-bottom:16px;padding:12px 14px;font-size:12px;font-weight:450;line-height:1.7;text-shadow:none;color:#d6e8bf;border-color:#aaff002a;border-radius:12px;background:#03070059;box-shadow:inset 0 2px 5px #0006,inset 0 -1px 0 #ffffff14}
+#screen-edit .identity-totp-card .field-group{margin:0}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .field-toggle-wrap{min-width:0;min-height:60px;padding:12px 14px;gap:14px;border-radius:14px;border-color:#aaff0040;background:linear-gradient(160deg,#26301499,#0d1206);box-shadow:inset 0 1px 0 #ffffff25,inset 0 -2px 0 #0006,0 3px 0 #020400}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .field-toggle-label{min-width:0;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+#screen-edit .identity-totp-card .twofa-sublabel{margin-top:4px;color:#b7c3a5;font-size:11px;line-height:1.5;letter-spacing:.2px;overflow-wrap:anywhere}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-right{flex:0 0 auto;gap:10px}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-status{font-size:9px;letter-spacing:1px}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-status.off{color:#b8c0ac}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-switch{width:52px;height:44px;flex:0 0 52px}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-slider{inset:8px 0;border:1px solid #92ad5e66;background:#080e04;box-shadow:inset 0 2px 5px #000b,inset 0 -1px 0 #ffffff35}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-slider::before{width:20px;height:20px;top:3px;left:3px;background:linear-gradient(160deg,#fff,#d2dbc6);box-shadow:inset 0 1px 0 #fff,0 2px 4px #0009}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-switch input:checked+.toggle-slider{background:#aaff00;border-color:#baff46;box-shadow:inset 0 1px 2px #efffc999,inset 0 -2px 4px #4c7400}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-switch input:checked+.toggle-slider::before{transform:translateX(24px);background:linear-gradient(160deg,#293812,#071000);box-shadow:inset 0 1px 0 #ffffff40,0 2px 4px #416300}
+#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-switch input:focus-visible+.toggle-slider{outline:3px solid #f0ffd4;outline-offset:4px}
+#screen-edit .identity-account-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:stretch}
+#screen-edit :is(.identity-save-card,.identity-account-grid>.app-update-section){display:grid;align-content:center;min-width:0;margin:0;padding:16px;border:1px solid #aaff0035;border-radius:16px;background:linear-gradient(150deg,#1d280d,#0a0f05);box-shadow:inset 0 1px 0 #ffffff28,inset 0 -2px 0 #0006,0 4px 0 #020400}
+#screen-edit .identity-save-card .btn-save{margin:0;width:100%;min-height:52px;padding:14px 16px;border-radius:13px;font-size:12px;line-height:1.5;letter-spacing:1.4px;background:linear-gradient(170deg,#c3ff5e,#aaff00 65%,#93de00);color:#101b00}
+#screen-edit .identity-account-panel .btn-app-update{min-height:52px;border-radius:13px;line-height:1.5;padding:14px 16px;background:linear-gradient(165deg,#304218,#121d07);color:#c6ff68;font-size:12px;letter-spacing:.8px}
+#screen-edit .identity-account-panel .app-update-version{margin-top:12px;font-size:11px;color:#c0cba9;letter-spacing:.5px;line-height:1.5}
+#screen-edit .identity-account-panel .delete-account-section{margin:30px 0 0;padding:18px;border:1px solid #c3575777;border-radius:18px;background:linear-gradient(150deg,#301517,#140a0c);box-shadow:inset 0 1px 0 #ffcaca2c,inset 0 -2px 0 #0006,0 4px 0 #050102}
+#screen-edit .identity-account-panel .delete-account-label{color:#ffb2b2;font-size:11px;line-height:1.6;letter-spacing:1.4px;margin-bottom:14px;padding-bottom:12px;border-color:#ed8c8c40}
+#screen-edit .identity-account-panel .delete-account-info{color:#e2c6c9;font-size:12px;line-height:1.75;margin-bottom:18px}
+#screen-edit .identity-account-panel .delete-account-info strong{color:#ffb2b2;font-weight:700}
+#screen-edit .identity-account-panel .btn-delete-account{min-height:56px;padding:14px;border-color:#e57a7a99;border-radius:13px;background:linear-gradient(170deg,#4a2024,#230e11);color:#ffb2b2;font-size:11px;line-height:1.65;letter-spacing:.6px;text-align:center}
+#screen-edit :is(.identity-account-panel,.identity-security-panel) :is(.btn-save,.btn-app-update,.btn-delete-account,.btn-2fa-setup){box-shadow:inset 0 1px 0 #ffffff60,inset 0 -3px 0 #0006,0 5px 0 #020400,0 10px 16px #0006!important;transition:box-shadow .12s ease,translate .12s ease!important}
+#screen-edit :is(.identity-account-panel,.identity-security-panel) :is(.btn-save,.btn-app-update,.btn-delete-account,.btn-2fa-setup):active:not(:disabled){translate:0 3px;box-shadow:inset 0 2px 8px #0004,0 2px 0 #020400,0 0 18px #aaff0035!important}
+#screen-edit :is(.identity-account-panel,.identity-security-panel) :is(.btn-save,.btn-app-update,.btn-delete-account,.btn-2fa-setup):disabled{translate:none!important;box-shadow:inset 0 1px 0 #ffffff25,0 2px 0 #020400!important}
+#screen-edit .edit-tab-btn{min-height:44px;border-radius:15px;padding:10px 14px;background-image:linear-gradient(180deg,#ffffff18,transparent 65%);box-shadow:inset 0 1px 0 #ffffff45,inset 0 -2px 0 #0006,0 4px 0 #020400;transition:box-shadow .12s ease,translate .12s ease}
+#screen-edit .edit-tab-btn.active{box-shadow:inset 0 1px 0 #eeffc1,inset 0 -3px 0 #6b9e00,0 4px 0 #020400}
+#screen-edit .edit-tab-btn:active{translate:0 2px;box-shadow:inset 0 2px 6px #0004,0 2px 0 #020400}
+#screen-edit .edit-tabs-scroll{padding:2px 1px 7px;scrollbar-width:thin;scroll-padding-inline:4px}
+#screen-edit .edit-tab-save-btn{width:44px;height:44px;min-width:44px;align-self:start;margin-top:2px}
+#screen-edit :is(.identity-account-panel,.identity-security-panel) :is(button,summary):focus-visible,#screen-edit .edit-tab-btn:focus-visible{outline:3px solid #eeffc9;outline-offset:4px}
+@media(min-width:900px){#screen-edit .identity-security-grid,#screen-edit .identity-account-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){#screen-edit .identity-settings-panel{padding:16px;margin-block:24px}#screen-edit .identity-totp-card{padding:14px}#screen-edit .identity-security-grid{gap:18px}#screen-edit :is(#sec-privacidad,.identity-totp-card) .field-toggle-wrap{padding:10px 12px;gap:10px}#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-right{gap:8px}#screen-edit :is(#sec-privacidad,.identity-totp-card) .toggle-status{font-size:8px;letter-spacing:.5px}#screen-edit .identity-totp-card .field-toggle-wrap{flex-wrap:wrap}#screen-edit .identity-totp-card .toggle-right{margin-inline-start:auto}#screen-edit .identity-account-panel .delete-account-section{padding:16px}}
+@media(prefers-reduced-motion:reduce){#screen-edit :is(.edit-tab-btn,.identity-account-panel button,.identity-security-panel button){translate:none!important;transition:none!important}}
+@media(forced-colors:active){#screen-edit :is(.identity-settings-panel,.identity-totp-card,.identity-save-card,.delete-account-section,.field-toggle-wrap,.app-update-section){border:1px solid CanvasText}}
+
+/* The authenticator label and switch share one row; its explanation has its own. */
+#screen-edit .identity-totp-card .field-toggle-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;row-gap:6px}
+#screen-edit .identity-totp-card .field-toggle-wrap>div:first-child{display:contents}
+#screen-edit .identity-totp-card .field-toggle-label{grid-column:1;grid-row:1}
+#screen-edit .identity-totp-card .twofa-sublabel{grid-column:1/-1;grid-row:2;margin:0}
+#screen-edit .identity-totp-card .toggle-right{grid-column:2;grid-row:1;margin:0}

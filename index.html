@@ -3006,13 +3006,14 @@
 </script>
 <link rel="stylesheet" href="/keyboard-comfort.css?v=2">
 <script defer src="/keyboard-comfort.js?v=3"></script>
-<link rel="stylesheet" href="/account-tools.css?v=57">
+<link rel="stylesheet" href="/account-tools.css?v=58">
+<link rel="stylesheet" href="/account-layout.css?v=58">
 <script defer src="/vendor/simplewebauthn/browser.umd.min.js?v=14"></script>
-<script defer src="/account-tools-i18n.js?v=57"></script>
+<script defer src="/account-tools-i18n.js?v=58"></script>
 <script defer src="/account-tools.js?v=57"></script>
 <script defer src="/local-recovery.js?v=57"></script>
 <script defer src="/account-access.js?v=57"></script>
-<script defer src="/account-wallet.js?v=57"></script>
+<script defer src="/account-wallet.js?v=58"></script>
 </head>
 <body data-account-product="identity">
 <div id="boot-gate"></div>
@@ -4218,30 +4219,35 @@
     </div>
   </fieldset>
 
+  <section class="identity-settings-panel identity-security-panel" id="sec-seguridad" aria-labelledby="identity-security-heading">
+    <h2 class="settings-panel-heading" id="identity-security-heading" data-i18n="index.edit.tab_security">Seguridad</h2>
+    <div class="identity-security-grid">
   <details class="account-tools" id="identity-account-tools">
     <summary data-tools-text="title">Acceso y recuperación</summary>
+    <div class="account-tools-body">
     <fieldset class="fel-action-root" data-form-edit-root disabled>
       <button type="button" id="passkey-enable" data-tools-text="enable" hidden></button>
       <button type="button" id="passkey-remove" data-tools-text="remove" hidden></button>
       <button type="button" id="identity-undo" data-tools-text="undo">Deshacer último cambio</button>
     </fieldset>
     <p id="identity-account-status" role="status" aria-live="polite"></p>
-    <div id="account-wallet-tools"></div>
+    <div id="account-wallet-tools" hidden></div>
+    </div>
   </details>
   <!-- SECCIÓN 2FA -->
-  <fieldset class="edit-section" id="sec-seguridad" data-form-edit-root disabled>
-    <div class="edit-section-title" data-i18n="index.twofa.title">Doble factor de autenticación (2FA)</div>
+  <fieldset class="edit-section identity-totp-card" aria-labelledby="identity-totp-heading" data-form-edit-root disabled>
+    <div class="edit-section-title" id="identity-totp-heading" data-i18n="index.twofa.title">Doble factor de autenticación (2FA)</div>
     <div class="twofa-info" data-i18n="index.twofa.info">
       Con 2FA activo, tras introducir tu contraseña necesitarás un segundo factor para entrar.
     </div>
     <div class="field-group">
       <div class="field-toggle-wrap">
         <div>
-          <div class="field-toggle-label" data-i18n="index.twofa.totp_label">Autenticador TOTP</div>
+          <div class="field-toggle-label" id="identity-totp-label" data-i18n="index.twofa.totp_label">Autenticador TOTP</div>
           <div class="twofa-sublabel" data-i18n="index.twofa.totp_sublabel">Google Authenticator / Authy</div>
         </div>
         <div class="toggle-right">
-          <label class="toggle-switch"><input type="checkbox" id="t-totp"><span class="toggle-slider"></span></label>
+          <label class="toggle-switch"><input type="checkbox" id="t-totp" aria-labelledby="identity-totp-label"><span class="toggle-slider"></span></label>
           <div class="toggle-status off" id="s-totp" data-i18n="index.twofa.status_off">Opcional</div>
         </div>
       </div>
@@ -4252,7 +4258,15 @@
     </div>
   </fieldset>
 
+    </div>
+  </section>
+
+  <section class="identity-settings-panel identity-account-panel" id="sec-cuenta" aria-labelledby="identity-account-heading">
+    <h2 class="settings-panel-heading" id="identity-account-heading" data-i18n="index.edit.tab_account">Cuenta</h2>
+    <div class="identity-account-grid">
+    <div class="identity-save-card">
   <fieldset class="fel-action-root" data-form-edit-root disabled><button class="btn-save" id="btn-save" data-i18n="index.edit.save_button">Guardar identidad</button></fieldset>
+    </div>
 
   <!-- ACTUALIZAR APLICACIÓN — vuelve a descargar el código de la app sin
        tocar ningún dato guardado (ver window.identiflyActualizarApp). -->
@@ -4261,8 +4275,10 @@
     <div class="app-update-version"><span data-i18n="index.update.version_label">Versión</span> <span id="app-update-version-num"></span></div>
   </div>
 
+    </div>
+
   <!-- BAJA VOLUNTARIA -->
-  <div class="delete-account-section" id="sec-cuenta">
+  <div class="delete-account-section">
     <div class="delete-account-label" data-i18n="index.delete.zone_label">Zona de eliminación de datos</div>
     <div class="delete-account-info" data-i18n-html="index.delete.zone_info_html">
       Borra tu tarjeta de este dispositivo y tu cuenta de nuestros servidores. Si tienes un plan activo, se cancelará sin reembolso. Esta acción es <strong>irreversible</strong>.
@@ -4277,6 +4293,7 @@
       <span data-i18n="index.delete.button">Eliminar todos mis datos — Baja voluntaria</span>
     </button></fieldset>
   </div>
+  </section>
   </div><!-- fin screen-edit-scroll -->
 </div>
 
@@ -8466,24 +8483,29 @@ editTabButtons.forEach(btn => {
   });
 });
 
-// Scroll-spy: mantiene marcada la pestaña de la sección visible aunque el
-// usuario haga scroll manual sin tocar ninguna pestaña. Se limita a
-// #screen-edit-scroll (el contenedor con scroll real, no la ventana) y
-// respeta que las secciones no siempre llenan el viewport.
+// Follow the visible section using all headings, not only the last observer batch.
+// Grouped security/account cards can have different heights; the sticky bar sets
+// the actual reading line. This only marks navigation and never saves data.
 (function setupEditTabsActiveState() {
   const scrollRoot = document.getElementById('screen-edit-scroll');
-  if (!scrollRoot || !editTabButtons.length || typeof IntersectionObserver === 'undefined') return;
-
-  const observer = new IntersectionObserver((entries) => {
-    const visible = entries.filter(e => e.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (visible) setActiveEditTab(visible.target.id);
-  }, { root: scrollRoot, rootMargin: '-84px 0px -60% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] });
-
-  editTabButtons.forEach(btn => {
-    const section = document.getElementById(btn.dataset.target);
-    if (section) observer.observe(section);
-  });
+  const bar = document.getElementById('edit-tabs-bar');
+  const sections = editTabButtons.map(btn => document.getElementById(btn.dataset.target)).filter(Boolean);
+  if (!scrollRoot || !bar || !sections.length) return;
+  let frame = 0;
+  function update() {
+    frame = 0;
+    if (!document.getElementById('screen-edit').classList.contains('open')) return;
+    const line = Math.max(scrollRoot.getBoundingClientRect().top, bar.getBoundingClientRect().bottom) + 24;
+    let current = sections[0];
+    for (const section of sections) if (section.getBoundingClientRect().top <= line) current = section;
+    if (scrollRoot.scrollTop + scrollRoot.clientHeight >= scrollRoot.scrollHeight - 3) current = sections[sections.length - 1];
+    setActiveEditTab(current.id);
+  }
+  function schedule() { if (!frame) frame = requestAnimationFrame(update); }
+  scrollRoot.addEventListener('scroll', schedule, {passive:true});
+  window.addEventListener('resize', schedule);
+  window.addEventListener('i18n:changed', schedule);
+  new MutationObserver(schedule).observe(document.getElementById('screen-edit'), {attributes:true,attributeFilter:['class']});
 })();
 
 // Foto file input legacy (por si acaso)
