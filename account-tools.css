@@ -1,0 +1,18 @@
+.account-tools,.account-tools-dialog{--tools-accent:#91d7ff;--tools-base:#16334a;color:inherit;font-family:inherit}
+[data-form-edit-product="identity"] .account-tools,body[data-account-product="identity"] .account-tools,body[data-account-product="identity"] .account-tools-dialog{--tools-accent:#aaff00;--tools-base:#202b0c}
+.account-tools{border:1px solid color-mix(in srgb,var(--tools-accent) 38%,transparent);border-radius:18px;padding:14px 16px;margin:16px 0;background:linear-gradient(155deg,color-mix(in srgb,var(--tools-base) 86%,white),var(--tools-base));box-shadow:inset 0 1px 0 #ffffff24,0 5px 0 #0006,0 12px 24px #0002}
+.account-tools summary{cursor:pointer;color:var(--tools-accent);font:inherit;font-weight:700;min-height:28px}
+.account-tools button,.account-tools-dialog button{font:inherit;font-weight:700;letter-spacing:normal;text-transform:none;min-height:48px;padding:12px 18px;margin:8px 6px 6px 0;border:1px solid var(--tools-accent);border-radius:14px;color:var(--tools-accent);background:linear-gradient(180deg,#ffffff24,transparent 55%),var(--tools-base);box-shadow:inset 0 1px 0 #ffffff50,0 4px 0 #02080ed9,0 8px 14px #0004;cursor:pointer;touch-action:manipulation}
+.account-tools button:not(:disabled):active,.account-tools-dialog button:not(:disabled):active{transform:translateY(3px);box-shadow:inset 0 0 18px color-mix(in srgb,var(--tools-accent) 45%,transparent),0 1px 0 #000,0 0 16px color-mix(in srgb,var(--tools-accent) 40%,transparent)}
+.account-tools button:disabled,.account-tools-dialog button:disabled{opacity:.5;cursor:default}
+.account-tools button:focus-visible,.account-tools-dialog button:focus-visible,.account-tools summary:focus-visible{outline:3px solid var(--tools-accent);outline-offset:4px}
+.account-tools fieldset{border:0;padding:0;margin:10px 0;min-width:0}
+.account-tools p,.account-tools-dialog p{color:#eef7ff;font-size:14px;line-height:1.5;letter-spacing:normal;margin:12px 0;overflow-wrap:anywhere}
+.account-tools [hidden],.account-tools-dialog [hidden]{display:none!important}
+.account-tools-dialog{max-width:440px;width:calc(100% - 32px);max-height:calc(100dvh - 32px);overflow:auto;border:1px solid var(--tools-accent);border-radius:22px;padding:24px;background:linear-gradient(140deg,#24394a,#0c1925);color:#eef7ff;box-sizing:border-box;box-shadow:inset 0 1px 0 #ffffff30,0 18px 60px #0008}
+body[data-account-product="identity"] .account-tools-dialog{background:linear-gradient(140deg,#222a16,#090c06)}
+.account-tools-dialog::backdrop{background:#020710c7;backdrop-filter:blur(5px)}
+.account-tools-dialog label{display:block;font:inherit;line-height:1.5;font-weight:700}
+.account-tools-dialog input{box-sizing:border-box;display:block;width:100%;min-height:52px;font:inherit;font-size:18px;padding:12px;margin:16px 0;border:1px solid var(--tools-accent);border-radius:12px;background:#07121d;color:#fff}
+.account-tools-dialog form{margin:0}.account-tools-actions{display:flex;flex-wrap:wrap;gap:8px}.account-tools-login{margin:12px 0;padding:0;border:0;background:none;box-shadow:none}.account-tools-login button{width:100%;margin:4px 0}
+@media(prefers-reduced-motion:reduce){.account-tools button:active,.account-tools-dialog button:active{transform:none}}

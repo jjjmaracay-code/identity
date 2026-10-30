@@ -242,7 +242,7 @@
           <tr>
             <td>Contenido de tu tarjeta de identidad (nombre, contacto, redes, enlaces)</td>
             <td>Mostrar tu tarjeta digital y generar tu QR</td>
-            <td><strong>En tu dispositivo</strong> — no se envía a nuestros servidores</td>
+            <td><strong>En tu dispositivo</strong>; la tarjeta profesional Business se almacena en el servidor solo cuando la publicas</td>
           </tr>
           <tr>
             <td>Estado de tu plan (prueba / Pro / Lifetime)</td>
@@ -264,6 +264,10 @@
     </div>
     <p>IDENTIFLY está diseñada para que el contenido de tu tarjeta de identidad viva principalmente en tu propio dispositivo. No accedemos a esos datos salvo que tú los compartas activamente generando y mostrando tu código QR.</p>
     <p>Para gestionar el número de dispositivos de tu plan guardamos un identificador aleatorio por dispositivo y el tipo genérico de dispositivo (por ejemplo, iPhone o Android). No guardamos tu IP ni la identificación completa de tu navegador. Se elimina al eliminar tu cuenta.</p>
+
+    <p><strong>Acceso con huella o rostro (opcional):</strong> conservamos en el servidor las claves públicas de verificación, identificadores opacos y fechas de uso. La contraseña, la clave privada y los resultados secretos del desbloqueo local no se envían a este servicio. La verificación biométrica la gestiona tu dispositivo.</p>
+    <p><strong>Deshacer cambios:</strong> las copias de recuperación de tu tarjeta se guardan cifradas en este dispositivo, con un máximo de tres copias y un límite conjunto de 128 KiB. Son recuperables durante siete días; no incluyen archivos multimedia, contraseñas ni la configuración de acceso. Se eliminan al borrar el almacenamiento de la aplicación.</p>
+    <p><strong>Wallet (opcional, cuando esté disponible):</strong> puedes solicitar un pase con el enlace de tu tarjeta profesional ya publicada. Solo se utiliza el contenido que has publicado expresamente. Apple o Google procesan el pase cuando decides añadirlo. La descarga de Apple utiliza un enlace temporal de dos minutos.</p>
 
     <h2>3. Finalidad del tratamiento</h2>
     <ul>
@@ -288,6 +292,8 @@
       <li><strong>Stripe</strong> (procesamiento de pagos) — Stripe, Inc.</li>
       <li><strong>Resend</strong> (envío de emails transaccionales) — Resend, Inc.</li>
       <li><strong>Cloudflare</strong> (hosting y almacenamiento del estado de tu plan) — Cloudflare, Inc.</li>
+      <li><strong>Railway</strong> (servicio de verificación de llaves de acceso y preparación opcional de pases Wallet).</li>
+      <li><strong>Apple o Google</strong>, si decides guardar un pase en su Wallet.</li>
     </ul>
     <p>Ninguno de estos proveedores utiliza tus datos con fines propios de marketing.</p>
 

@@ -3006,8 +3006,15 @@
 </script>
 <link rel="stylesheet" href="/keyboard-comfort.css?v=2">
 <script defer src="/keyboard-comfort.js?v=3"></script>
+<link rel="stylesheet" href="/account-tools.css?v=57">
+<script defer src="/vendor/simplewebauthn/browser.umd.min.js?v=14"></script>
+<script defer src="/account-tools-i18n.js?v=57"></script>
+<script defer src="/account-tools.js?v=57"></script>
+<script defer src="/local-recovery.js?v=57"></script>
+<script defer src="/account-access.js?v=57"></script>
+<script defer src="/account-wallet.js?v=57"></script>
 </head>
-<body>
+<body data-account-product="identity">
 <div id="boot-gate"></div>
 
 <!-- =================== OVERLAY PLANES =================== -->
@@ -3531,6 +3538,7 @@
   </div>
   <button type="submit" class="pin-enter pin-enter-anim" id="pin-enter-btn" disabled style="animation-delay:0.85s" data-i18n="index.pin.enter_button">Entrar</button>
   </form>
+<div class="account-tools account-tools-login"><button type="button" id="passkey-login" data-tools-text="login" hidden></button><p id="passkey-login-status" role="status" aria-live="polite"></p></div>
   <a href="/install.html" class="pin-enter-anim" style="display:block;margin-top:16px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.85s" data-i18n="index.pin.install_link">¿Primera vez? Instala la app en tu móvil</a>
   <a href="/register.html" id="link-no-account" class="pin-enter-anim" style="display:none;margin-top:8px;font-size:11px;color:rgba(170,255,0,0.5);font-family:'Inter',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;text-align:center;padding:6px 0;animation-delay:0.95s" data-i18n="index.pin.register_link">¿No tienes cuenta? Regístrate</a>
   <a class="growth-demo-entry" href="/demo.html" data-i18n="growth.demo_open">Ver demostración</a>
@@ -4210,6 +4218,16 @@
     </div>
   </fieldset>
 
+  <details class="account-tools" id="identity-account-tools">
+    <summary data-tools-text="title">Acceso y recuperación</summary>
+    <fieldset class="fel-action-root" data-form-edit-root disabled>
+      <button type="button" id="passkey-enable" data-tools-text="enable" hidden></button>
+      <button type="button" id="passkey-remove" data-tools-text="remove" hidden></button>
+      <button type="button" id="identity-undo" data-tools-text="undo">Deshacer último cambio</button>
+    </fieldset>
+    <p id="identity-account-status" role="status" aria-live="polite"></p>
+    <div id="account-wallet-tools"></div>
+  </details>
   <!-- SECCIÓN 2FA -->
   <fieldset class="edit-section" id="sec-seguridad" data-form-edit-root disabled>
     <div class="edit-section-title" data-i18n="index.twofa.title">Doble factor de autenticación (2FA)</div>
@@ -8279,6 +8297,7 @@ window.addEventListener('resize', measureEditNavigation);
 measureEditNavigation();
 
 function openEdit() {
+  window.IdentityLocalRecovery?.boundary();
   const d = profileData;
   const t = d.toggles || {};
   document.getElementById('f-name').value    = d.name    || '';
@@ -9022,6 +9041,7 @@ document.getElementById('btn-myqr-expand')?.addEventListener('click', (e) => {
 // debounced) deben comprobar este resultado antes de cerrar la pantalla o
 // dar por hecho que se guardó.
 function saveProfile() {
+  const previousProfile = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
   // Se valida ANTES de tocar profileData o localStorage: si alguna red
   // social es ambigua o inválida, no se guarda nada -- ni siquiera el
   // resto de campos -- y se avisa en el propio formulario. Así nunca se
@@ -9104,6 +9124,7 @@ function saveProfile() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
   }
 
+  window.IdentityLocalRecovery?.record(previousProfile, profileData).catch(() => {});
   renderCard();
   generateQR();
   return true;
@@ -9405,7 +9426,7 @@ function getOrCreateSalt() {
   return Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
 }
 
-async function deriveKeyFromPin(pin) {
+async function deriveKeyFromPin(pin, extractable = false) {
   const salt = getOrCreateSalt();
   const enc = new TextEncoder();
   const baseKey = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveKey']);
@@ -9413,7 +9434,7 @@ async function deriveKeyFromPin(pin) {
     { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
     baseKey,
     { name: 'AES-GCM', length: 256 },
-    false,
+    extractable,
     ['encrypt', 'decrypt']
   );
 }
@@ -10709,6 +10730,39 @@ const identityCredentialFields = IdentityAutofill.bind([
 document.getElementById('identity-login-email').addEventListener('keydown', event => {
   if (event.key === 'Enter') { event.preventDefault(); document.getElementById('pin-dots-display').focus(); }
 });
+</script>
+
+<script>
+// Narrow adapter: the new helpers never alter registration, billing or TOTP policy.
+const identityToolsAccount=()=>{let r={};try{r=JSON.parse(localStorage.getItem('identity_registration')||'{}');}catch(_){}return JSON.stringify([String(r.email||'').trim().toLowerCase(),r.timestamp||'',localStorage.getItem('identity_access_token')]);};
+const identityToolsInitialAccount=identityToolsAccount();
+window.IdentityAccountBridge = {
+  stamp:()=>JSON.stringify(['identity_registration','identity_access_token','identity_pin','identity_totp_secret','identity_2fa_config','identity_totp_salt','identity_device_id'].map(k=>localStorage.getItem(k))),
+  unlocked:()=>identityToolsInitialAccount===identityToolsAccount() && document.getElementById('screen-main').classList.contains('visible') && !document.getElementById('screen-2fa-verify').classList.contains('open'),
+  profile:()=>JSON.parse(JSON.stringify(profileData)),
+  async enrollmentKey(password){
+    const checked=await verifyPassword(password,localStorage.getItem(PIN_KEY));if(!checked.valid){pinError();return null;}
+    const key=await deriveKeyFromPin(password,true);
+    if(twoFAConfig.totp){
+      const secret=await decryptTOTPSecret(localStorage.getItem(TOTP_KEY),key);
+      const code=await AccountTools.prompt('totp','totp');if(!code||!secret||!verifyTOTPCode(secret,code))return null;
+    }
+    return new Uint8Array(await crypto.subtle.exportKey('raw',key));
+  },
+  async unlock(raw){
+    if(String(document.getElementById('identity-login-email').value||'').trim().toLowerCase()!==String(_reg.email||'').trim().toLowerCase()||!tieneRegistroServidor()||_trialBloqueadoLocal()||Date.now()<Number(localStorage.getItem('identity_block_until')||0))throw Error('access_denied');
+    sessionCryptoKey=await crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['encrypt','decrypt']);
+    pinBuffer='';updateDots();pinSuccess();
+  },
+  async restore(next,expected){
+    if(!this.unlocked()||expected!==localStorage.getItem(STORAGE_KEY))throw Error('locked_or_changed');
+    const persisted={...next,media:next.media?.isObjectUrl?{...next.media,src:null}:next.media};
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(persisted));profileData=next;
+    if(profileData.qrDesign)qrDesign={...qrDesign,...profileData.qrDesign};
+    if(profileData.qrTemplateId)selectedTemplateId=profileData.qrTemplateId;
+    renderCard();generateQR();openEdit();
+  }
+};
 </script>
 </body>
 </html>

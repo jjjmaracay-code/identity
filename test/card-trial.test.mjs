@@ -51,6 +51,7 @@ async function stripeFixture(t, cred) {
       metadata: { email, card_trial: 'true', account_id: await accountId(cred.token) } },
   };
   t.mock.method(globalThis, 'fetch', async (url, options = {}) => {
+    if(url==='https://doctorqr-backend-production.up.railway.app/api/passkeys/identity/purge')return Response.json({success:true});
     assert.ok(url.startsWith('https://api.stripe.com/v1/'));
     const method = options.method || 'GET', params = new URLSearchParams(options.body);
     calls.push({ url, method, params, headers: options.headers });

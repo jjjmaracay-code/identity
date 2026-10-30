@@ -1,6 +1,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { onRequestPost } from '../functions/api/delete-account.js';
+import { onRequestPost as deleteAccount } from '../functions/api/delete-account.js';
+
+// Existing billing tests keep their Stripe stubs; the newly added account-tools
+// deletion is acknowledged separately, and its failure path is tested below.
+async function onRequestPost(context){
+ const previous=globalThis.fetch;globalThis.fetch=async(url,options)=>url==='https://doctorqr-backend-production.up.railway.app/api/passkeys/identity/purge'?new Response(JSON.stringify({success:true}),{status:200}):previous(url,options);
+ try{return await deleteAccount(context);}finally{globalThis.fetch=previous;}
+}
 
 class FakeKV {
   constructor() { this.store = new Map(); }
@@ -367,4 +374,13 @@ test('si BUSINESS_DO /delete falla, no se borra nada (ni KV ni la marca)', async
   assert.equal(res.status, 500);
   assert.equal(data.error, 'No se pudo completar la solicitud, inténtalo más tarde');
   assert.equal(await existeAlgunRastro(env, email), true, 'no debió borrarse nada si el borrado de Business falló');
+});
+
+
+test('Account-tools deletion must be confirmed before reporting full account deletion',async()=>{
+ const env=makeEnv(),email='tools-delete@example.invalid',token='fictional-delete-token';await seedAccount(env,email,token);let calls=0;
+ globalThis.fetch=async(url,options)=>{assert.equal(url,'https://doctorqr-backend-production.up.railway.app/api/passkeys/identity/purge');assert.deepEqual(JSON.parse(options.body),{email,token});calls++;return new Response('{}',{status:503});};
+ const failed=await deleteAccount({request:makeRequest({email,token}),env});assert.equal(failed.status,500);assert.equal(calls,1);assert.equal(await existeAlgunRastro(env,email),true);
+ globalThis.fetch=async()=>new Response(JSON.stringify({success:true}),{status:200});
+ const done=await deleteAccount({request:makeRequest({email,token}),env});assert.equal(done.status,200);assert.equal(await existeAlgunRastro(env,email),false);
 });

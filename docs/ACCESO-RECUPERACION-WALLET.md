@@ -1,0 +1,21 @@
+# Acceso opcional y recuperación
+
+El panel **Acceso y recuperación** conserva el verde neón, las fuentes y el relieve existentes. No cambia el tamaño del teclado, el formulario de autorrelleno, el plazo de quince días, los QR, los planes ni los límites de dispositivos.
+
+La activación voluntaria exige la contraseña actual y, si estaba configurado, el autenticador. El navegador crea una passkey con verificación del usuario. Su extensión PRF permite envolver la clave local de cifrado con AES-GCM: ni la contraseña, ni esa clave, ni el resultado PRF se envían al servidor. Si no hay soporte PRF se conserva el acceso anterior y no se crea una credencial activa. Se activa por separado en cada dispositivo. El botón del login aparece cuando existe una activación local válida. Si el autenticador TOTP estaba habilitado, sigue siendo obligatorio después de usar la passkey.
+
+`/api/passkey-account` prueba la cuenta existente en modo de solo lectura, respetando token, plan y revocaciones/límites de dispositivos. El proxy acepta únicamente rutas predefinidas de passkeys/Wallet hacia el backend actual de Atabey, sin ampliar el CSP a destinos arbitrarios. En ese backend ambas apps tienen identidades separadas: Identifly nunca usa los pacientes médicos ni envía el contenido de su tarjeta personal. Se almacenan las claves públicas y metadatos mínimos. La baja de cuenta confirma la retirada de claves, retos y tickets de Wallet; si falla no se afirma que el borrado terminó.
+
+Los guardados de la tarjeta personal conservan hasta tres copias locales cifradas en IndexedDB, recuperables durante siete días, con un límite total de 128 KiB. Los autoguardados próximos se agrupan para no gastar las copias en cada pulsación. Se excluyen archivos multimedia y credenciales. **Deshacer último cambio** requiere edición desbloqueada, confirmación y la misma cuenta/versión local; restaura solo el perfil y vuelve a bloquear la edición. Las copias no se sincronizan con otro dispositivo. Se limpian periódicamente al abrir la app; al borrar los datos locales se elimina también esa base.
+
+Los módulos nuevos se precargan en `identity-v57`. No reemplazan los gestores de contraseñas ni el acceso normal cuando están sin conexión. El acceso con passkey requiere la verificación online del servidor; no extiende la vigencia de una sesión ni concede un plan.
+
+## Wallet pendiente de emisor
+
+El pase profesional reutiliza exclusivamente una tarjeta **IDENTIFLY BUSINESS ya publicada**. No convierte la tarjeta personal en pública ni la publica sin consentimiento. Apple se entrega como paquete firmado con ticket de descarga de dos minutos; Google como enlace firmado de cinco minutos. La información escrita en un pase no se actualiza por push: para cambiarla hay que regenerarlo; su QR abre la publicación actual.
+
+Sin credenciales válidas el panel indica que Wallet está pendiente y no ofrece emisiones ficticias. Faltan configurar certificados Apple, el emisor/clase/cuenta de servicio Google y comprobar aceptación en dispositivos reales e insignias oficiales de proveedor antes de activar Wallet. Véanse las variables y limitaciones en [la documentación del backend](https://github.com/jjjmaracay-code/doctorqr-backend/blob/main/docs/ACCESO-RECUPERACION-WALLET.md). No se han contratado servicios nuevos; estas funciones consumen recursos existentes.
+
+## Pruebas
+
+`node --test test/*.mjs test/*.test.js` incluye la prueba de cuenta, origen/rutas/límite del proxy, borrado confirmado y las reglas existentes de planes/dispositivos. `test/account-tools-browser.cjs` verifica en la interfaz real un autenticador virtual con PRF, el secreto local, la edición/restauración y el TOTP posterior, además del caso sin soporte PRF. `test/credential-autofill-browser.cjs` verifica autorrelleno y teclados. Se necesita Playwright, Chromium compatible con PRF y `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`, el backend hermano o `BACKEND_REPO`, y las dependencias QA. Solo se usan identidades ficticias; no se ha accedido a tarjetas de producción ni se ha probado la biometría en un teléfono real.

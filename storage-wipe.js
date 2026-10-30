@@ -65,7 +65,11 @@ async function borrarTodoElAlmacenamiento() {
       log('IndexedDB', despues.length === 0,
         `${antes.length} base(s) encontradas [${antes.map(d => d.name).join(', ') || 'ninguna'}], ${despues.length} restante(s) tras borrar`);
     } else {
-      log('IndexedDB', true, 'indexedDB.databases() no soportado en este navegador — nada que enumerar');
+      const removed=await conTimeout(new Promise((resolve,reject)=>{
+        const request=indexedDB.deleteDatabase('identifly-recovery-v1');
+        request.onsuccess=()=>resolve(true);request.onerror=()=>reject(request.error);request.onblocked=()=>resolve(false);
+      }),WIPE_TIMEOUT_MS,'delete recovery database');
+      log('IndexedDB',removed,'Base de recuperación conocida: '+(removed?'eliminada':'bloqueada; cierra las otras pestañas')+'. Este navegador no permite enumerar otras bases.');
     }
   } catch (e) {
     log('IndexedDB', false, e.message);

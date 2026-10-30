@@ -200,6 +200,17 @@ export async function onRequestPost(context) {
       }
     }
 
+    // Delete the optional passkeys/downloads for this exact account token.
+    // A failed remote deletion must not be reported as a complete account deletion.
+    try {
+      const tools=await fetch('https://doctorqr-backend-production.up.railway.app/api/passkeys/identity/purge', {
+        method:'POST',redirect:'error',signal:AbortSignal.timeout(8000),
+        headers:{'Content-Type':'application/json','Origin':'https://www.identifly.app'},
+        body:JSON.stringify({email:emailKey,token})
+      });
+      if(!tools.ok||(await tools.json()).success!==true)return genericFailure();
+    }catch(_){return genericFailure();}
+
     // Borrado de los datos de Business (Fase 0c): contenido de la
     // tarjeta (Durable Object storage) + el índice público bizid: en
     // BUSINESS_KV -- ver business-card-do.js:/delete. Se llama siempre,
