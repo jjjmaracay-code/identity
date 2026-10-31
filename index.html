@@ -4056,7 +4056,8 @@
       </div>
       <div class="field-wrap">
         <div class="field-label" data-i18n="index.edit.address_label">Dirección</div>
-        <input class="field-input" id="f-address" type="text" placeholder="Madrid, España" autocomplete="street-address" data-i18n-placeholder="index.edit.address_placeholder">
+        <input class="field-input" id="f-address" type="text" placeholder="Madrid, España" autocomplete="address-level2" data-i18n-placeholder="index.edit.address_placeholder">
+        <div class="field-hint" data-i18n="index.edit.address_hint">Por seguridad, indica solo ciudad y país. No pongas calle, número ni piso.</div>
       </div>
     </div>
   </fieldset>
@@ -8363,6 +8364,7 @@ function openEdit() {
   document.getElementById('f-email-work').value = d.emailWork || '';
   document.getElementById('f-company').value    = d.company   || '';
   document.getElementById('f-address').value = d.address || '';
+  actualizarAvisoDireccion();
   document.getElementById('f-linkedin').value= d.linkedin|| '';
   document.getElementById('f-github').value  = d.github  || '';
   document.getElementById('f-web').value     = d.web     || '';
@@ -8756,6 +8758,25 @@ function activarNormalizacionRedSocial(plataformaId) {
   });
 }
 Object.keys(NOMBRES_REDES_SOCIALES).forEach(activarNormalizacionRedSocial);
+
+// Dirección personal: por seguridad solo debe contener ciudad y país.
+// Aviso NO bloqueante: si el texto parece incluir calle, número o piso,
+// la línea .field-hint cambia a un aviso; el valor nunca se modifica ni
+// se impide guardar (no rompe perfiles ya guardados ni ciudades con
+// nombres poco comunes). Solo textContent: el texto del usuario jamás
+// se inserta como HTML. La dirección COMERCIAL (business.js) no se toca.
+const DIRECCION_DETALLADA_RE = /\d|(?:^|[\s,.])(?:calle|c\/|avda|avenida|plaza|paseo|carrera|piso|portal|bloque|escalera|n[º°]|street|road|avenue|apartment|apt|rue|rua)(?=$|[\s,.])|stra(?:ss|ß)e(?=$|[\s,.])/i;
+function actualizarAvisoDireccion() {
+  const input = document.getElementById('f-address');
+  const hint = input?.parentElement?.querySelector('.field-hint');
+  if (!hint) return;
+  const detallada = DIRECCION_DETALLADA_RE.test(input.value || '');
+  hint.textContent = detallada
+    ? tOrFallback('index.edit.address_warning', 'Parece que incluye calle, número o piso. Por tu seguridad, deja solo la ciudad y el país.')
+    : tOrFallback('index.edit.address_hint', 'Por seguridad, indica solo ciudad y país. No pongas calle, número ni piso.');
+  hint.classList.toggle('field-hint-error', detallada);
+}
+document.getElementById('f-address')?.addEventListener('blur', actualizarAvisoDireccion);
 
 // =================== MIS QR · REDES Y WEB ===================
 // QR individuales de complemento (LinkedIn, GitHub, Instagram, X, YouTube,
@@ -10066,22 +10087,19 @@ async function extractData(text) {
 
   const CIUDADES = /Madrid|Barcelona|Valencia|Sevilla|Zaragoza|M[aá]laga|Murcia|Palma|Las Palmas|Bilbao|Alicante|C[oó]rdoba|Valladolid|Vigo|Gij[oó]n|Vitoria|La Coru[ñn]a|Granada|Elche|San Sebasti[aá]n|Santander|Salamanca|Pamplona|Almer[ií]a|Tarragona|Girona|M[eé]xico|Ciudad de M[eé]xico|Guadalajara|Monterrey|Bogot[aá]|Medell[ií]n|Buenos Aires|C[oó]rdoba|Rosario|Santiago de Chile|Lima|Quito|Montevideo|Caracas|San Juan|Colombia|Argentina|Chile|Per[uú]|Ecuador|Uruguay|Venezuela|, Espa[ñn]a|, M[eé]xico|, Argentina|, Chile|, Colombia|, Per[uú]/i;
   const CIUDADES_WORDS = ['Madrid','Barcelona','Valencia','Sevilla','Zaragoza','Málaga','Murcia','Palma','Bilbao','Alicante','Córdoba','Valladolid','Vigo','Gijón','Vitoria','Granada','Elche','Salamanca','Pamplona','Santander','México','Guadalajara','Monterrey','Bogotá','Medellín','Santiago','Lima','Quito','Montevideo','Caracas','Colombia','Argentina','Chile','Perú','Ecuador','Uruguay'];
-  // Línea de dirección de calle (ej. "Calle Mayor 12", "Av. Reforma 200",
-  // "C/ Serrano 45") — complementa la lista cerrada de ciudades: es una
-  // señal más débil (no confirma la ciudad, solo que hay una dirección),
-  // así que va con confidence 'low' y solo si no se encontró ya ciudad.
-  const DIRECCION_RE = /^(?:Calle|C\/|Avda?\.?|Avenida|Av\.|Pl(?:aza)?\.?|Paseo)\s+.+\d/i;
+  // Por seguridad, el campo de dirección solo admite ciudad y país: la
+  // importación nunca propone una línea con calle, número o piso (antes
+  // existía un respaldo que importaba "Calle Mayor 12" y similares; se
+  // retira). Misma regla que el aviso del formulario
+  // (DIRECCION_DETALLADA_RE, junto a actualizarAvisoDireccion).
   for (const line of lines) {
     if (line.length >= 80) continue;
+    if (DIRECCION_DETALLADA_RE.test(line)) continue;
     const exacto = CIUDADES.test(line);
     if (exacto || lineHasFuzzyWord(line, CIUDADES_WORDS)) {
       result.ciudad = { value: line, confidence: exacto ? 'medium' : 'low' };
       break;
     }
-  }
-  if (!result.ciudad) {
-    const dirLine = lines.find(l => l.length < 80 && DIRECCION_RE.test(l));
-    if (dirLine) result.ciudad = { value: dirLine, confidence: 'low' };
   }
 
   const UNIV_RE = /Universidad|University|Grado en|M[aá]ster en|Bachelor|Master's/i;

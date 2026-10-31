@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "Моя Компания ООО",
   "index.edit.address_label": "Адрес",
   "index.edit.address_placeholder": "Москва, Россия",
+  "index.edit.address_hint": "В целях безопасности укажите только город и страну. Без улицы, номера дома и квартиры.",
+  "index.edit.address_warning": "Похоже, здесь указаны улица, номер или квартира. Для вашей безопасности оставьте только город и страну.",
   "index.edit.social_title": "Соцсети и профили",
   "index.edit.web_label": "Личный сайт",
   "index.edit.web_placeholder": "mysite.com",

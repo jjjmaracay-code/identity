@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "मेरी कंपनी प्राइवेट लिमिटेड",
   "index.edit.address_label": "पता",
   "index.edit.address_placeholder": "दिल्ली, भारत",
+  "index.edit.address_hint": "सुरक्षा के लिए, केवल शहर और देश लिखें। गली, मकान नंबर या मंज़िल न लिखें।",
+  "index.edit.address_warning": "इसमें गली, नंबर या मंज़िल लगती है। अपनी सुरक्षा के लिए केवल शहर और देश रखें।",
   "index.edit.social_title": "सामाजिक नेटवर्क और प्रोफ़ाइलें",
   "index.edit.web_label": "व्यक्तिगत वेबसाइट",
   "index.edit.web_placeholder": "yourwebsite.com",

@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "Mon Entreprise SARL",
   "index.edit.address_label": "Adresse",
   "index.edit.address_placeholder": "Paris, France",
+  "index.edit.address_hint": "Par sécurité, indiquez seulement la ville et le pays. Pas de rue, de numéro ni d’étage.",
+  "index.edit.address_warning": "Cela semble inclure une rue, un numéro ou un étage. Par sécurité, gardez seulement la ville et le pays.",
   "index.edit.social_title": "Réseaux et profils",
   "index.edit.web_label": "Site web personnel",
   "index.edit.web_placeholder": "monsiteweb.com",

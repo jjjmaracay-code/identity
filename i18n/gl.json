@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "A Miña Empresa S.L.",
   "index.edit.address_label": "Enderezo",
   "index.edit.address_placeholder": "Santiago de Compostela, España",
+  "index.edit.address_hint": "Por seguridade, indica só cidade e país. Non poñas rúa, número nin andar.",
+  "index.edit.address_warning": "Parece que inclúe rúa, número ou andar. Pola túa seguridade, deixa só a cidade e o país.",
   "index.edit.social_title": "Redes e perfís",
   "index.edit.web_label": "Web persoal",
   "index.edit.web_placeholder": "aturaweb.com",

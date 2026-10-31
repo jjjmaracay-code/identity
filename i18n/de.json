@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "Meine Firma GmbH",
   "index.edit.address_label": "Adresse",
   "index.edit.address_placeholder": "Berlin, Deutschland",
+  "index.edit.address_hint": "Gib aus Sicherheitsgründen nur Stadt und Land an. Keine Straße, Hausnummer oder Etage.",
+  "index.edit.address_warning": "Das scheint Straße, Hausnummer oder Etage zu enthalten. Lass zu deiner Sicherheit nur Stadt und Land stehen.",
   "index.edit.social_title": "Netzwerke und Profile",
   "index.edit.web_label": "Persönliche Website",
   "index.edit.web_placeholder": "deinewebsite.com",

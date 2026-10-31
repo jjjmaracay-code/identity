@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "La Meva Empresa S.L.",
   "index.edit.address_label": "Adreça",
   "index.edit.address_placeholder": "Barcelona, Espanya",
+  "index.edit.address_hint": "Per seguretat, indica només ciutat i país. No hi posis carrer, número ni pis.",
+  "index.edit.address_warning": "Sembla que inclou carrer, número o pis. Per la teva seguretat, deixa només la ciutat i el país.",
   "index.edit.social_title": "Xarxes i perfils",
   "index.edit.web_label": "Web personal",
   "index.edit.web_placeholder": "lateveweb.com",

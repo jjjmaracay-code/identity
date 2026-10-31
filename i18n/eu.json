@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "Nire Enpresa S.L.",
   "index.edit.address_label": "Helbidea",
   "index.edit.address_placeholder": "Bilbo, Euskal Herria",
+  "index.edit.address_hint": "Segurtasunagatik, idatzi hiria eta herrialdea soilik. Ez jarri kalea, zenbakia edo solairua.",
+  "index.edit.address_warning": "Badirudi kalea, zenbakia edo solairua dituela. Zure segurtasunerako, utzi hiria eta herrialdea soilik.",
   "index.edit.social_title": "Sareak eta profilak",
   "index.edit.web_label": "Web pertsonala",
   "index.edit.web_placeholder": "zureweb.com",

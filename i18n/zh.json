@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "我的公司有限公司",
   "index.edit.address_label": "地址",
   "index.edit.address_placeholder": "北京市",
+  "index.edit.address_hint": "为了安全，请只填写城市和国家，不要填写街道、门牌号或楼层。",
+  "index.edit.address_warning": "内容似乎包含街道、门牌号或楼层。为了你的安全，请只保留城市和国家。",
   "index.edit.social_title": "社交媒体与个人资料",
   "index.edit.web_label": "个人网站",
   "index.edit.web_placeholder": "yourwebsite.com",

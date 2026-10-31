@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "My Company Inc.",
   "index.edit.address_label": "Address",
   "index.edit.address_placeholder": "New York, USA",
+  "index.edit.address_hint": "For your safety, enter only your city and country. Do not include street, number or flat.",
+  "index.edit.address_warning": "This looks like it includes a street, number or flat. For your safety, keep only the city and country.",
   "index.edit.social_title": "Social links and profiles",
   "index.edit.web_label": "Personal website",
   "index.edit.web_placeholder": "yourwebsite.com",

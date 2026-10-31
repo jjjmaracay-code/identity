@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "Minha Empresa Ltda.",
   "index.edit.address_label": "Endereço",
   "index.edit.address_placeholder": "São Paulo, Brasil",
+  "index.edit.address_hint": "Por segurança, indique apenas a cidade e o país. Não coloque rua, número nem andar.",
+  "index.edit.address_warning": "Parece incluir rua, número ou andar. Por segurança, deixe apenas a cidade e o país.",
   "index.edit.social_title": "Redes e perfis",
   "index.edit.web_label": "Site pessoal",
   "index.edit.web_placeholder": "meusite.com",

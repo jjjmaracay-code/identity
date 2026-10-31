@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "株式会社サンプル",
   "index.edit.address_label": "住所",
   "index.edit.address_placeholder": "東京都",
+  "index.edit.address_hint": "安全のため、市区町村と国のみを入力してください。番地・建物名・部屋番号は入れないでください。",
+  "index.edit.address_warning": "番地や部屋番号が含まれているようです。安全のため、市区町村と国のみにしてください。",
   "index.edit.social_title": "SNSとプロフィール",
   "index.edit.web_label": "個人サイト",
   "index.edit.web_placeholder": "yourwebsite.com",

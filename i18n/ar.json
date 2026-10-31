@@ -363,6 +363,8 @@
   "index.edit.company_placeholder": "شركتي",
   "index.edit.address_label": "العنوان",
   "index.edit.address_placeholder": "مدريد، إسبانيا",
+  "index.edit.address_hint": "لأمانك، اكتب المدينة والدولة فقط. لا تكتب الشارع أو الرقم أو الطابق.",
+  "index.edit.address_warning": "يبدو أنه يتضمن شارعًا أو رقمًا أو طابقًا. لأمانك، اترك المدينة والدولة فقط.",
   "index.edit.social_title": "الشبكات والملفات",
   "index.edit.web_label": "الموقع الشخصي",
   "index.edit.web_placeholder": "example.com",

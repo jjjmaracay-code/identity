@@ -374,6 +374,8 @@
   "index.edit.company_placeholder": "Mi Empresa S.L.",
   "index.edit.address_label": "Dirección",
   "index.edit.address_placeholder": "Madrid, España",
+  "index.edit.address_hint": "Por seguridad, indica solo ciudad y país. No pongas calle, número ni piso.",
+  "index.edit.address_warning": "Parece que incluye calle, número o piso. Por tu seguridad, deja solo la ciudad y el país.",
   "index.edit.social_title": "Redes y perfiles",
   "index.edit.web_label": "Web personal",
   "index.edit.web_placeholder": "tuwebpersonal.com",
