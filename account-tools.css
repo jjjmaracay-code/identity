@@ -34,3 +34,23 @@ body[data-account-product="identity"] .account-tools-dialog{background:linear-gr
 .account-tools-body button:disabled{opacity:.65}
 #account-wallet-tools[hidden]{display:none!important}
 @media(max-width:480px){.account-tools-body{padding:16px;gap:12px}:is(#account-access-tools,#identity-account-tools)>summary{padding:14px 16px;font-size:14px}}
+
+/* Biometric access: visible even while collapsed, with a distinct primary action. */
+:is(#account-access-tools,#identity-account-tools){border:2px solid color-mix(in srgb,var(--tools-accent) 72%,transparent);box-shadow:inset 0 2px 0 #ffffff50,inset 0 -2px 0 #0005,0 6px 0 #020810,0 0 0 3px color-mix(in srgb,var(--tools-accent) 7%,transparent),0 14px 28px #0005}
+:is(#account-access-tools,#identity-account-tools)>summary{min-height:88px;gap:14px;padding:18px}
+:is(#account-access-tools,#identity-account-tools)>summary::before{order:3;margin-inline-start:auto;flex-shrink:0}
+.account-tools-symbol{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border:1px solid var(--tools-accent);border-radius:15px;background:linear-gradient(150deg,#ffffff24,#ffffff05);box-shadow:inset 0 1px 0 #fff6,0 3px 0 #0007,0 0 16px color-mix(in srgb,var(--tools-accent) 15%,transparent)}
+.account-tools-symbol svg{display:block;width:32px;height:32px}
+.account-tools-heading{display:grid;gap:4px;min-width:0;flex:1;line-height:1.4;letter-spacing:normal;overflow-wrap:anywhere}
+.account-tools-title{color:#edf8ff;font-size:17px;font-weight:800}
+.account-tools-subtitle{color:var(--tools-accent);font-size:11px;font-weight:650}
+.account-tools-body>fieldset{grid-column:1/-1;display:grid;gap:12px;margin:0}
+.account-tools-body button{min-height:56px;border-width:2px;font-size:14px}
+.account-tools :is(#passkey-enable,#passkey-login){min-height:58px;border:2px solid #cff2ff;background:linear-gradient(165deg,#d8f3ff,#91dcff 48%,#56b8eb);color:#062439;font-weight:800;text-shadow:0 1px 0 #ffffff60;box-shadow:inset 0 2px 0 #ffffffb0,inset 0 -3px 0 #22608870,0 6px 0 #020c18,0 0 16px #78cfff25}
+body[data-account-product="identity"] .account-tools :is(#passkey-enable,#passkey-login){border-color:#dcff9a;background:linear-gradient(165deg,#e0ff9a,#aaff00 48%,#86cf00);color:#142300;box-shadow:inset 0 2px 0 #f3ffcf,inset 0 -3px 0 #4b7600,0 6px 0 #020600,0 0 16px #aaff0026}
+.account-tools :is(#passkey-enable,#passkey-login):not(:disabled):active{transform:translateY(3px);filter:brightness(1.08);box-shadow:inset 0 2px 8px #0003,0 2px 0 #020810,0 0 24px color-mix(in srgb,var(--tools-accent) 50%,transparent)}
+.account-tools #passkey-remove{background:linear-gradient(165deg,#ffffff12,#00000020);border-color:color-mix(in srgb,var(--tools-accent) 60%,transparent);color:#e5f2f8}
+.account-tools-body>[role="status"]:not(:empty){padding:12px 14px;border:1px solid color-mix(in srgb,var(--tools-accent) 45%,transparent);border-radius:12px;background:#020b1259;box-shadow:inset 0 1px 5px #0004;font-size:13px}
+@media(max-width:480px){:is(#account-access-tools,#identity-account-tools)>summary{min-height:84px;padding:16px;gap:12px}.account-tools-title{font-size:16px}.account-tools-symbol{flex-basis:44px;width:44px;height:44px}.account-tools-symbol svg{width:29px;height:29px}}
+@media(prefers-reduced-motion:reduce){.account-tools :is(#passkey-enable,#passkey-login):active{transform:none}}
+@media(forced-colors:active){.account-tools-symbol,.account-tools :is(#passkey-enable,#passkey-login),.account-tools-body>[role="status"]{border:2px solid ButtonText}}

@@ -8,7 +8,7 @@ La activación voluntaria exige la contraseña actual y, si estaba configurado, 
 
 Los guardados de la tarjeta personal conservan hasta tres copias locales cifradas en IndexedDB, recuperables durante siete días, con un límite total de 128 KiB. Los autoguardados próximos se agrupan para no gastar las copias en cada pulsación. Se excluyen archivos multimedia y credenciales. **Deshacer último cambio** requiere edición desbloqueada, confirmación y la misma cuenta/versión local; restaura solo el perfil y vuelve a bloquear la edición. Las copias no se sincronizan con otro dispositivo. Se limpian periódicamente al abrir la app; al borrar los datos locales se elimina también esa base.
 
-Los módulos se precargan en `identity-v59`. No reemplazan los gestores de contraseñas ni el acceso normal cuando están sin conexión. El acceso con passkey requiere la verificación online del servidor; no extiende la vigencia de una sesión ni concede un plan.
+Los módulos se precargan en `identity-v60`. No reemplazan los gestores de contraseñas ni el acceso normal cuando están sin conexión. El acceso con passkey requiere la verificación online del servidor; no extiende la vigencia de una sesión ni concede un plan.
 
 La recuperación automática de tokens de cuentas antiguas y la confirmación de registros pendientes actualizan el contexto de acceso y recuperación en la misma página, sin pedir una recarga. La confirmación pendiente termina antes de intentar reclamar otro token. Las respuestas tardías de registro, reclamación o comprobación del plan se descartan si la cuenta cambió; un cambio de almacenamiento desde otra pestaña no autoriza a la sesión anterior a adoptar esa cuenta.
 

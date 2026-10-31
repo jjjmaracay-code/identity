@@ -48,3 +48,12 @@
 #screen-edit .identity-totp-card .field-toggle-label{grid-column:1;grid-row:1}
 #screen-edit .identity-totp-card .twofa-sublabel{grid-column:1/-1;grid-row:2;margin:0}
 #screen-edit .identity-totp-card .toggle-right{grid-column:2;grid-row:1;margin:0}
+
+/* The editor's exit is easy to find without competing with destructive actions. */
+#screen-edit .edit-header{gap:12px;flex-wrap:wrap}
+#screen-edit .edit-header-right{gap:12px;flex-wrap:wrap;justify-content:flex-end;margin-inline-start:auto}
+#screen-edit #btn-close-edit{min-height:48px;min-width:114px;padding:12px 18px;border:2px solid #d2ff7c;border-radius:14px;background:linear-gradient(165deg,#45611c,#223b0b 53%,#122303);color:#e9ffc3;font-weight:800;font-size:12px;letter-spacing:1.2px;line-height:1.45;box-shadow:inset 0 2px 0 #efffbc80,inset 0 -3px 0 #0b1602,0 6px 0 #020400,0 0 0 3px #aaff0014,0 10px 20px #0007!important;transition:box-shadow .12s ease,translate .12s ease}
+#screen-edit #btn-close-edit:active{translate:0 3px;background:linear-gradient(165deg,#caff6a,#aaff00)!important;color:#112000!important;box-shadow:inset 0 2px 6px #52780066,0 2px 0 #020400,0 0 22px #aaff0066!important}
+#screen-edit #btn-close-edit:focus-visible{outline:3px solid #f3ffda;outline-offset:4px}
+@media(hover:hover){#screen-edit #btn-close-edit:hover{border-color:#f2ffd9;background:linear-gradient(165deg,#587b23,#2a4a0a);color:#f5ffe8}}
+@media(prefers-reduced-motion:reduce){#screen-edit #btn-close-edit{translate:none;transition:none}}

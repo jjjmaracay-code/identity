@@ -33,5 +33,7 @@ const walletLabels={es:['Añadir a Apple Wallet','Añadir a Google Wallet'],en:[
 keys.push('walletApple','walletGoogle');for(const [lang,values]of Object.entries(texts))values.push(...walletLabels[lang]);
 const accountTitles={es:'Tu cuenta',en:'Your account',fr:'Votre compte',de:'Ihr Konto',pt:'A sua conta',ca:'El teu compte',gl:'A túa conta',eu:'Zure kontua',ar:'حسابك',ru:'Ваш аккаунт',zh:'您的账户',ja:'アカウント',hi:'आपका खाता'};
 keys.push('accountTitle');for(const [lang,values]of Object.entries(texts))values.push(accountTitles[lang]);
+const biometricTitles={es:'Huella o rostro',en:'Fingerprint or face',fr:'Empreinte ou visage',de:'Fingerabdruck oder Gesicht',pt:'Impressão digital ou rosto',ca:'Empremta o rostre',gl:'Pegada ou rostro',eu:'Hatz-marka edo aurpegia',ar:'البصمة أو الوجه',ru:'Отпечаток или лицо',zh:'指纹或面容',ja:'指紋・顔認証',hi:'फ़िंगरप्रिंट या चेहरा'};
+keys.push('biometricsTitle');for(const [lang,values]of Object.entries(texts))values.push(biometricTitles[lang]);
 window.AccountToolsText=key=>{const lang=(window.currentLanguage||document.documentElement.lang||'es').split('-')[0];return(texts[lang]||texts.en)[keys.indexOf(key)]||key;};
 })();

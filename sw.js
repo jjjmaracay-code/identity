@@ -449,15 +449,16 @@
 // v57: optional passkeys, local recovery and prepared Wallet integration.
 // v58: grouped security/account panels and restrained 3D surfaces.
 // v59: same-page token recovery and account-bound delayed replies.
-const APP_VERSION = '59';
+// v60: visible biometric settings and stronger exit controls.
+const APP_VERSION = '60';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
   '/vendor/simplewebauthn/browser.umd.min.js?v=14',
-  '/account-tools-i18n.js?v=58',
+  '/account-tools-i18n.js?v=60',
   '/account-tools.js?v=57',
-  '/account-tools.css?v=58',
-  '/account-layout.css?v=58',
+  '/account-tools.css?v=60',
+  '/account-layout.css?v=60',
   '/account-access.js?v=59',
   '/account-wallet.js?v=58',
   '/local-recovery.js?v=57',
