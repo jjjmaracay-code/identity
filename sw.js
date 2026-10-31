@@ -451,7 +451,8 @@
 // v59: same-page token recovery and account-bound delayed replies.
 // v60: visible biometric settings and stronger exit controls.
 // v61: personal address limited to city and country (hint, non-blocking warning, safer import).
-const APP_VERSION = '61';
+// v62: larger, more readable hint under the personal address field.
+const APP_VERSION = '62';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
