@@ -1058,6 +1058,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Si leer localStorage falla al arrancar -- el navegador bloqueando el
+// acceso por privacidad, por ejemplo -- antes esto detenía TODO el
+// script sin capturar. Trata cualquier fallo como si la clave no
+// existiera y sigue; nunca borra nada.
+function leerStorage(storage, key) {
+  try { return storage.getItem(key); } catch (_) { return null; }
+}
+
 // =================== ESTADO ===================
 const REG_KEY = 'identity_registration';
 
@@ -1069,7 +1077,7 @@ const REG_KEY = 'identity_registration';
 // hay un registro de servidor real -- register.html nunca toca
 // identity_data (ver más abajo), así que el perfil local de esos casos
 // llega intacto.
-if (localStorage.getItem(REG_KEY)) {
+if (leerStorage(localStorage, REG_KEY)) {
   document.body.innerHTML = `
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#000;font-family:'Inter',sans-serif;text-align:center;">
       <div style="max-width:360px;">
@@ -1819,7 +1827,7 @@ function showToast(msg) {
   }
 
   function showStep(n) {
-    if (localStorage.getItem(TOUR_KEY)) return;
+    if (leerStorage(localStorage, TOUR_KEY)) return;
     let i = n;
     while (i < STEPS.length && !getEl(STEPS[i].sel)) i++;
     if (i >= STEPS.length) { finish(); return; }
@@ -1884,8 +1892,8 @@ function showToast(msg) {
 
   // Exponer API antes de tocar el DOM (el HTML del tour se encuentra tras el cierre del script)
   window.regTour = {
-    init()      { if (!localStorage.getItem(TOUR_KEY)) setTimeout(() => showStep(0), 900); },
-    onScreen2() { if (!localStorage.getItem(TOUR_KEY) && STEPS[step]?.screen === '2') setTimeout(() => showStep(step), 500); },
+    init()      { if (!leerStorage(localStorage, TOUR_KEY)) setTimeout(() => showStep(0), 900); },
+    onScreen2() { if (!leerStorage(localStorage, TOUR_KEY) && STEPS[step]?.screen === '2') setTimeout(() => showStep(step), 500); },
   };
 
   function _regTourSetup() {

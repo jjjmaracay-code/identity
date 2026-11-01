@@ -4797,6 +4797,22 @@
 // el parámetro. Solo decide si _verificarTrialServidor() abre la
 // recuperación en vez de rebotar a paywall.html -- nunca concede ningún
 // plan por sí mismo (ver _bloqueadoRedirigirOVincular() más abajo).
+// Si leer o parsear localStorage/sessionStorage falla al arrancar --
+// dato antiguo corrupto de una versión anterior de la app, o el
+// navegador bloqueando el acceso por privacidad -- antes esto detenía
+// TODO el script sin capturar (una sola línea sin try/catch aquí mismo,
+// muy al principio, dejaba media app sin dibujarse). Trata cualquier
+// fallo como si la clave no existiera y sigue; nunca borra nada.
+function leerStorage(storage, key) {
+  try { return storage.getItem(key); } catch (_) { return null; }
+}
+function leerJSONStorage(storage, key, porDefecto) {
+  try {
+    const raw = storage.getItem(key);
+    return raw ? JSON.parse(raw) : porDefecto;
+  } catch (_) { return porDefecto; }
+}
+
 const _vincularCompra = new URLSearchParams(location.search).get('vincular') === '1';
 if (_vincularCompra) {
   const _uSinVincular = new URL(location.href);
@@ -4804,11 +4820,11 @@ if (_vincularCompra) {
   history.replaceState(null, '', _uSinVincular.pathname + _uSinVincular.search + _uSinVincular.hash);
 }
 
-const _reg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+const _reg = leerJSONStorage(localStorage, 'identity_registration', {});
 
 // Only a confirmed token issued to this page's unchanged account may refresh
 // the optional helpers. A storage change from another tab never rebinds them.
-const identityToolsAccount=()=>{let r={};try{r=JSON.parse(localStorage.getItem('identity_registration')||'{}');}catch(_){}return JSON.stringify([String(r.email||'').trim().toLowerCase(),r.timestamp||'',localStorage.getItem('identity_access_token')]);};
+const identityToolsAccount=()=>{const r=leerJSONStorage(localStorage,'identity_registration',{});return JSON.stringify([String(r.email||'').trim().toLowerCase(),r.timestamp||'',leerStorage(localStorage,'identity_access_token')]);};
 let identityToolsInitialAccount=identityToolsAccount();
 function identityToolsAcceptToken(expected,token){
   if(expected!==identityToolsAccount()||typeof token!=='string'||!token)return false;
@@ -4829,13 +4845,13 @@ function identityToolsAcceptToken(expected,token){
 // nunca por el servidor, lo que además dejaba sin efecto la expiración
 // de la prueba de 30 días -- ver _trialBloqueadoLocal() más abajo).
 function tieneRegistroServidor() {
-  return !!(localStorage.getItem('identity_registration') && localStorage.getItem('identity_access_token'));
+  return !!(leerStorage(localStorage, 'identity_registration') && leerStorage(localStorage, 'identity_access_token'));
 }
 
 // Aviso de que el borrado se completó -- solo aparece justo tras la
 // recarga que hace finishLocalWipeAndReturnToConsent() (ver más abajo),
 // nunca en una carga normal de la página.
-if (sessionStorage.getItem('identity_just_deleted')) {
+if (leerStorage(sessionStorage, 'identity_just_deleted')) {
   sessionStorage.removeItem('identity_just_deleted');
   window.i18nReady.finally(() => showToast(t('index.delete.all_deleted_toast')));
 }
@@ -4844,7 +4860,7 @@ if (sessionStorage.getItem('identity_just_deleted')) {
 // mismo patrón que el aviso de borrado de arriba: el borrado completo ya
 // ocurrió ANTES de esta recarga (ver finishLocalWipeAndReturnToConsent()
 // más abajo), aquí solo se muestra el aviso.
-if (sessionStorage.getItem('identity_device_revoked')) {
+if (leerStorage(sessionStorage, 'identity_device_revoked')) {
   sessionStorage.removeItem('identity_device_revoked');
   window.i18nReady.finally(() => showToast(t('index.devices.revoked_toast')));
 }
@@ -4871,7 +4887,7 @@ function _verificacionServidorReciente() {
 function _trialBloqueadoLocal() {
   if (_reg.cardTrialRequired) return !_verificacionServidorReciente();
   if (!_reg.timestamp) return false;
-  if (PLANES_PAGO.includes(localStorage.getItem('identity_plan'))) {
+  if (PLANES_PAGO.includes(leerStorage(localStorage, 'identity_plan'))) {
     return !_verificacionServidorReciente();
   }
   const _days = Math.floor((Date.now() - new Date(_reg.timestamp)) / (1000*60*60*24));
@@ -4917,10 +4933,10 @@ function _bloqueadoRedirigirOVincular() {
 // tiempo, register-complete.js lo rechazará y el reintento dejará de
 // poder completarse (el usuario tendría que registrarse de nuevo).
 const identityRegistrationRetry=(async function _reintentarRegistroPendiente() {
-  if (localStorage.getItem('identity_kv_sync_pending') !== 'true') return;
+  if (leerStorage(localStorage, 'identity_kv_sync_pending') !== 'true') return;
   if (!_reg.email) return;
   const expectedAccount=identityToolsAccount();
-  const pendingCode = localStorage.getItem('identity_pending_verify_code') || '';
+  const pendingCode = leerStorage(localStorage, 'identity_pending_verify_code') || '';
   try {
     const res = await fetch('/api/register-complete', {
       method: 'POST',
@@ -4959,7 +4975,7 @@ const identityRegistrationRetry=(async function _reintentarRegistroPendiente() {
   // DOMContentLoaded de más arriba.
   if (!_reg.timestamp || !_reg.email) return;
 
-  let token = localStorage.getItem('identity_access_token');
+  let token = leerStorage(localStorage, 'identity_access_token');
 
   // Migración automática, una sola vez: cuentas registradas antes de que
   // existiera el token intentan reclamar uno usando el registeredAt
@@ -5428,7 +5444,7 @@ document.getElementById('btn-device-limit-confirm')?.addEventListener('click', a
 // normalidad: pinEnterBtn() decide qué hacer tras verificar la
 // contraseña (ver más abajo, pantalla "verifica tu email" -- nunca
 // entra directamente sin un registro real).
-if (!tieneRegistroServidor() && !localStorage.getItem(PIN_KEY)) {
+if (!tieneRegistroServidor() && !leerStorage(localStorage, PIN_KEY)) {
   document.getElementById('screen-pin').classList.add('locked-no-identity');
   document.getElementById('screen-no-identity').style.display = 'block';
   const noAccountLink = document.getElementById('link-no-account');
@@ -5445,12 +5461,12 @@ if (!tieneRegistroServidor() && !localStorage.getItem(PIN_KEY)) {
 }
 
 // Cuenta bloqueada por intentos fallidos: continuar en la pantalla de recuperación
-if (parseInt(localStorage.getItem('identity_block_until') || '0', 10) > Date.now()) {
+if (parseInt(leerStorage(localStorage, 'identity_block_until') || '0', 10) > Date.now()) {
   window.location.replace('/recovery.html');
   throw new Error('Cuenta bloqueada — redirigiendo a recuperación');
 }
 // Si el bloqueo expiró pero quedaron intentos acumulados, resetearlos
-if (parseInt(localStorage.getItem('identity_attempts') || '0', 10) >= 3) {
+if (parseInt(leerStorage(localStorage, 'identity_attempts') || '0', 10) >= 3) {
   localStorage.setItem('identity_attempts', '0');
 }
 
@@ -5467,7 +5483,7 @@ if (consentScrollEl && scrollIndicator) {
 
 // =================== CONSENTIMIENTO RGPD ===================
 const CONSENT_KEY = 'identity_consent';
-let consentGiven = localStorage.getItem(CONSENT_KEY) === 'true';
+let consentGiven = leerStorage(localStorage, CONSENT_KEY) === 'true';
 
 if (consentGiven) {
   const scConsent = document.getElementById('screen-consent');
@@ -5807,8 +5823,8 @@ let pinBuffer = '';
 // vivo, sin volver a registrar los listeners táctiles del contenedor
 // (eso sí duplicaría el manejo de touchstart/touchmove en cada cambio).
 let renderQwertyKbdPin = null;
-let isFirstTime = !localStorage.getItem(PIN_KEY);
-let profileData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+let isFirstTime = !leerStorage(localStorage, PIN_KEY);
+let profileData = leerJSONStorage(localStorage, STORAGE_KEY, {});
 let photoDataUrl = profileData.photo || null;
 let isFlipped = false;
 
@@ -6033,7 +6049,7 @@ document.querySelectorAll('.domain-btn').forEach(btn => {
 // para la carga inicial y de nuevo en cada punto que vuelve a mostrar
 // #screen-pin sin recargar.
 function renderPinMode() {
-  isFirstTime = !localStorage.getItem(PIN_KEY);
+  isFirstTime = !leerStorage(localStorage, PIN_KEY);
   document.getElementById('identity-login-email').value = _reg.email || '';
   document.querySelector('.credential-username-wrap').hidden = !_reg.email;
   pinDotsEl.autocomplete = isFirstTime ? 'new-password' : 'current-password';
@@ -6175,7 +6191,7 @@ function doEnter() {
   renderCard();
   generateQR();
   window.idxTour?.onMain();
-  if (!localStorage.getItem('identity_plan')) {
+  if (!leerStorage(localStorage, 'identity_plan')) {
     showIPlans();
   }
 }
@@ -9761,7 +9777,7 @@ const TOTP_KEY      = 'identity_totp_secret';
 const TWOFA_KEY     = 'identity_2fa_config';
 const TOTP_SALT_KEY = 'identity_totp_salt';
 
-let twoFAConfig = JSON.parse(localStorage.getItem(TWOFA_KEY) || '{"totp":false}');
+let twoFAConfig = leerJSONStorage(localStorage, TWOFA_KEY, { totp: false });
 let pendingTOTPSecret = null;
 let sessionCryptoKey = null;  // CryptoKey en memoria, vive mientras dure la sesión desbloqueada
 let currentTOTPSecret = null; // secreto TOTP ya descifrado, para btn-verify-totp
@@ -10671,7 +10687,7 @@ if (document.readyState === 'loading') {
   }
 
   function showStep(n) {
-    if (localStorage.getItem(TOUR_KEY)) return;
+    if (leerStorage(localStorage, TOUR_KEY)) return;
     let i = n;
     while (i < STEPS.length && !getEl(STEPS[i].sel)) i++;
     if (i >= STEPS.length) { finish(); return; }
@@ -10716,7 +10732,7 @@ if (document.readyState === 'loading') {
   // consentimiento tras cada cambio (el paso 1 del tour resalta
   // precisamente un elemento de esa misma pantalla).
   function refreshTourText() {
-    if (localStorage.getItem(TOUR_KEY)) return;
+    if (leerStorage(localStorage, TOUR_KEY)) return;
     if (!STEPS[step] || !getEl(STEPS[step].sel)) return;
     document.getElementById('tour-step-num').textContent = `${step + 1} / ${STEPS.length}`;
     document.getElementById('tour-msg').textContent       = STEPS[step].msg;
@@ -10755,9 +10771,9 @@ if (document.readyState === 'loading') {
 
   // Exponer API antes de tocar el DOM (el HTML del tour se encuentra tras el cierre del script)
   window.idxTour = {
-    init()   { if (!localStorage.getItem(TOUR_KEY)) setTimeout(() => showStep(0), 900); },
-    onPin()  { if (!localStorage.getItem(TOUR_KEY) && STEPS[step]?.screen === 'pin')  setTimeout(() => showStep(step), 500); },
-    onMain() { if (!localStorage.getItem(TOUR_KEY) && STEPS[step]?.screen === 'main') setTimeout(() => showStep(step), 700); },
+    init()   { if (!leerStorage(localStorage, TOUR_KEY)) setTimeout(() => showStep(0), 900); },
+    onPin()  { if (!leerStorage(localStorage, TOUR_KEY) && STEPS[step]?.screen === 'pin')  setTimeout(() => showStep(step), 500); },
+    onMain() { if (!leerStorage(localStorage, TOUR_KEY) && STEPS[step]?.screen === 'main') setTimeout(() => showStep(step), 700); },
     refreshText: refreshTourText,
   };
 
@@ -10789,7 +10805,7 @@ if (document.readyState === 'loading') {
 })();
 
 // Actualizar burbuja trial
-const _trialReg = JSON.parse(localStorage.getItem('identity_registration') || '{}');
+const _trialReg = leerJSONStorage(localStorage, 'identity_registration', {});
 if (_trialReg.timestamp) {
   const _trialDays = Math.floor((Date.now() - new Date(_trialReg.timestamp)) / (1000*60*60*24));
   const _trialCache = identityPlanCache.read(GRACIA_SIN_RED_DIAS * 86400000);
@@ -10814,7 +10830,7 @@ if (_trialReg.timestamp) {
 // Dispositivo confiable: saltar el PIN si sigue vigente (se evalúa al final,
 // después de que doEnter()/renderCard()/generateQR() y el resto de listeners
 // ya estén registrados, para no depender de un orden de inicialización parcial)
-const _trustedUntil = parseInt(localStorage.getItem(TRUST_KEY) || '0', 10);
+const _trustedUntil = parseInt(leerStorage(localStorage, TRUST_KEY) || '0', 10);
 if (_trustedUntil && Date.now() < _trustedUntil) {
   document.getElementById('screen-pin').classList.add('hidden');
   doEnter();

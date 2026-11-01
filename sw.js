@@ -464,7 +464,13 @@
 // ••• cuando Compartir no es visible); /install ahora detecta el
 // sistema automáticamente, pierde la pestaña de escritorio y tiene
 // textos en los 13 idiomas.
-const APP_VERSION = '66';
+// v67: protege con try/catch todas las lecturas y JSON.parse de
+// localStorage/sessionStorage que corrían al arrancar en index.html y
+// register.html -- un dato antiguo corrupto en una sola de esas claves
+// detenía TODO el script sin capturar (pantalla negra con solo un
+// campo de texto vacío). Un valor ilegible se trata como vacío; nunca
+// se borra ningún dato del usuario.
+const APP_VERSION = '67';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
