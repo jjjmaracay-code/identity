@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "Activa la verificación en dos pasos para proteger tu identidad.",
 
   "index.install_banner.text": "Instala IDENTIFLY en tu pantalla de inicio para acceso rápido",
-  "index.install_banner.install_button": "Instalar",
+  "index.install_banner.install_button": "Instalar IDENTIFLY",
+  "index.install_banner.title_android": "Instalar en Android",
+  "index.install_banner.title_ios": "Instalar en iPhone / iPad",
+  "index.install_banner.close_aria": "Cerrar",
+  "index.install_banner.android_fallback_text": "Tu navegador no permite instalar con un toque. Sigue estos pasos:",
+  "index.install_banner.android_fallback_step1": "Abre el menú del navegador (los tres puntos).",
+  "index.install_banner.android_fallback_step2": "Toca Instalar app o Añadir a pantalla de inicio.",
+  "index.install_banner.ios_step1": "Abre identifly.app en Safari.",
+  "index.install_banner.ios_step2": "Toca el icono Compartir, el cuadrado con la flecha hacia arriba.",
+  "index.install_banner.ios_step3": "Elige Añadir a pantalla de inicio.",
+  "index.install_banner.ios_step4": "Toca Añadir.",
 
   "index.business.open_subtitle": "Crea y comparte tu tarjeta profesional pública.",
   "index.business.hub_subtitle": "Crea y comparte tu tarjeta profesional pública.",

@@ -457,7 +457,10 @@
 // v64: el botón de Google Wallet solo se muestra en Android (Google
 // Wallet no existe en iOS/escritorio); nunca se mostraba correctamente
 // oculto fuera de Android.
-const APP_VERSION = '64';
+// v65: banner de instalación adaptado por sistema (botón de un toque en
+// Android, pasos en Android sin soporte o en iPhone/iPad, oculto en
+// escritorio y si la app ya está instalada); recordar el cierre 7 días.
+const APP_VERSION = '65';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

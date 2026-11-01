@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "Включите двухэтапную проверку, чтобы защитить свою личность.",
 
   "index.install_banner.text": "Установите IDENTIFLY на главный экран для быстрого доступа",
-  "index.install_banner.install_button": "Установить",
+  "index.install_banner.install_button": "Установить IDENTIFLY",
+  "index.install_banner.title_android": "Установить на Android",
+  "index.install_banner.title_ios": "Установить на iPhone / iPad",
+  "index.install_banner.close_aria": "Закрыть",
+  "index.install_banner.android_fallback_text": "Ваш браузер не поддерживает установку в один клик. Выполните следующие шаги:",
+  "index.install_banner.android_fallback_step1": "Откройте меню браузера (три точки).",
+  "index.install_banner.android_fallback_step2": "Нажмите «Установить приложение» или «Добавить на главный экран».",
+  "index.install_banner.ios_step1": "Откройте identifly.app в Safari.",
+  "index.install_banner.ios_step2": "Нажмите значок «Поделиться» — квадрат со стрелкой вверх.",
+  "index.install_banner.ios_step3": "Выберите «На экран Домой».",
+  "index.install_banner.ios_step4": "Нажмите «Добавить».",
 
   "index.business.open_subtitle": "Создайте и поделитесь своей публичной профессиональной карточкой.",
   "index.business.hub_subtitle": "Создайте и поделитесь своей публичной профессиональной карточкой.",

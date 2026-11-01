@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "启用两步验证以保护您的身份。",
 
   "index.install_banner.text": "将IDENTIFLY添加到主屏幕以便快速访问",
-  "index.install_banner.install_button": "安装",
+  "index.install_banner.install_button": "安装 IDENTIFLY",
+  "index.install_banner.title_android": "在 Android 上安装",
+  "index.install_banner.title_ios": "在 iPhone / iPad 上安装",
+  "index.install_banner.close_aria": "关闭",
+  "index.install_banner.android_fallback_text": "你的浏览器不支持一键安装。请按以下步骤操作：",
+  "index.install_banner.android_fallback_step1": "打开浏览器菜单（三个点）。",
+  "index.install_banner.android_fallback_step2": "点击\"安装应用\"或\"添加到主屏幕\"。",
+  "index.install_banner.ios_step1": "在 Safari 中打开 identifly.app。",
+  "index.install_banner.ios_step2": "点击分享图标，带向上箭头的方块。",
+  "index.install_banner.ios_step3": "选择\"添加到主屏幕\"。",
+  "index.install_banner.ios_step4": "点击\"添加\"。",
 
   "index.business.open_subtitle": "创建并分享您的公开商务名片。",
   "index.business.hub_subtitle": "创建并分享您的公开商务名片。",

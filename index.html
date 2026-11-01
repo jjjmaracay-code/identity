@@ -1954,7 +1954,9 @@
     to   { transform: translateX(-50%) translateY(0);     opacity: 1; }
   }
 
-  /* Install banner */
+  /* Install banner -- ver inicializarInstallBanner(): título + un único
+     bloque visible a la vez (botón de un toque en Android con soporte,
+     pasos numerados en Android sin soporte o en iPhone/iPad). */
   .install-banner {
     position: fixed;
     bottom: 0;
@@ -1962,26 +1964,83 @@
     background: var(--surface);
     border-top: 1px solid rgba(170,255,0,0.15);
     color: var(--text);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    padding: 16px 44px 18px 20px;
     z-index: 300;
+    max-height: 70vh;
+    overflow-y: auto;
     transform: translateY(100%);
     transition: transform 0.4s ease;
   }
 
   .install-banner.show { transform: translateY(0); }
 
+  .install-banner-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
   .install-banner-text {
     font-family: 'Inter', sans-serif;
     font-size: 12px;
     font-weight: 300;
-    flex: 1;
     line-height: 1.4;
     letter-spacing: 0.5px;
     color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .install-steps { display: none; }
+  .install-steps.visible { display: block; }
+
+  .install-steps-list {
+    list-style: none;
+    counter-reset: install-step;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .install-steps-list li {
+    counter-increment: install-step;
+    position: relative;
+    padding-left: 28px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+
+  .install-steps-list li::before {
+    content: counter(install-step);
+    position: absolute;
+    left: 0; top: -1px;
+    width: 18px; height: 18px;
+    border: 1px solid var(--green);
+    border-radius: 50%;
+    color: var(--green);
+    font-size: 10px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* Luz pulsante suave (nunca un destello rápido) para llamar la atención
+     sobre la instalación de un toque -- se anima filter, no box-shadow,
+     porque button-depth.css ya fija box-shadow con !important para el
+     relieve 3D y una animación normal no puede ganarle a eso. */
+  @keyframes install-btn-pulse {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(170,255,0,0)); }
+    50% { filter: drop-shadow(0 0 10px rgba(170,255,0,0.55)); }
   }
 
   .btn-install {
@@ -1996,6 +2055,13 @@
     cursor: pointer;
     white-space: nowrap;
     letter-spacing: 1px;
+    animation: install-btn-pulse 2.6s ease-in-out infinite;
+  }
+
+  .btn-install:active:not(:disabled) { background: var(--green-dark); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-install { animation: none; }
   }
 
   /* .btn-install-close no tenía ninguna regla propia -- salía con el
@@ -2003,8 +2069,12 @@
      fuera de lugar en la app. padding vertical 9px (1px menos que
      .btn-install) para compensar el borde de 1px que .btn-install no
      tiene y que este sí: mismo alto final que el botón "Instalar" sin
-     tocar su CSS. */
+     tocar su CSS. Posición absoluta en la esquina superior derecha del
+     banner, ahora que el banner es una columna (título + contenido) y
+     no una fila. */
   .btn-install-close {
+    position: absolute;
+    top: 12px; right: 12px;
     background: transparent;
     color: var(--green);
     border: 1px solid rgba(170,255,0,0.4);
@@ -4650,11 +4720,28 @@
 <!-- Toast de error (intentos fallidos) -->
 <div class="error-toast" id="error-toast"></div>
 
-<!-- Install Banner -->
+<!-- Install Banner — visible solo en Android e iPhone/iPad sin la app
+     instalada (ver inicializarInstallBanner()); nunca en escritorio. -->
 <div class="install-banner" id="install-banner">
-  <div class="install-banner-text" data-i18n="index.install_banner.text">Instala IDENTIFLY en tu pantalla de inicio para acceso rápido</div>
-  <button class="btn-install" id="btn-install-do" data-i18n="index.install_banner.install_button">Instalar</button>
-  <button class="btn-install-close" id="btn-install-close" aria-label="Cerrar">✕</button>
+  <button class="btn-install-close" id="btn-install-close" aria-label="Cerrar" data-i18n-aria="index.install_banner.close_aria">✕</button>
+  <div class="install-banner-title" id="install-banner-title"></div>
+  <div class="install-banner-text" id="install-banner-pitch" data-i18n="index.install_banner.text">Instala IDENTIFLY en tu pantalla de inicio para acceso rápido</div>
+  <button class="btn-install" id="btn-install-do" data-i18n="index.install_banner.install_button">Instalar IDENTIFLY</button>
+  <div class="install-steps" id="install-steps-android">
+    <div class="install-banner-text" data-i18n="index.install_banner.android_fallback_text">Tu navegador no permite instalar con un toque. Sigue estos pasos:</div>
+    <ol class="install-steps-list">
+      <li data-i18n="index.install_banner.android_fallback_step1">Abre el menú del navegador (los tres puntos).</li>
+      <li data-i18n="index.install_banner.android_fallback_step2">Toca Instalar app o Añadir a pantalla de inicio.</li>
+    </ol>
+  </div>
+  <div class="install-steps" id="install-steps-ios">
+    <ol class="install-steps-list">
+      <li data-i18n="index.install_banner.ios_step1">Abre identifly.app en Safari.</li>
+      <li data-i18n="index.install_banner.ios_step2">Toca el icono Compartir, el cuadrado con la flecha hacia arriba.</li>
+      <li data-i18n="index.install_banner.ios_step3">Elige Añadir a pantalla de inicio.</li>
+      <li data-i18n="index.install_banner.ios_step4">Toca Añadir.</li>
+    </ol>
+  </div>
 </div>
 
 <!-- QRCode.js (davidshimjs/qrcodejs 1.0.0, MIT) -->
@@ -9399,27 +9486,118 @@ function showErrorToast(msg) {
 }
 
 // =================== PWA INSTALL ===================
+// Banner único, adaptado por sistema: botón de un toque en Android con
+// soporte de beforeinstallprompt, pasos manuales en Android sin soporte
+// (p.ej. Firefox) y en iPhone/iPad (Apple nunca ofrece ese evento),
+// oculto en escritorio y en cualquier dispositivo con la app ya
+// instalada. esAndroid() es la misma detección que ya usa
+// actualizarBotonWallet() más abajo (navigator.userAgentData.platform
+// si existe, si no navigator.userAgent).
 let deferredPrompt = null;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  setTimeout(() => {
-    document.getElementById('install-banner').classList.add('show');
-  }, 3000);
-});
+const INSTALL_BANNER_DISMISS_KEY = 'identity_install_banner_dismissed_at';
+const INSTALL_BANNER_DISMISS_DAYS = 7;
 
-document.getElementById('btn-install-do').addEventListener('click', async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    document.getElementById('install-banner').classList.remove('show');
+// Detección propia de iOS: no reutiliza esAndroid() porque aquí hace
+// falta distinguir iPhone/iPad de cualquier otro caso, no solo Android.
+// iPadOS 13+ se identifica en el user agent como un Mac de escritorio,
+// pero con pantalla táctil (los Mac reales no tienen maxTouchPoints).
+function esIOS() {
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent || '')) return true;
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
+
+function appYaInstalada() {
+  try {
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+  } catch (_) {}
+  return !!navigator.standalone;
+}
+
+function instalacionDescartadaReciente() {
+  try {
+    const marca = parseInt(localStorage.getItem(INSTALL_BANNER_DISMISS_KEY), 10);
+    const limiteMs = INSTALL_BANNER_DISMISS_DAYS * 24 * 60 * 60 * 1000;
+    return Number.isFinite(marca) && (Date.now() - marca) < limiteMs;
+  } catch (_) { return false; }
+}
+
+const installBanner = document.getElementById('install-banner');
+const installTitle = document.getElementById('install-banner-title');
+const installPitch = document.getElementById('install-banner-pitch');
+const installBtnDo = document.getElementById('btn-install-do');
+const installBtnClose = document.getElementById('btn-install-close');
+const installStepsAndroid = document.getElementById('install-steps-android');
+const installStepsIOS = document.getElementById('install-steps-ios');
+
+function mostrarInstallBanner() { installBanner?.classList.add('show'); }
+function ocultarInstallBanner() { installBanner?.classList.remove('show'); }
+
+(function inicializarInstallBanner() {
+  if (!installBanner) return;
+  // Escritorio y cualquier otro caso que no sea Android o iOS: nunca se
+  // muestra, aunque el navegador (Chrome/Edge de escritorio) dispare
+  // beforeinstallprompt -- no nos suscribimos a ese evento aquí, así que
+  // ni siquiera interceptamos el aviso nativo del navegador.
+  if (appYaInstalada() || instalacionDescartadaReciente()) return;
+  if (!esIOS() && !esAndroid()) return;
+
+  if (esIOS()) {
+    // El título se fija dentro de i18nReady (igual que el resto de
+    // textos dinámicos de la app) -- este código corre antes de que el
+    // diccionario llegue, así que t() devolvería la clave cruda si se
+    // llamara aquí directamente.
+    window.i18nReady.finally(() => {
+      if (installTitle) installTitle.textContent = t('index.install_banner.title_ios');
+    });
+    if (installPitch) installPitch.style.display = 'none';
+    if (installBtnDo) installBtnDo.style.display = 'none';
+    installStepsIOS?.classList.add('visible');
+    setTimeout(mostrarInstallBanner, 3000);
+    return;
   }
+
+  // Android: se espera un margen a que llegue beforeinstallprompt: si no
+  // llega, este navegador (p.ej. Firefox en Android) no lo soporta y se
+  // muestran los pasos manuales en su lugar. El listener se añade ya
+  // mismo, sin esperar a i18nReady, para no arriesgarnos a perder el
+  // evento si llega muy rápido.
+  window.i18nReady.finally(() => {
+    if (installTitle) installTitle.textContent = t('index.install_banner.title_android');
+  });
+  const esperaSoporte = setTimeout(() => {
+    if (!deferredPrompt) {
+      if (installPitch) installPitch.style.display = 'none';
+      if (installBtnDo) installBtnDo.style.display = 'none';
+      installStepsAndroid?.classList.add('visible');
+    }
+    mostrarInstallBanner();
+  }, 4000);
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    clearTimeout(esperaSoporte);
+    installStepsAndroid?.classList.remove('visible');
+    if (installPitch) installPitch.style.display = '';
+    if (installBtnDo) installBtnDo.style.display = '';
+    mostrarInstallBanner();
+  });
+})();
+
+window.addEventListener('appinstalled', () => { ocultarInstallBanner(); });
+
+installBtnDo?.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  ocultarInstallBanner();
 });
 
-document.getElementById('btn-install-close').addEventListener('click', () => {
-  document.getElementById('install-banner').classList.remove('show');
+installBtnClose?.addEventListener('click', () => {
+  try { localStorage.setItem(INSTALL_BANNER_DISMISS_KEY, String(Date.now())); } catch (_) {}
+  ocultarInstallBanner();
 });
 
 // =================== BAJA VOLUNTARIA ===================

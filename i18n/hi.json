@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "अपनी पहचान की सुरक्षा के लिए दो-चरणीय सत्यापन सक्रिय करें।",
 
   "index.install_banner.text": "तेज़ पहुंच के लिए अपनी होम स्क्रीन पर IDENTIFLY इंस्टॉल करें",
-  "index.install_banner.install_button": "इंस्टॉल करें",
+  "index.install_banner.install_button": "IDENTIFLY इंस्टॉल करें",
+  "index.install_banner.title_android": "Android पर इंस्टॉल करें",
+  "index.install_banner.title_ios": "iPhone / iPad पर इंस्टॉल करें",
+  "index.install_banner.close_aria": "बंद करें",
+  "index.install_banner.android_fallback_text": "आपका ब्राउज़र एक-टैप इंस्टॉल की सुविधा नहीं देता। ये चरण अपनाएँ:",
+  "index.install_banner.android_fallback_step1": "ब्राउज़र का मेनू खोलें (तीन बिंदु)।",
+  "index.install_banner.android_fallback_step2": "इंस्टॉल ऐप या होम स्क्रीन पर जोड़ें पर टैप करें।",
+  "index.install_banner.ios_step1": "Safari में identifly.app खोलें।",
+  "index.install_banner.ios_step2": "शेयर आइकन पर टैप करें, ऊपर की ओर तीर वाला वर्ग।",
+  "index.install_banner.ios_step3": "होम स्क्रीन पर जोड़ें चुनें।",
+  "index.install_banner.ios_step4": "जोड़ें पर टैप करें।",
 
   "index.business.open_subtitle": "अपना सार्वजनिक व्यावसायिक कार्ड बनाएं और साझा करें।",
   "index.business.hub_subtitle": "अपना सार्वजनिक व्यावसायिक कार्ड बनाएं और साझा करें।",

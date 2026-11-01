@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "Aktivieren Sie die zweistufige Verifizierung, um Ihre Identität zu schützen.",
 
   "index.install_banner.text": "Installieren Sie IDENTIFLY auf Ihrem Startbildschirm für schnellen Zugriff",
-  "index.install_banner.install_button": "Installieren",
+  "index.install_banner.install_button": "IDENTIFLY installieren",
+  "index.install_banner.title_android": "Auf Android installieren",
+  "index.install_banner.title_ios": "Auf iPhone / iPad installieren",
+  "index.install_banner.close_aria": "Schließen",
+  "index.install_banner.android_fallback_text": "Dein Browser unterstützt die Installation mit einem Tipp nicht. Folge diesen Schritten:",
+  "index.install_banner.android_fallback_step1": "Öffne das Browser-Menü (die drei Punkte).",
+  "index.install_banner.android_fallback_step2": "Tippe auf App installieren oder Zum Startbildschirm hinzufügen.",
+  "index.install_banner.ios_step1": "Öffne identifly.app in Safari.",
+  "index.install_banner.ios_step2": "Tippe auf das Teilen-Symbol, das Quadrat mit dem Pfeil nach oben.",
+  "index.install_banner.ios_step3": "Wähle Zum Home-Bildschirm.",
+  "index.install_banner.ios_step4": "Tippe auf Hinzufügen.",
 
   "index.business.open_subtitle": "Erstellen und teilen Sie Ihre öffentliche berufliche Karte.",
   "index.business.hub_subtitle": "Erstellen und teilen Sie Ihre öffentliche berufliche Karte.",

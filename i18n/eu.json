@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "Aktibatu bi urratseko egiaztapena zure identitatea babesteko.",
 
   "index.install_banner.text": "Instalatu IDENTIFLY hasierako pantailan sarbide azkarra izateko",
-  "index.install_banner.install_button": "Instalatu",
+  "index.install_banner.install_button": "Instalatu IDENTIFLY",
+  "index.install_banner.title_android": "Instalatu Android-en",
+  "index.install_banner.title_ios": "Instalatu iPhone / iPad-en",
+  "index.install_banner.close_aria": "Itxi",
+  "index.install_banner.android_fallback_text": "Zure arakatzaileak ez du ukitu bakarreko instalazioa onartzen. Jarraitu urrats hauek:",
+  "index.install_banner.android_fallback_step1": "Ireki arakatzailearen menua (hiru puntuak).",
+  "index.install_banner.android_fallback_step2": "Sakatu Instalatu app edo Gehitu hasierako pantailan.",
+  "index.install_banner.ios_step1": "Ireki identifly.app Safarin.",
+  "index.install_banner.ios_step2": "Sakatu Partekatu ikonoa, gora begira dagoen gezia duen laukia.",
+  "index.install_banner.ios_step3": "Aukeratu Gehitu hasierako pantailan.",
+  "index.install_banner.ios_step4": "Sakatu Gehitu.",
 
   "index.business.open_subtitle": "Sortu eta partekatu zure txartel profesional publikoa.",
   "index.business.hub_subtitle": "Sortu eta partekatu zure txartel profesional publikoa.",

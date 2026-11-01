@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "Turn on two-step verification to protect your identity.",
 
   "index.install_banner.text": "Install IDENTIFLY on your home screen for quick access",
-  "index.install_banner.install_button": "Install",
+  "index.install_banner.install_button": "Install IDENTIFLY",
+  "index.install_banner.title_android": "Install on Android",
+  "index.install_banner.title_ios": "Install on iPhone / iPad",
+  "index.install_banner.close_aria": "Close",
+  "index.install_banner.android_fallback_text": "Your browser doesn't support one-tap install. Follow these steps:",
+  "index.install_banner.android_fallback_step1": "Open the browser menu (the three dots).",
+  "index.install_banner.android_fallback_step2": "Tap Install app or Add to Home screen.",
+  "index.install_banner.ios_step1": "Open identifly.app in Safari.",
+  "index.install_banner.ios_step2": "Tap the Share icon, the square with an arrow pointing up.",
+  "index.install_banner.ios_step3": "Choose Add to Home Screen.",
+  "index.install_banner.ios_step4": "Tap Add.",
 
   "index.business.open_subtitle": "Create and share your public professional card.",
   "index.business.hub_subtitle": "Create and share your public professional card.",

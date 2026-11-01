@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "Activa la verificació en dos passos per protegir la teva identitat.",
 
   "index.install_banner.text": "Instal·la IDENTIFLY a la pantalla d'inici per a accés ràpid",
-  "index.install_banner.install_button": "Instal·lar",
+  "index.install_banner.install_button": "Instal·lar IDENTIFLY",
+  "index.install_banner.title_android": "Instal·lar a Android",
+  "index.install_banner.title_ios": "Instal·lar a iPhone / iPad",
+  "index.install_banner.close_aria": "Tancar",
+  "index.install_banner.android_fallback_text": "El teu navegador no permet instal·lar amb un sol toc. Segueix aquests passos:",
+  "index.install_banner.android_fallback_step1": "Obre el menú del navegador (els tres punts).",
+  "index.install_banner.android_fallback_step2": "Toca Instal·lar app o Afegeix a la pantalla d'inici.",
+  "index.install_banner.ios_step1": "Obre identifly.app a Safari.",
+  "index.install_banner.ios_step2": "Toca la icona Compartir, el quadrat amb la fletxa cap amunt.",
+  "index.install_banner.ios_step3": "Tria Afegeix a la pantalla d'inici.",
+  "index.install_banner.ios_step4": "Toca Afegeix.",
 
   "index.business.open_subtitle": "Crea i comparteix la teva targeta professional pública.",
   "index.business.hub_subtitle": "Crea i comparteix la teva targeta professional pública.",

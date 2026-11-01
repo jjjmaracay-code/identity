@@ -577,7 +577,17 @@
   "index.tour.step6_msg": "あなたのIDを保護するために二段階認証を有効にしてください。",
 
   "index.install_banner.text": "ホーム画面にIDENTIFLYを追加して、すぐにアクセスできます",
-  "index.install_banner.install_button": "インストール",
+  "index.install_banner.install_button": "IDENTIFLYをインストール",
+  "index.install_banner.title_android": "Androidにインストール",
+  "index.install_banner.title_ios": "iPhone / iPadにインストール",
+  "index.install_banner.close_aria": "閉じる",
+  "index.install_banner.android_fallback_text": "お使いのブラウザはワンタップインストールに対応していません。次の手順をお試しください：",
+  "index.install_banner.android_fallback_step1": "ブラウザのメニュー（点が3つのアイコン）を開きます。",
+  "index.install_banner.android_fallback_step2": "「アプリをインストール」または「ホーム画面に追加」をタップします。",
+  "index.install_banner.ios_step1": "Safariでidentifly.appを開きます。",
+  "index.install_banner.ios_step2": "共有アイコン（上向き矢印の四角）をタップします。",
+  "index.install_banner.ios_step3": "「ホーム画面に追加」を選びます。",
+  "index.install_banner.ios_step4": "「追加」をタップします。",
 
   "index.business.open_subtitle": "公開用のビジネスカードを作成・共有できます。",
   "index.business.hub_subtitle": "公開用のビジネスカードを作成・共有できます。",
