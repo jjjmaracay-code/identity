@@ -454,7 +454,10 @@
 // v62: larger, more readable hint under the personal address field.
 // v63: botón "Añadir a Google Wallet" en Mi Perfil (solo plan de pago
 // vigente, nunca la prueba) y sus textos en los 13 idiomas.
-const APP_VERSION = '63';
+// v64: el botón de Google Wallet solo se muestra en Android (Google
+// Wallet no existe en iOS/escritorio); nunca se mostraba correctamente
+// oculto fuera de Android.
+const APP_VERSION = '64';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
