@@ -13,3 +13,13 @@
 # una versión nueva, sin importar cuántas veces se cierre y abra la app.
 /sw.js
   Cache-Control: no-cache
+
+# /diag.html es una página temporal de diagnóstico (se borrará al acabar
+# el diagnóstico): nunca debe servirse desde una caché intermedia (CDN o
+# del navegador), para que siempre refleje el estado real del dispositivo
+# en el momento de la visita, igual que /sw.js arriba. No se toca
+# X-Frame-Options ni frame-ancestors: la prueba "Probar index.html" abre
+# una pestaña nueva en vez de un iframe precisamente para no necesitar
+# debilitar esa protección contra clickjacking en ningún archivo.
+/diag.html
+  Cache-Control: no-store

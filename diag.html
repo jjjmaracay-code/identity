@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Diagnostico IDENTIFLY (temporal)</title>
+<style>
+  body {
+    margin: 0;
+    padding: 16px;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+  }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  h2 { font-size: 19px; margin: 28px 0 6px; border-top: 1px solid #000; padding-top: 16px; }
+  p { margin: 6px 0; }
+  button {
+    font-size: 18px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    display: block;
+    width: 100%;
+    max-width: 420px;
+  }
+  pre, .salida {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: Menlo, Consolas, monospace;
+    font-size: 15px;
+    border: 1px solid #000;
+    padding: 8px;
+    margin-top: 6px;
+    min-height: 1.4em;
+  }
+</style>
+</head>
+<body>
+
+<h1>Diagnostico IDENTIFLY (pagina temporal)</h1>
+<p>Esta pagina es independiente del resto de la app, no depende de ningun otro script de IDENTIFLY y no envia nada a ningun servidor. Se usa solo para ver en pantalla, en este dispositivo, por que no carga www.identifly.app. Se borrara cuando termine el diagnostico.</p>
+
+<h2>1. Navegador y Service Worker</h2>
+<p><strong>User agent:</strong></p>
+<div class="salida" id="ua-info"></div>
+<p><strong>Service Worker:</strong></p>
+<div class="salida" id="sw-info">Comprobando...</div>
+
+<h2>2. Cachés (Cache Storage)</h2>
+<div class="salida" id="cache-info">Comprobando...</div>
+
+<h2>3. localStorage y sessionStorage</h2>
+<p>Solo se muestran los nombres de las claves, su longitud en caracteres y si su contenido es JSON valido. Nunca se muestra el contenido.</p>
+<div class="salida" id="storage-info">Comprobando...</div>
+
+<h2>4. Probar index.html</h2>
+<p>Abre index.html en una pestana nueva con un detector de errores de JavaScript activo desde antes de que se ejecute cualquier otro script de la pagina. Si ocurre un error, aparecera una franja amarilla en la parte de arriba de esa pestana nueva con el mensaje, el archivo y la linea.</p>
+<p>Nota: se abre en una pestana nueva (no dentro de esta pagina) porque las cabeceras de seguridad del sitio contra clickjacking (X-Frame-Options / frame-ancestors) impiden insertar index.html en un iframe; esto evita tener que debilitar esa proteccion.</p>
+<button type="button" id="btn-test-index">Probar index.html</button>
+<div class="salida" id="test-result"></div>
+
+<h2>5. Desregistrar Service Worker y borrar SOLO las cachés</h2>
+<p>Esto NO borra ningun dato guardado (localStorage/sessionStorage). Solo desregistra el Service Worker y borra las cachés de archivos, para comprobar si el problema es el Service Worker.</p>
+<button type="button" id="btn-reset-sw">Desregistrar Service Worker y borrar cachés</button>
+<div class="salida" id="reset-result"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  function mostrarUserAgent() {
+    var div = document.getElementById('ua-info');
+    try {
+      div.textContent = navigator.userAgent;
+    } catch (e) {
+      div.textContent = 'No se pudo leer navigator.userAgent: ' + (e && e.message || e);
+    }
+  }
+
+  function mostrarEstadoSW() {
+    var div = document.getElementById('sw-info');
+    if (!('serviceWorker' in navigator)) {
+      div.textContent = 'Este navegador no soporta Service Worker.';
+      return;
+    }
+    div.textContent = 'Comprobando...';
+    var lineas = [];
+    try {
+      var controller = navigator.serviceWorker.controller;
+      lineas.push('Controlador de esta pagina: ' + (controller ? controller.scriptURL + ' (estado: ' + controller.state + ')' : '(ninguno)'));
+    } catch (e) {
+      lineas.push('Error al leer el controlador: ' + (e && e.message || e));
+    }
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      if (!regs || regs.length === 0) {
+        lineas.push('Registros de Service Worker: (ninguno)');
+      } else {
+        lineas.push('Registros de Service Worker: ' + regs.length);
+        regs.forEach(function (reg, i) {
+          lineas.push('');
+          lineas.push('Registro ' + (i + 1) + ' - ambito: ' + reg.scope);
+          ['installing', 'waiting', 'active'].forEach(function (campo) {
+            var sw = reg[campo];
+            if (sw) lineas.push('  ' + campo + ': ' + sw.scriptURL + ' (estado: ' + sw.state + ')');
+          });
+        });
+      }
+      div.textContent = lineas.join('\n');
+    }).catch(function (err) {
+      lineas.push('Error al leer los registros de Service Worker: ' + (err && err.message || err));
+      div.textContent = lineas.join('\n');
+    });
+  }
+
+  function mostrarCaches() {
+    var div = document.getElementById('cache-info');
+    if (!('caches' in window)) {
+      div.textContent = 'Este navegador no soporta la Cache API.';
+      return;
+    }
+    div.textContent = 'Comprobando...';
+    caches.keys().then(function (keys) {
+      div.textContent = (!keys || keys.length === 0)
+        ? 'No hay ninguna cache.'
+        : ('Cachés encontradas (' + keys.length + '):\n' + keys.join('\n'));
+    }).catch(function (err) {
+      div.textContent = 'Error al leer las cachés: ' + (err && err.message || err);
+    });
+  }
+
+  function analizarAlmacen(storage, nombre) {
+    var lineas = [nombre + ':'];
+    var n;
+    try {
+      n = storage.length;
+    } catch (e) {
+      lineas.push('  No se pudo leer ' + nombre + ': ' + (e && e.message || e));
+      return lineas.join('\n');
+    }
+    if (n === 0) {
+      lineas.push('  (vacio)');
+      return lineas.join('\n');
+    }
+    for (var i = 0; i < n; i++) {
+      var clave;
+      try {
+        clave = storage.key(i);
+      } catch (e) {
+        lineas.push('  (error al leer el nombre de una clave: ' + (e && e.message || e) + ')');
+        continue;
+      }
+      if (clave === null || clave === undefined) continue;
+      var valor = null, lecturaOk = true, errorLectura = '';
+      try {
+        valor = storage.getItem(clave);
+      } catch (e) {
+        lecturaOk = false;
+        errorLectura = (e && e.message) || String(e);
+      }
+      if (!lecturaOk) {
+        lineas.push('  ' + clave + ' -> LECTURA FALLIDA (' + errorLectura + ')');
+        continue;
+      }
+      var longitud = (valor === null || valor === undefined) ? 0 : valor.length;
+      var jsonEstado = 'no se evaluo (vacio)';
+      if (valor !== null && valor !== undefined && valor !== '') {
+        try {
+          JSON.parse(valor);
+          jsonEstado = 'JSON valido';
+        } catch (e) {
+          jsonEstado = 'JSON INVALIDO (' + ((e && e.message) || e) + ')';
+        }
+      }
+      lineas.push('  ' + clave + ' -> longitud: ' + longitud + ' caracteres, ' + jsonEstado);
+    }
+    return lineas.join('\n');
+  }
+
+  function mostrarStorage() {
+    var div = document.getElementById('storage-info');
+    var partes = [];
+    try {
+      partes.push(analizarAlmacen(window.localStorage, 'localStorage'));
+    } catch (e) {
+      partes.push('localStorage no disponible: ' + (e && e.message || e));
+    }
+    partes.push('');
+    try {
+      partes.push(analizarAlmacen(window.sessionStorage, 'sessionStorage'));
+    } catch (e) {
+      partes.push('sessionStorage no disponible: ' + (e && e.message || e));
+    }
+    div.textContent = partes.join('\n');
+  }
+
+  // Script que se inserta al principio de index.html (solo en memoria, en
+  // la copia que se escribe en la pestana nueva -- el archivo real en el
+  // servidor nunca se modifica) para detectar errores de JavaScript desde
+  // antes de que se ejecute cualquier otro script de la pagina.
+  function construirInyeccionDeteccion() {
+    return '<base href="' + location.origin + '/">' +
+      '<script>(function(){' +
+      'var panel=null;' +
+      'function panelDiag(){' +
+      'if(panel)return panel;' +
+      'panel=document.createElement("div");' +
+      'panel.id="identify-diag-panel";' +
+      'panel.style.position="fixed";' +
+      'panel.style.top="0";panel.style.left="0";panel.style.right="0";' +
+      'panel.style.zIndex="2147483647";' +
+      'panel.style.background="#ffff00";' +
+      'panel.style.color="#000";' +
+      'panel.style.fontFamily="monospace";' +
+      'panel.style.fontSize="16px";' +
+      'panel.style.padding="8px";' +
+      'panel.style.whiteSpace="pre-wrap";' +
+      '(document.body||document.documentElement).appendChild(panel);' +
+      'return panel;' +
+      '}' +
+      'function mostrarDiag(texto){' +
+      'try{var p=panelDiag();p.textContent=(p.textContent?p.textContent+"\\n\\n":"")+texto;}catch(e){}' +
+      '}' +
+      'window.onerror=function(mensaje,archivo,linea,columna){' +
+      'mostrarDiag("ERROR JS: "+mensaje+"\\nArchivo: "+(archivo||"(desconocido)")+"\\nLinea: "+(linea||"?")+", columna: "+(columna||"?"));' +
+      'return false;' +
+      '};' +
+      'window.addEventListener("unhandledrejection",function(ev){' +
+      'var motivo=ev&&ev.reason;' +
+      'mostrarDiag("PROMESA SIN CAPTURAR: "+(motivo&&motivo.message?motivo.message:String(motivo)));' +
+      '});' +
+      '})();</scr' + 'ipt>';
+  }
+
+  function insertarDeteccion(html) {
+    var inyeccion = construirInyeccionDeteccion();
+    var mHead = html.match(/<head[^>]*>/i);
+    if (mHead) {
+      var pos = mHead.index + mHead[0].length;
+      return html.slice(0, pos) + inyeccion + html.slice(pos);
+    }
+    var mHtml = html.match(/<html[^>]*>/i);
+    if (mHtml) {
+      var pos2 = mHtml.index + mHtml[0].length;
+      return html.slice(0, pos2) + inyeccion + html.slice(pos2);
+    }
+    return inyeccion + html;
+  }
+
+  function probarIndex() {
+    var resultDiv = document.getElementById('test-result');
+    var nuevaVentana = window.open('', '_blank');
+    if (!nuevaVentana) {
+      resultDiv.textContent = 'El navegador bloqueo la apertura de una pestana nueva. Permite ventanas emergentes para este sitio e intentalo de nuevo.';
+      return;
+    }
+    try {
+      nuevaVentana.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Cargando...</title></head><body>Cargando index.html...</body></html>');
+    } catch (e) {}
+    resultDiv.textContent = 'Se abrio una pestana nueva con index.html y el detector de errores activo. Si aparece una franja amarilla arriba en esa pestana, ahi esta el error de JavaScript. Si se queda en blanco sin ninguna franja amarilla, no se capturo ningun error de JavaScript.';
+
+    fetch('/index.html?diag=1&t=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.text();
+      })
+      .then(function (html) {
+        var modificado = insertarDeteccion(html);
+        nuevaVentana.document.open();
+        nuevaVentana.document.write(modificado);
+        nuevaVentana.document.close();
+      })
+      .catch(function (err) {
+        var mensaje = 'No se pudo cargar index.html para la prueba: ' + ((err && err.message) || err);
+        resultDiv.textContent = mensaje;
+        try {
+          nuevaVentana.document.open();
+          nuevaVentana.document.write('<p>' + mensaje + '</p>');
+          nuevaVentana.document.close();
+        } catch (e) {}
+      });
+  }
+
+  function reiniciarServiceWorker() {
+    var ok = window.confirm('Esto desregistrara el Service Worker de IDENTIFLY y borrara las cachés de archivos. NO se borrara ningun dato guardado (localStorage/sessionStorage). Continuar?');
+    if (!ok) return;
+    var resultDiv = document.getElementById('reset-result');
+    resultDiv.textContent = 'Procesando...';
+    var pasos = [];
+
+    Promise.resolve()
+      .then(function () {
+        if (!('serviceWorker' in navigator)) {
+          pasos.push('Este navegador no tiene Service Worker.');
+          return;
+        }
+        return navigator.serviceWorker.getRegistrations().then(function (regs) {
+          if (!regs || regs.length === 0) {
+            pasos.push('No habia ningun Service Worker registrado.');
+            return;
+          }
+          return Promise.all(regs.map(function (reg) {
+            var scope = reg.scope;
+            return reg.unregister().then(function (resultado) {
+              pasos.push('Service Worker (' + scope + '): ' + (resultado ? 'desregistrado' : 'no se pudo desregistrar'));
+            });
+          }));
+        });
+      })
+      .catch(function (err) {
+        pasos.push('Error al desregistrar el Service Worker: ' + ((err && err.message) || err));
+      })
+      .then(function () {
+        if (!('caches' in window)) {
+          pasos.push('Este navegador no tiene Cache API.');
+          return;
+        }
+        return caches.keys().then(function (keys) {
+          if (!keys || keys.length === 0) {
+            pasos.push('No habia ninguna cache.');
+            return;
+          }
+          return Promise.all(keys.map(function (k) {
+            return caches.delete(k).then(function (resultado) {
+              pasos.push('Cache "' + k + '": ' + (resultado ? 'borrada' : 'no se pudo borrar'));
+            });
+          }));
+        });
+      })
+      .catch(function (err) {
+        pasos.push('Error al borrar cachés: ' + ((err && err.message) || err));
+      })
+      .then(function () {
+        pasos.push('');
+        pasos.push('Listo. localStorage y sessionStorage no se han tocado. Cierra Safari del todo y vuelve a abrir www.identifly.app para ver si carga.');
+        resultDiv.textContent = pasos.join('\n');
+        mostrarEstadoSW();
+        mostrarCaches();
+      });
+  }
+
+  document.getElementById('btn-test-index').addEventListener('click', probarIndex);
+  document.getElementById('btn-reset-sw').addEventListener('click', reiniciarServiceWorker);
+
+  mostrarUserAgent();
+  mostrarEstadoSW();
+  mostrarCaches();
+  mostrarStorage();
+})();
+</script>
+
+</body>
+</html>
