@@ -1,3 +1,7 @@
+// v41: botón "Añadir a Google Wallet" en Mi Perfil (solo planes de
+// pago) y sus textos en los 12 idiomas. Se salta la v40 porque ya la usa
+// otro cambio pendiente (cooldown de transferencia) en otra rama.
+//
 // v39: licencias, fases 4-5 (límite de dispositivos + transferencia).
 // TODO el bloqueo real depende de la variable de entorno
 // DEVICE_LIMIT_ENFORCED==='true' (si no vale exactamente eso, el servidor
@@ -429,7 +433,7 @@
 // que activate() purgue la v34 y los dispositivos que ya la tuvieran
 // cacheada reciban index.html/paywall.html/register.html/recovery.html
 // actualizados, igual que en v30-v34.
-const APP_VERSION = '39';
+const APP_VERSION = '41';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [

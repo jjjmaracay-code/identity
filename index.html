@@ -3760,6 +3760,20 @@
     <button type="button" id="link-vincular-compra-edit" style="display:block;width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;" data-i18n="index.edit.link_purchase_link">Ya pagué un plan — vincular mi compra</button>
   </div>
 
+  <!-- GOOGLE WALLET — solo planes de pago (visibilidad decidida en
+       actualizarBotonWallet(); el servidor vuelve a comprobar el plan).
+       Botón oficial de Google, auto-hospedado, sin modificar: 48px de
+       alto mínimo y 8px de espacio libre alrededor (guía de marca). -->
+  <div id="wallet-section" style="display:none;margin:12px 0 0;">
+    <button type="button" id="btn-google-wallet" aria-label="Añadir a Google Wallet" data-i18n-aria="index.edit.wallet_add_aria" style="display:block;margin:8px auto;padding:0;border:none;background:none;cursor:pointer;line-height:0;">
+      <img id="img-google-wallet" src="/assets/google-wallet/add-to-google-wallet-es.svg" alt="" style="height:48px;width:auto;display:block;">
+    </button>
+    <div id="wallet-error" role="alert" style="display:none;margin-top:8px;text-align:center;font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.7);">
+      <span id="wallet-error-text"></span>
+      <button type="button" id="btn-wallet-retry" style="display:none;margin:8px auto 0;padding:8px 16px;border-radius:8px;border:1px solid var(--green);background:none;color:var(--green);font-family:'Inter',sans-serif;font-size:11px;font-weight:700;cursor:pointer;" data-i18n="index.edit.wallet_retry">Reintentar</button>
+    </div>
+  </div>
+
   <div class="edit-tabs-bar" id="edit-tabs-bar">
     <div class="edit-tabs-scroll">
       <button class="edit-tab-btn" data-target="sec-diseno" data-i18n="index.edit.tab_design">Diseño</button>
@@ -8132,7 +8146,92 @@ function actualizarPlanBadge() {
     badge.style.display = 'none';
     bubble.style.display = 'block';
   }
+  actualizarBotonWallet();
 }
+
+// =================== GOOGLE WALLET ===================
+// Botón oficial por idioma. Google solo publica algunos idiomas; para el
+// resto su guía de marca indica usar el de inglés (nunca traducirlo).
+const WALLET_BUTTON_LANGS = ['es', 'en', 'fr', 'de', 'ca', 'pt', 'ja'];
+const WALLET_SAVE_PREFIX = 'https://pay.google.com/gp/v/save/';
+
+// Visible solo con plan de pago vigente según el último veredicto del
+// servidor (mismo criterio que Business: pro/lifetime y no bloqueado).
+// Es solo presentación: /api/wallet-pass vuelve a verificar el plan.
+function actualizarBotonWallet() {
+  const section = document.getElementById('wallet-section');
+  if (!section) return;
+  let verificado = null;
+  try { verificado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
+  const esPago = !!(verificado && ['pro', 'lifetime'].includes(verificado.plan) && !verificado.bloqueado);
+  section.style.display = esPago ? 'block' : 'none';
+
+  const lang = WALLET_BUTTON_LANGS.includes(window.currentLanguage) ? window.currentLanguage : 'en';
+  const img = document.getElementById('img-google-wallet');
+  if (img) img.src = '/assets/google-wallet/add-to-google-wallet-' + lang + '.svg';
+}
+
+// Mensajes con textContent (nunca innerHTML): no se inserta ningún dato
+// de usuario en el DOM.
+function mostrarErrorWallet(mensaje, permitirReintento) {
+  const box = document.getElementById('wallet-error');
+  const text = document.getElementById('wallet-error-text');
+  const retry = document.getElementById('btn-wallet-retry');
+  if (!box || !text || !retry) return;
+  text.textContent = mensaje;
+  retry.style.display = permitirReintento ? 'block' : 'none';
+  box.style.display = 'block';
+}
+
+async function anadirAGoogleWallet() {
+  const btn = document.getElementById('btn-google-wallet');
+  const box = document.getElementById('wallet-error');
+  if (box) box.style.display = 'none';
+
+  let reg = null;
+  try { reg = JSON.parse(localStorage.getItem('identity_registration') || 'null'); } catch (_) {}
+  const token = localStorage.getItem('identity_access_token');
+  if (!reg || !reg.email || !token) {
+    mostrarErrorWallet(t('index.edit.wallet_paid_only'), false);
+    return;
+  }
+
+  // Empresa solo si el usuario la muestra en su tarjeta (mismo toggle que
+  // la vCard). El QR es EXACTAMENTE el contenido del QR principal.
+  const toggles = profileData.toggles || {};
+  const body = {
+    email: reg.email,
+    token,
+    nombre: profileData.name || '',
+    empresa: (profileData.company && toggles.company !== false) ? profileData.company : '',
+    contenidoQR: buildVCard(),
+  };
+
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch('/api/wallet-pass', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 403) {
+      mostrarErrorWallet(t('index.edit.wallet_paid_only'), false);
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || typeof data.url !== 'string' || !data.url.startsWith(WALLET_SAVE_PREFIX)) {
+      mostrarErrorWallet(t('index.edit.wallet_error'), true);
+      return;
+    }
+    window.location.assign(data.url);
+  } catch (_) {
+    mostrarErrorWallet(t('index.edit.wallet_error'), true);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+document.getElementById('btn-google-wallet')?.addEventListener('click', anadirAGoogleWallet);
+document.getElementById('btn-wallet-retry')?.addEventListener('click', anadirAGoogleWallet);
 
 // Indicadores de scroll de #screen-edit (arriba/abajo) — mismo umbral de
 // 40px que ya usa el indicador de #screen-consent. Se recalculan en cada
