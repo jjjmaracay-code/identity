@@ -6849,13 +6849,20 @@ function loadSpellChecker() {
 // no haya letra/dígito/guion/@/./  pegado al token evita tocar emails,
 // URLs y slugs, que de otro modo el corrector destrozaría (verificado:
 // sin esto, "carlos.fernandez@..." se corrompía a "darlos.fernández@...").
+// Safari no soporta el lookbehind negativo hasta la version 16.4 -- en
+// vez de esa mirada hacia atras se captura el limite izquierdo como grupo
+// (inicio de cadena o un caracter no permitido) y se reinserta tal cual en
+// el resultado; el lookahead de la derecha si esta soportado y no cambia.
+// Mismo comportamiento exacto, verificado comparando ambas versiones
+// sobre cientos de entradas (incluidos los limites: email, URL, slugs,
+// acentos, guiones).
 function spellCorrectText(text, speller) {
-  return text.replace(/(?<![\w@./-])[A-Za-zÁÉÍÓÚÑÜáéíóúñü]{4,}(?![\w@./-])/g, (word) => {
-    if (word !== word.toLowerCase()) return word;
-    if (speller.correct(word)) return word;
+  return text.replace(/(^|[^\w@./-])([A-Za-zÁÉÍÓÚÑÜáéíóúñü]{4,})(?![\w@./-])/g, (match, delim, word) => {
+    if (word !== word.toLowerCase()) return match;
+    if (speller.correct(word)) return match;
     const suggestion = speller.suggest(word)[0];
-    if (!suggestion || levenshtein(word, suggestion.toLowerCase()) > 2) return word;
-    return suggestion.toLowerCase();
+    if (!suggestion || levenshtein(word, suggestion.toLowerCase()) > 2) return match;
+    return delim + suggestion.toLowerCase();
   });
 }
 
@@ -7084,6 +7091,28 @@ async function tryDecodeQrCard(file) {
   return parsed ? { raw: decoded.data, parsed } : null;
 }
 
+// Equivalente a dividir con una expresión regular con lookbehind
+// negativo, sin usarlo (Safari no lo soporta hasta la 16.4): un ';' separa
+// campo solo si el carácter justo anterior no es '\'. Mismo criterio
+// exacto, carácter a carácter, que la expresión regular original
+// (verificado comparando ambas versiones sobre cientos de entradas,
+// incluidos varios backslash seguidos y ';' al
+// principio o al final de la cadena).
+function splitPuntoYComaSinEscapar(str) {
+  const partes = [];
+  let actual = '';
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === ';' && str[i - 1] !== '\\') {
+      partes.push(actual);
+      actual = '';
+    } else {
+      actual += str[i];
+    }
+  }
+  partes.push(actual);
+  return partes;
+}
+
 // Misma forma de resultado que extractData(): {campo: {value, confidence}}.
 // Devuelve null si el texto del QR no es un vCard ni un MECARD (ej. era
 // solo una URL cualquiera) -- en ese caso el llamador cae al OCR normal.
@@ -7126,9 +7155,14 @@ function parseVCardOrMecard(raw) {
     }
   } else if (/^MECARD:/i.test(text)) {
     // MECARD separa campos con ';' sin escapar y usa '\;' para un ';'
-    // literal dentro de un valor -- se divide respetando ese escape.
+    // literal dentro de un valor -- se divide respetando ese escape. Antes
+    // se usaba un lookbehind negativo -- Safari no lo soporta hasta la
+    // 16.4, así que se divide a mano mirando solo el carácter anterior a
+    // cada ';' (mismo criterio exacto, verificado comparando ambas
+    // versiones sobre cientos de entradas, incluidos varios backslash
+    // seguidos y ';' al principio/final).
     const body = text.replace(/^MECARD:/i, '').replace(/;;\s*$/, '');
-    for (const campoCrudo of body.split(/(?<!\\);/)) {
+    for (const campoCrudo of splitPuntoYComaSinEscapar(body)) {
       const campo = campoCrudo.replace(/\\;/g, ';').trim();
       if (!campo) continue;
       const idx = campo.indexOf(':');

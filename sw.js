@@ -470,7 +470,17 @@
 // detenía TODO el script sin capturar (pantalla negra con solo un
 // campo de texto vacío). Un valor ilegible se trata como vacío; nunca
 // se borra ningún dato del usuario.
-const APP_VERSION = '67';
+// v68: causa real de la pantalla en blanco en Safari/iOS hasta la 16.3
+// (confirmada en un iPhone 7 Plus con iOS 15.8.2 con diag.html, no era
+// caché ni storage): dos expresiones regulares con lookbehind negativo en
+// index.html (corrector ortográfico del escaneo y división de campos
+// MECARD del QR), sintaxis que Safari no soporta hasta la 16.4 -- el
+// <script> entero fallaba al compilar (SyntaxError) antes de ejecutar
+// ninguna línea. Reescritas sin lookbehind con el mismo comportamiento
+// exacto (verificado comparando ambas versiones sobre cientos de
+// entradas). Nuevo test que falla si se vuelve a introducir un lookbehind
+// en el código de cliente.
+const APP_VERSION = '68';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
