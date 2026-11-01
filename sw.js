@@ -452,7 +452,9 @@
 // v60: visible biometric settings and stronger exit controls.
 // v61: personal address limited to city and country (hint, non-blocking warning, safer import).
 // v62: larger, more readable hint under the personal address field.
-const APP_VERSION = '62';
+// v63: botón "Añadir a Google Wallet" en Mi Perfil (solo plan de pago
+// vigente, nunca la prueba) y sus textos en los 13 idiomas.
+const APP_VERSION = '63';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
