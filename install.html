@@ -6,6 +6,7 @@
   <title>IDENTIFLY · Instalar App</title>
   <link rel="canonical" href="https://www.identifly.app/install"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+  <script src="/i18n/loader.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -147,6 +148,37 @@
       45%     { filter: drop-shadow(0 0 4px #aaff00) drop-shadow(0 0 12px #aaff00); }
       50%     { filter: drop-shadow(0 0 12px #aaff00) drop-shadow(0 0 30px #aaff00) drop-shadow(0 0 60px rgba(170,255,0,0.5)); }
     }
+    /* Botón "Instalar IDENTIFLY" de un toque (solo Android con soporte de
+       beforeinstallprompt) -- mismo estilo y pulso que el banner de
+       index.html. .btn-install ya recibe el relieve 3D de button-depth.css
+       (enlazado más abajo) sin tocar ese archivo; aquí solo se define su
+       apariencia base y el pulso, que anima filter en vez de box-shadow
+       porque button-depth.css fija ese box-shadow con !important. */
+    @keyframes install-btn-pulse {
+      0%, 100% { filter: drop-shadow(0 0 0 rgba(170,255,0,0)); }
+      50% { filter: drop-shadow(0 0 10px rgba(170,255,0,0.55)); }
+    }
+    .btn-install {
+      display: block;
+      width: 100%;
+      margin: 0 0 28px;
+      background: #aaff00;
+      color: #000;
+      border: none;
+      padding: 14px 18px;
+      border-radius: 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      animation: install-btn-pulse 2.6s ease-in-out infinite;
+    }
+    .btn-install:active:not(:disabled) { background: #6aaa00; }
+    @media (prefers-reduced-motion: reduce) {
+      .btn-install { animation: none; }
+    }
   </style>
 <link rel="stylesheet" href="/button-depth.css?v=46">
 </head>
@@ -155,42 +187,42 @@
   <img src="assets/logo-wings.png" alt="IDENTIFLY" style="width:100px;height:76px;object-fit:contain;mix-blend-mode:screen;filter:drop-shadow(0 0 8px #aaff00) drop-shadow(0 0 20px rgba(170,255,0,0.6));animation:aleteo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;"/>
 
   <div class="brand" aria-label="Aidentiflay">IDENTIFLY</div>
-  <div class="tagline">Instala la app en tu móvil</div>
+  <div class="tagline" data-i18n="install_page.tagline">Instala la app en tu móvil</div>
 
   <div class="os-tabs">
-    <button class="os-tab active" onclick="showOS('android')">Android</button>
-    <button class="os-tab" onclick="showOS('ios')">iPhone / iPad</button>
-    <button class="os-tab" onclick="showOS('desktop')">Escritorio</button>
+    <button type="button" class="os-tab" id="os-tab-android" data-os="android" data-i18n="install_page.tab_android">Android</button>
+    <button type="button" class="os-tab" id="os-tab-ios" data-os="ios" data-i18n="install_page.tab_ios">iPhone / iPad</button>
   </div>
 
   <!-- ANDROID -->
-  <div class="steps active" id="steps-android">
+  <div class="steps" id="steps-android">
+    <button type="button" class="btn-install" id="btn-install-do-page" style="display:none;" data-i18n="index.install_banner.install_button">Instalar IDENTIFLY</button>
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">Abre Chrome</div>
-        <div class="step-desc">Accede a <strong>identifly.app</strong> desde el navegador Chrome en tu Android.</div>
+        <div class="step-title" data-i18n="install_page.android_step1_title">Abre Chrome</div>
+        <div class="step-desc" data-i18n-html="install_page.android_step1_desc_html">Accede a <strong>identifly.app</strong> desde el navegador Chrome en tu Android.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-content">
-        <div class="step-title">Toca el menú</div>
-        <div class="step-desc">Pulsa los <strong>3 puntos</strong> en la esquina superior derecha del navegador.</div>
+        <div class="step-title" data-i18n="install_page.android_step2_title">Toca el menú</div>
+        <div class="step-desc" data-i18n-html="install_page.android_step2_desc_html">Pulsa los <strong>3 puntos</strong> en la esquina superior derecha del navegador.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-content">
-        <div class="step-title">Añadir a pantalla de inicio</div>
-        <div class="step-desc">Selecciona <strong>"Añadir a pantalla de inicio"</strong> y confirma.</div>
+        <div class="step-title" data-i18n="install_page.android_step3_title">Añadir a pantalla de inicio</div>
+        <div class="step-desc" data-i18n-html="install_page.android_step3_desc_html">Selecciona <strong>"Añadir a pantalla de inicio"</strong> y confirma.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">4</div>
       <div class="step-content">
-        <div class="step-title">Listo</div>
-        <div class="step-desc">El icono de IDENTIFLY aparecerá en tu pantalla de inicio como cualquier otra app.</div>
+        <div class="step-title" data-i18n="install_page.android_step4_title">Listo</div>
+        <div class="step-desc" data-i18n-html="install_page.android_step4_desc_html">El icono de IDENTIFLY aparecerá en tu pantalla de inicio como cualquier otra app.</div>
       </div>
     </div>
   </div>
@@ -200,68 +232,93 @@
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">Abre Safari</div>
-        <div class="step-desc">Accede a <strong>identifly.app</strong> desde Safari. No funciona desde Chrome en iPhone.</div>
+        <div class="step-title" data-i18n="install_page.ios_step1_title">Abre Safari</div>
+        <div class="step-desc" data-i18n-html="install_page.ios_step1_desc_html">Accede a <strong>identifly.app</strong> desde Safari.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-content">
-        <div class="step-title">Toca Compartir</div>
-        <div class="step-desc">Pulsa el icono de <strong>compartir</strong> — el cuadrado con la flecha hacia arriba — en la barra inferior.</div>
+        <div class="step-title" data-i18n="install_page.ios_step2_title">Toca Compartir</div>
+        <!-- Mismo texto, palabra por palabra, que el paso 2 del banner de
+             index.html (index.install_banner.ios_step2) -- incluye el
+             aviso de "•••" cuando el botón Compartir no es visible. -->
+        <div class="step-desc" data-i18n="index.install_banner.ios_step2">Toca el botón Compartir. Si no lo ves, toca ••• y después Compartir.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-content">
-        <div class="step-title">Añadir a inicio</div>
-        <div class="step-desc">Desplázate y selecciona <strong>"Añadir a pantalla de inicio"</strong>.</div>
+        <div class="step-title" data-i18n="install_page.ios_step3_title">Añadir a inicio</div>
+        <div class="step-desc" data-i18n-html="install_page.ios_step3_desc_html">Desplázate y selecciona <strong>"Añadir a pantalla de inicio"</strong>.</div>
       </div>
     </div>
     <div class="step">
       <div class="step-num">4</div>
       <div class="step-content">
-        <div class="step-title">Confirma</div>
-        <div class="step-desc">Toca <strong>"Añadir"</strong> en la esquina superior derecha. El icono aparecerá en tu inicio.</div>
+        <div class="step-title" data-i18n="install_page.ios_step4_title">Confirma</div>
+        <div class="step-desc" data-i18n-html="install_page.ios_step4_desc_html">Toca <strong>"Añadir"</strong> en la esquina superior derecha. El icono aparecerá en tu inicio.</div>
       </div>
     </div>
   </div>
 
-  <!-- DESKTOP -->
-  <div class="steps" id="steps-desktop">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-content">
-        <div class="step-title">Abre Chrome o Edge</div>
-        <div class="step-desc">Accede a <strong>identifly.app</strong> desde Chrome o Microsoft Edge.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-content">
-        <div class="step-title">Icono de instalación</div>
-        <div class="step-desc">Busca el icono de <strong>instalar</strong> en la barra de direcciones — un ordenador con una flecha hacia abajo.</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-content">
-        <div class="step-title">Instalar</div>
-        <div class="step-desc">Haz click en <strong>"Instalar"</strong> y confirma. IDENTIFLY se abrirá como app independiente.</div>
-      </div>
-    </div>
+  <button class="btn-go" onclick="window.location.href='/index.html'" data-i18n="install_page.go_button">Ir a IDENTIFLY</button>
+  <div class="note">
+    <span data-i18n="install_page.note_line1">IDENTIFLY es una PWA — Progressive Web App.</span><br>
+    <span data-i18n="install_page.note_line2">No requiere descarga desde ninguna tienda de apps.</span>
   </div>
-
-  <button class="btn-go" onclick="window.location.href='/index.html'">Ir a IDENTIFLY</button>
-  <div class="note">IDENTIFLY es una PWA — Progressive Web App.<br>No requiere descarga desde ninguna tienda de apps.</div>
 
   <script>
-    function showOS(os) {
-      document.querySelectorAll('.steps').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
-      document.getElementById('steps-' + os).classList.add('active');
-      event.target.classList.add('active');
+    // Misma detección que esIOS()/esAndroid() en index.html: iPadOS 13+
+    // se identifica en el user agent como un Mac de escritorio, pero con
+    // pantalla táctil (los Mac reales no tienen maxTouchPoints).
+    function esIOS() {
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent || '')) return true;
+      return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
     }
+    function esAndroid() {
+      if (navigator.userAgentData && typeof navigator.userAgentData.platform === 'string') {
+        return navigator.userAgentData.platform === 'Android';
+      }
+      return /Android/.test(navigator.userAgent || '');
+    }
+
+    function showOS(os) {
+      document.querySelectorAll('.steps').forEach(function (s) { s.classList.remove('active'); });
+      document.querySelectorAll('.os-tab').forEach(function (t) { t.classList.remove('active'); });
+      document.getElementById('steps-' + os).classList.add('active');
+      document.getElementById('os-tab-' + os).classList.add('active');
+    }
+
+    document.getElementById('os-tab-android').addEventListener('click', function () { showOS('android'); });
+    document.getElementById('os-tab-ios').addEventListener('click', function () { showOS('ios'); });
+
+    // iPhone/iPad -> pestaña iPhone/iPad. Cualquier otro caso (Android,
+    // ordenador, lo que sea) -> pestaña Android: IDENTIFLY es solo para
+    // móvil y tablet, así que un ordenador ve los mismos pasos que
+    // Android en vez de una pestaña de escritorio.
+    showOS(esIOS() ? 'ios' : 'android');
+
+    // Botón "Instalar IDENTIFLY" de un toque, solo si el navegador ofrece
+    // beforeinstallprompt (Chrome/Edge en Android). Si no llega, la
+    // pestaña Android se queda con solo los pasos manuales.
+    var deferredPromptPage = null;
+    var btnInstalarPagina = document.getElementById('btn-install-do-page');
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPromptPage = e;
+      if (btnInstalarPagina) btnInstalarPagina.style.display = 'block';
+    });
+
+    btnInstalarPagina?.addEventListener('click', function () {
+      if (!deferredPromptPage) return;
+      deferredPromptPage.prompt();
+      deferredPromptPage.userChoice.finally(function () {
+        deferredPromptPage = null;
+        if (btnInstalarPagina) btnInstalarPagina.style.display = 'none';
+      });
+    });
   </script>
 
 </body>

@@ -460,7 +460,11 @@
 // v65: banner de instalación adaptado por sistema (botón de un toque en
 // Android, pasos en Android sin soporte o en iPhone/iPad, oculto en
 // escritorio y si la app ya está instalada); recordar el cierre 7 días.
-const APP_VERSION = '65';
+// v66: pasos de iPhone del banner reescritos (Safari + ayuda del botón
+// ••• cuando Compartir no es visible); /install ahora detecta el
+// sistema automáticamente, pierde la pestaña de escritorio y tiene
+// textos en los 13 idiomas.
+const APP_VERSION = '66';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
