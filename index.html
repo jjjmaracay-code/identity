@@ -8330,18 +8330,19 @@ function actualizarPlanBadge() {
 // =================== GOOGLE WALLET ===================
 // Botón oficial por idioma. Google solo publica algunos idiomas; para el
 // resto su guía de marca indica usar el de inglés (nunca traducirlo).
-const WALLET_BUTTON_LANGS = ['es', 'en', 'fr', 'de', 'ca', 'pt', 'ja', 'ru'];
+const WALLET_BUTTON_LANGS = ['es', 'en', 'fr', 'de', 'ca', 'pt', 'ja', 'ru', 'ar'];
 const WALLET_SAVE_PREFIX = 'https://pay.google.com/gp/v/save/';
 
 // Visible solo con plan de pago vigente según el último veredicto del
-// servidor (mismo criterio que Business: pro/lifetime y no bloqueado).
-// Es solo presentación: /api/wallet-pass vuelve a verificar el plan.
+// servidor (mismo criterio que la insignia PRO: pro/lifetime, no
+// bloqueado y nunca durante la prueba con tarjeta). Es solo
+// presentación: /api/wallet-pass vuelve a verificar el plan.
 function actualizarBotonWallet() {
   const section = document.getElementById('wallet-section');
   if (!section) return;
   let verificado = null;
   try { verificado = JSON.parse(localStorage.getItem('identity_plan_verified') || 'null'); } catch (_) {}
-  const esPago = !!(verificado && ['pro', 'lifetime'].includes(verificado.plan) && !verificado.bloqueado);
+  const esPago = !!(verificado && ['pro', 'lifetime'].includes(verificado.plan) && !verificado.bloqueado && !verificado.trialActive);
   section.style.display = esPago ? 'block' : 'none';
 
   const lang = WALLET_BUTTON_LANGS.includes(window.currentLanguage) ? window.currentLanguage : 'en';

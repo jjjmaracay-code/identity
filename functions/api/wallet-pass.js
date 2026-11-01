@@ -7,8 +7,10 @@
 //   1. Identidad válida (email + token opaco, mismo mecanismo que
 //      check-plan.js y business-*.js vía authenticateOwner).
 //   2. Plan de pago vigente ahora mismo (pro con periodo pagado vigente,
-//      o lifetime), calculado en functions/_shared/plan-access.js. La
-//      prueba de 30 días NO da acceso. Nunca se confía en el cliente.
+//      o lifetime), calculado en functions/_shared/plan-access.js. Ni la
+//      prueba de 30 días ni la prueba con tarjeta (pro en 'trialing', que
+//      computePaidActive sí cuenta como pago) dan acceso. Nunca se confía
+//      en el cliente.
 //
 // IDENTIFLY es local-first: esta función NO guarda nada (ni en KV ni en
 // ningún otro almacenamiento). Cada llamada crea un pase NUEVO con un id
@@ -17,6 +19,7 @@
 // La clave de la cuenta de servicio (GOOGLE_WALLET_SA_KEY) nunca se
 // registra en logs ni se devuelve al cliente, ni siquiera parcialmente.
 import { authenticateOwner, jsonResponse } from '../_shared/business.js';
+import { getPlanStatus } from '../_shared/plan-access.js';
 
 const MAX_NOMBRE = 80;
 const MAX_EMPRESA = 80;
@@ -91,6 +94,9 @@ export async function onRequestPost(context) {
   const auth = await authenticateOwner(env, email, token);
   if (!auth.ok) return jsonResponse({ ok: false, error: 'no_autorizado' }, 401);
   if (!auth.esPago) return jsonResponse({ ok: false, error: 'plan_no_habilitado' }, 403);
+  // Solo lectura: excluye la prueba con tarjeta, que esPago sí incluye.
+  const status = await getPlanStatus(env, auth.emailKey);
+  if (!status || status.trialActive) return jsonResponse({ ok: false, error: 'plan_no_habilitado' }, 403);
 
   const entrada = validarEntrada(body);
   if (!entrada) return jsonResponse({ ok: false, error: 'payload_invalido' }, 400);
