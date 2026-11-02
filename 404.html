@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>IDENTIFLY · Página no encontrada</title>
+<link rel="stylesheet" href="/public-card.css">
+<link rel="stylesheet" href="/i18n/rtl.css">
+<style>
+  @keyframes aleteo {
+    0%,100% { transform: rotate(-15deg) scaleX(0.75); }
+    5%      { transform: rotate(-15deg) scaleX(0.77); }
+    10%     { transform: rotate(-15deg) scaleX(0.75); }
+    15%     { transform: rotate(-15deg) scaleX(0.77); }
+    20%     { transform: rotate(-15deg) scaleX(0.75); }
+    26%     { transform: rotate(-15deg) scaleX(0.08); }
+    28%     { transform: rotate(-15deg) scaleX(0.75); }
+    30%     { transform: rotate(-15deg) scaleX(0.08); }
+    32%     { transform: rotate(-15deg) scaleX(0.75); }
+    34%     { transform: rotate(-15deg) scaleX(0.08); }
+    36%     { transform: rotate(-15deg) scaleX(0.75); }
+    46%     { transform: rotate(-15deg) scaleX(0.78); }
+    52%     { transform: rotate(-15deg) scaleX(0.75); }
+    58%     { transform: rotate(-15deg) scaleX(0.78); }
+    64%     { transform: rotate(-15deg) scaleX(0.75); }
+    83%     { transform: rotate(-15deg) scaleX(0.35); }
+    86%     { transform: rotate(-15deg) scaleX(0.75); }
+    95%     { transform: rotate(-15deg) scaleX(0.77); }
+  }
+  @keyframes neon-flicker {
+    0%,100% {
+      filter: drop-shadow(0 0 8px #aaff00)
+              drop-shadow(0 0 20px #aaff00)
+              drop-shadow(0 0 40px rgba(170,255,0,0.6));
+    }
+    45% {
+      filter: drop-shadow(0 0 4px #aaff00)
+              drop-shadow(0 0 12px #aaff00);
+    }
+    50% {
+      filter: drop-shadow(0 0 12px #aaff00)
+              drop-shadow(0 0 30px #aaff00)
+              drop-shadow(0 0 60px rgba(170,255,0,0.5));
+    }
+  }
+  .logo-butterfly {
+    width: 160px;
+    height: 122px;
+    object-fit: contain;
+    mix-blend-mode: screen;
+    animation: aleteo 8s ease-in-out infinite, neon-flicker 4s ease-in-out infinite;
+    transform-origin: center center;
+  }
+  .logo-butterfly.small { width: 100px; height: 76px; }
+  .nf-title { font-size: 20px; font-weight: 900; margin: 20px 0 8px; }
+  .nf-text { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img src="/assets/logo-wings.png" alt="IDENTIFLY" class="logo-butterfly small">
+    <p class="nf-title" id="nf-title">Página no encontrada</p>
+    <p class="nf-text" id="nf-text">La dirección que buscas no existe o ha cambiado.</p>
+    <a class="btn" id="nf-btn" href="/">Ir a IDENTIFLY</a>
+  </div>
+  <script>
+  (function () {
+    'use strict';
+    // 3 frases en los 13 idiomas soportados por la app. Autocontenido:
+    // no depende de i18n/*.json ni de i18n/loader.js para no tocarlos.
+    var DICT = {
+      es: { t: 'Página no encontrada', m: 'La dirección que buscas no existe o ha cambiado.', b: 'Ir a IDENTIFLY' },
+      ca: { t: 'Pàgina no trobada', m: 'L’adreça que busques no existeix o ha canviat.', b: 'Anar a IDENTIFLY' },
+      eu: { t: 'Orria ez da aurkitu', m: 'Bilatzen duzun helbidea ez dago edo aldatu da.', b: 'IDENTIFLY-ra joan' },
+      gl: { t: 'Páxina non atopada', m: 'O enderezo que buscas non existe ou cambiou.', b: 'Ir a IDENTIFLY' },
+      en: { t: 'Page not found', m: 'The address you are looking for does not exist or has changed.', b: 'Go to IDENTIFLY' },
+      fr: { t: 'Page introuvable', m: 'L’adresse que vous recherchez n’existe pas ou a changé.', b: 'Aller sur IDENTIFLY' },
+      de: { t: 'Seite nicht gefunden', m: 'Die gesuchte Adresse existiert nicht oder wurde geändert.', b: 'Zu IDENTIFLY' },
+      pt: { t: 'Página não encontrada', m: 'O endereço que procuras não existe ou foi alterado.', b: 'Ir para IDENTIFLY' },
+      hi: { t: 'पेज नहीं मिला', m: 'आप जो पता खोज रहे हैं वह मौजूद नहीं है या बदल गया है।', b: 'IDENTIFLY पर जाएं' },
+      zh: { t: '页面未找到', m: '您查找的地址不存在或已更改。', b: '前往 IDENTIFLY' },
+      ru: { t: 'Страница не найдена', m: 'Адрес, который вы ищете, не существует или был изменён.', b: 'Перейти на IDENTIFLY' },
+      ja: { t: 'ページが見つかりません', m: 'お探しのアドレスは存在しないか、変更されました。', b: 'IDENTIFLYへ移動' },
+      ar: { t: 'الصفحة غير موجودة', m: 'العنوان الذي تبحث عنه غير موجود أو تم تغييره.', b: 'الانتقال إلى IDENTIFLY' }
+    };
+
+    function detectarIdioma() {
+      var guardado = null;
+      try { guardado = localStorage.getItem('identity_language_pref'); } catch (e) {}
+      if (guardado && DICT[guardado]) return guardado;
+      var nav = '';
+      try { nav = (navigator.language || '').slice(0, 2).toLowerCase(); } catch (e) {}
+      if (nav && DICT[nav]) return nav;
+      return 'es';
+    }
+
+    var lang = detectarIdioma();
+    var d = DICT[lang];
+    document.documentElement.lang = lang;
+    document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+    document.getElementById('nf-title').textContent = d.t;
+    document.getElementById('nf-text').textContent = d.m;
+    document.getElementById('nf-btn').textContent = d.b;
+  })();
+  </script>
+</body>
+</html>
