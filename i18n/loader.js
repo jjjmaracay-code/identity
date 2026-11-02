@@ -34,6 +34,17 @@
   // "es-ES"->es, "pt-BR"->pt, "zh-TW"/"zh-HK"/"zh-CN"->zh,
   // "en-US"->en, "fr-CA"->fr, "de-AT"->de, etc. sin lógica aparte.
   var SUPPORTED_LANGS = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar'];
+  // Los diccionarios se pedían sin ?v=, a diferencia de business.js/
+  // business.css (que sí lo llevan desde la v25 de sw.js, por el mismo
+  // motivo) -- sin una URL distinta por versión, una copia vieja cacheada
+  // (en el navegador o en la caché del Service Worker, especialmente en
+  // Safari/iOS, con bugs conocidos de actualización) podía quedarse
+  // sirviendo un diccionario antiguo para siempre, aunque el servidor ya
+  // tuviera el texto corregido. Bumpear DICT_VERSION junto con un cambio
+  // de contenido en i18n/*.json fuerza una URL nueva en cada dispositivo.
+  // Debe coincidir exactamente con las entradas '/i18n/*.json?v=...' de
+  // CACHE_URLS en sw.js.
+  var DICT_VERSION = '69';
   var DICT = {};
   // La demo pública usa solo el idioma del navegador o su selector, sin
   // consultar ni persistir ningún dato del dispositivo o de una cuenta.
@@ -127,7 +138,7 @@
   // esta clave queda sin efecto, aunque no se borra.
   window.setLanguage = function (lang) {
     if (SUPPORTED_LANGS.indexOf(lang) === -1) lang = 'es';
-    return fetch('/i18n/' + lang + '.json')
+    return fetch('/i18n/' + lang + '.json?v=' + DICT_VERSION)
       .then(function (res) { return res.ok ? res.json() : {}; })
       .catch(function () { return {}; })
       .then(function (dict) {
@@ -142,7 +153,7 @@
       });
   };
 
-  window.i18nReady = fetch('/i18n/' + LANG + '.json')
+  window.i18nReady = fetch('/i18n/' + LANG + '.json?v=' + DICT_VERSION)
     .then(function (res) { return res.ok ? res.json() : null; })
     .catch(function () { return null; })
     .then(function (dict) {
@@ -154,7 +165,7 @@
       if (LANG === 'es') return {};
       window.currentLanguage = 'es';
       try { updateDocumentLanguage('es'); } catch (e) {}
-      return fetch('/i18n/es.json')
+      return fetch('/i18n/es.json?v=' + DICT_VERSION)
         .then(function (res) { return res.ok ? res.json() : {}; })
         .catch(function () { return {}; });
     })

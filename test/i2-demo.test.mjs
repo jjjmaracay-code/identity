@@ -7,6 +7,9 @@ const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8'
 const html = read('demo.html');
 const languages = ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar'];
 const dictionaries = Object.fromEntries(languages.map(lang => [lang, JSON.parse(read('i18n/' + lang + '.json'))]));
+// Debe coincidir con DICT_VERSION real de i18n/loader.js -- se lee del
+// propio archivo en vez de hardcodearla, para no desincronizarse.
+const DICT_VERSION = read('i18n/loader.js').match(/DICT_VERSION = '(\d+)'/)[1];
 
 // DOM mínimo construido a partir de las etiquetas reales de demo.html.
 // Estas pruebas ejecutan los scripts reales en VM; no simulan un navegador.
@@ -44,8 +47,10 @@ async function fixture(options = {}) {
     navigator: { languages: [options.lang || 'es-ES'] },
     fetch: async url => {
       fetches.push(url);
-      assert.match(url, /^\/i18n\/(es|ca|eu|gl|en|fr|de|pt|hi|zh|ru|ja|ar)\.json$/);
-      const lang = url.slice(6, -5);
+      const match = url.match(/^\/i18n\/(es|ca|eu|gl|en|fr|de|pt|hi|zh|ru|ja|ar)\.json\?v=(\d+)$/);
+      assert.ok(match, 'URL de diccionario inesperada: ' + url);
+      assert.equal(match[2], DICT_VERSION);
+      const lang = match[1];
       if (options.failDictionary === lang) throw new Error('Offline dictionary');
       return { ok: true, json: async () => dictionaries[lang] };
     },
@@ -91,7 +96,7 @@ for (const lang of languages) {
   test(`demo ${lang}: QR y vCard ficticios sin leer el perfil, almacenamiento ni tokens`, async () => {
     const f = await fixture({ lang });
     assert.equal(f.privateAccesses, 0);
-    assert.deepEqual(f.fetches, ['/i18n/' + lang + '.json']);
+    assert.deepEqual(f.fetches, ['/i18n/' + lang + '.json?v=' + DICT_VERSION]);
     assert.equal(f.context.currentLanguage, lang);
     assert.equal(f.document.documentElement.dir, lang === 'ar' ? 'rtl' : 'ltr');
     assert.equal(f.document.getElementById('demo-email').textContent, 'alex.demo@example.com');
@@ -127,13 +132,13 @@ test('el selector de la demo actualiza texto, QR y descarga sin persistir el idi
   assert.equal(f.qrCalls.length, 2);
   await f.document.getElementById('demo-download').fire('click');
   assert.equal(await f.downloads[0].blob.text(), f.qrCalls[1].data);
-  assert.deepEqual(f.fetches, ['/i18n/es.json', '/i18n/ja.json']);
+  assert.deepEqual(f.fetches, ['/i18n/es.json?v=' + DICT_VERSION, '/i18n/ja.json?v=' + DICT_VERSION]);
   assert.equal(f.privateAccesses, 0);
 });
 
 test('si falla el diccionario detectado usa español sin consultar el perfil', async () => {
   const f = await fixture({ lang: 'ja-JP', failDictionary: 'ja' });
-  assert.deepEqual(f.fetches, ['/i18n/ja.json', '/i18n/es.json']);
+  assert.deepEqual(f.fetches, ['/i18n/ja.json?v=' + DICT_VERSION, '/i18n/es.json?v=' + DICT_VERSION]);
   assert.equal(f.context.currentLanguage, 'es');
   assert.ok(f.qrCalls[0].data.includes(dictionaries.es['growth.demo_role']));
   assert.equal(f.privateAccesses, 0);

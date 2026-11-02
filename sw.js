@@ -480,7 +480,21 @@
 // exacto (verificado comparando ambas versiones sobre cientos de
 // entradas). Nuevo test que falla si se vuelve a introducir un lookbehind
 // en el código de cliente.
-const APP_VERSION = '68';
+// v69: dos fallos reales en el banner de instalación de iPhone (ver
+// commit): (1) el texto de respaldo estático de los pasos 1 y 2 en
+// index.html seguía siendo el de la v65 -- la v66 solo cambió el
+// diccionario, nunca este respaldo que se ve mientras el diccionario
+// carga; (2) los diccionarios /i18n/*.json se pedían sin ?v=, a
+// diferencia de business.js/business.css (que ya lo llevan desde la v25
+// por el mismo motivo) -- sin una URL distinta por versión, una copia
+// vieja cacheada (navegador o Service Worker, con los bugs de
+// actualización conocidos de Safari/iOS) podía seguir sirviendo un
+// diccionario antiguo para siempre aunque el servidor ya tuviera el texto
+// corregido. Se añade DICT_VERSION en i18n/loader.js (debe coincidir con
+// las 13 entradas '?v=' de CACHE_URLS aquí) y se quita diag.html (y su
+// regla en _headers), ya usado para confirmar el fix de la v68 en un
+// iPhone 7 Plus real.
+const APP_VERSION = '69';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -525,19 +539,21 @@ const CACHE_URLS = [
   '/device-id.js',
   '/i18n/loader.js',
   '/i18n/rtl.css',
-  '/i18n/ar.json',
-  '/i18n/es.json',
-  '/i18n/en.json',
-  '/i18n/fr.json',
-  '/i18n/pt.json',
-  '/i18n/de.json',
-  '/i18n/ca.json',
-  '/i18n/eu.json',
-  '/i18n/gl.json',
-  '/i18n/hi.json',
-  '/i18n/zh.json',
-  '/i18n/ru.json',
-  '/i18n/ja.json',
+  // ?v= debe coincidir exactamente con DICT_VERSION en i18n/loader.js --
+  // ver v69 más abajo.
+  '/i18n/ar.json?v=69',
+  '/i18n/es.json?v=69',
+  '/i18n/en.json?v=69',
+  '/i18n/fr.json?v=69',
+  '/i18n/pt.json?v=69',
+  '/i18n/de.json?v=69',
+  '/i18n/ca.json?v=69',
+  '/i18n/eu.json?v=69',
+  '/i18n/gl.json?v=69',
+  '/i18n/hi.json?v=69',
+  '/i18n/zh.json?v=69',
+  '/i18n/ru.json?v=69',
+  '/i18n/ja.json?v=69',
   '/business.css?v=' + APP_VERSION,
   '/business.js?v=' + APP_VERSION,
 ];
