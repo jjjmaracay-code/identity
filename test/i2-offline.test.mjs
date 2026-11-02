@@ -8,6 +8,11 @@ import vm from 'node:vm';
 const read = promisify(readFile);
 const root = new URL('../', import.meta.url);
 const source = path => readFileSync(new URL(path, root), 'utf8');
+// Debe coincidir con APP_VERSION/CACHE_NAME reales de sw.js -- se leen
+// del propio archivo en vez de hardcodearlos, para no desincronizarse
+// (mismo patrón que DICT_VERSION en i2-demo.test.mjs).
+const APP_VERSION = source('sw.js').match(/APP_VERSION = '(\d+)'/)[1];
+const CACHE_NAME = 'identity-v' + APP_VERSION;
 
 test('el generador QR real admite el contacto ficticio en los doce idiomas', async () => {
   function element() {
@@ -82,7 +87,7 @@ test('HTTP local: el precache completo carga y sirve la demo y sus recursos cuan
         }
       },
       caches: {
-        async open(name) { assert.equal(name, 'identity-v60'); return cache; },
+        async open(name) { assert.equal(name, CACHE_NAME); return cache; },
         async match(request, options = {}) {
           const url = key(request);
           for (const [stored, response] of entries) {

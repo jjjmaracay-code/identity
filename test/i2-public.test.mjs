@@ -8,6 +8,12 @@ import { THEME_TOKENS } from '../functions/_shared/business.js';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const shareHTML = read('share.html');
+// Debe coincidir con APP_VERSION real de sw.js y con DICT_VERSION real de
+// i18n/loader.js -- se leen de los propios archivos en vez de
+// hardcodearlos, para no desincronizarse (mismo patrón que DICT_VERSION
+// en i2-demo.test.mjs).
+const APP_VERSION = read('sw.js').match(/APP_VERSION = '(\d+)'/)[1];
+const DICT_VERSION = read('i18n/loader.js').match(/DICT_VERSION = '(\d+)'/)[1];
 const signature = html => html.match(/<a\b[^>]*data-i18n="growth\.create_yours"[^>]*>/)?.[0];
 
 function assertPublicSignature(html) {
@@ -116,13 +122,13 @@ test('el Service Worker incluye todos los recursos I2 y sigue excluyendo API y t
   const listeners = {};
   const context = { self: { location: { origin: 'https://example.com' }, addEventListener(name, fn) { listeners[name] = fn; } }, URL };
   vm.runInNewContext(read('sw.js') + '\nself.testURLs = CACHE_URLS; self.testVersion = APP_VERSION;', context);
-  assert.equal(context.self.testVersion, '60');
+  assert.equal(context.self.testVersion, APP_VERSION);
   for(const url of ['/account-tools.js?v=57','/account-access.js?v=59','/local-recovery.js?v=57','/account-layout.css?v=60','/account-tools.css?v=60','/account-wallet.js?v=58','/vendor/simplewebauthn/browser.umd.min.js?v=14'])assert.ok(context.self.testURLs.includes(url),url);
   for (const url of ['/demo', '/demo.js', '/public-card.css', '/growth.css', '/growth-share.js', '/vcard.js', '/vendor/qr-code-styling/qr-code-styling.js', '/i18n/loader.js', '/manifest.json', '/keyboard-comfort.js?v=3', '/main-action-depth.css?v=51']) {
     assert.ok(context.self.testURLs.includes(url), url);
   }
   for (const lang of ['es', 'ca', 'eu', 'gl', 'en', 'fr', 'de', 'pt', 'hi', 'zh', 'ru', 'ja', 'ar']) {
-    assert.ok(context.self.testURLs.includes('/i18n/' + lang + '.json'));
+    assert.ok(context.self.testURLs.includes('/i18n/' + lang + '.json?v=' + DICT_VERSION), lang);
   }
   for (const pathname of ['/api/share-qr?token=private', '/c/abc']) {
     let intercepted = false;
