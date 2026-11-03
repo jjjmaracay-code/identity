@@ -494,7 +494,16 @@
 // las 13 entradas '?v=' de CACHE_URLS aquí) y se quita diag.html (y su
 // regla en _headers), ya usado para confirmar el fix de la v68 en un
 // iPhone 7 Plus real.
-const APP_VERSION = '69';
+// v70: se retira la integración ANTIGUA de Wallet del frontend
+// (account-wallet.js, el panel #account-wallet-tools en la pestaña
+// Seguridad y las rutas wallet/* del proxy de account-tools) -- vivía
+// aparte de la integración nueva (wallet-pass.js, botón de Mi Perfil,
+// solo Android y plan de pago), que no se toca. Sin subir APP_VERSION
+// un dispositivo con el Service Worker antiguo seguiría precacheando
+// account-wallet.js (que ya no existe) hasta la próxima limpieza de
+// caché, sin romper nada pero dejando una petición 404 silenciosa en el
+// install.
+const APP_VERSION = '70';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
@@ -504,7 +513,6 @@ const CACHE_URLS = [
   '/account-tools.css?v=60',
   '/account-layout.css?v=60',
   '/account-access.js?v=59',
-  '/account-wallet.js?v=58',
   '/local-recovery.js?v=57',
   '/credential-autofill.js?v=54',
   '/credential-autofill.css?v=55',

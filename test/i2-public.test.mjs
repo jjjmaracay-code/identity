@@ -123,7 +123,8 @@ test('el Service Worker incluye todos los recursos I2 y sigue excluyendo API y t
   const context = { self: { location: { origin: 'https://example.com' }, addEventListener(name, fn) { listeners[name] = fn; } }, URL };
   vm.runInNewContext(read('sw.js') + '\nself.testURLs = CACHE_URLS; self.testVersion = APP_VERSION;', context);
   assert.equal(context.self.testVersion, APP_VERSION);
-  for(const url of ['/account-tools.js?v=57','/account-access.js?v=59','/local-recovery.js?v=57','/account-layout.css?v=60','/account-tools.css?v=60','/account-wallet.js?v=58','/vendor/simplewebauthn/browser.umd.min.js?v=14'])assert.ok(context.self.testURLs.includes(url),url);
+  for(const url of ['/account-tools.js?v=57','/account-access.js?v=59','/local-recovery.js?v=57','/account-layout.css?v=60','/account-tools.css?v=60','/vendor/simplewebauthn/browser.umd.min.js?v=14'])assert.ok(context.self.testURLs.includes(url),url);
+  assert.ok(!context.self.testURLs.some(url => url.startsWith('/account-wallet.js')), 'sw.js no debe precachear la integración antigua de Wallet (account-wallet.js)');
   for (const url of ['/demo', '/demo.js', '/public-card.css', '/growth.css', '/growth-share.js', '/vcard.js', '/vendor/qr-code-styling/qr-code-styling.js', '/i18n/loader.js', '/manifest.json', '/keyboard-comfort.js?v=3', '/main-action-depth.css?v=51']) {
     assert.ok(context.self.testURLs.includes(url), url);
   }

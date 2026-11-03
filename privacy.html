@@ -267,7 +267,6 @@
 
     <p><strong>Acceso con huella o rostro (opcional):</strong> conservamos en el servidor las claves públicas de verificación, identificadores opacos y fechas de uso. La contraseña, la clave privada y los resultados secretos del desbloqueo local no se envían a este servicio. La verificación biométrica la gestiona tu dispositivo.</p>
     <p><strong>Deshacer cambios:</strong> las copias de recuperación de tu tarjeta se guardan cifradas en este dispositivo, con un máximo de tres copias y un límite conjunto de 128 KiB. Son recuperables durante siete días; no incluyen archivos multimedia, contraseñas ni la configuración de acceso. Se eliminan al borrar el almacenamiento de la aplicación.</p>
-    <p><strong>Wallet (opcional, cuando esté disponible):</strong> puedes solicitar un pase con el enlace de tu tarjeta profesional ya publicada. Solo se utiliza el contenido que has publicado expresamente. Apple o Google procesan el pase cuando decides añadirlo. La descarga de Apple utiliza un enlace temporal de dos minutos.</p>
 
     <h2>3. Finalidad del tratamiento</h2>
     <ul>
@@ -292,11 +291,11 @@
       <li><strong>Stripe</strong> (procesamiento de pagos) — Stripe, Inc.</li>
       <li><strong>Resend</strong> (envío de emails transaccionales) — Resend, Inc.</li>
       <li><strong>Cloudflare</strong> (hosting y almacenamiento del estado de tu plan) — Cloudflare, Inc.</li>
-      <li><strong>Railway</strong> (servicio de verificación de llaves de acceso y preparación opcional de pases Wallet).</li>
-      <li><strong>Apple o Google</strong>, si decides guardar un pase en su Wallet.</li>
+      <li><strong>Railway</strong> (servicio de verificación de llaves de acceso).</li>
+      <li><strong>Google</strong>, si decides guardar un pase en Google Wallet.</li>
     </ul>
     <p>Ninguno de estos proveedores utiliza tus datos con fines propios de marketing.</p>
-    <p><strong>Google Wallet</strong> (solo si tú lo usas): al pulsar «Añadir a Google Wallet», tu nombre, tu empresa y el contenido de tu código QR se envían a una función de IDENTIFLY que firma el pase y lo entrega a Google. IDENTIFLY no almacena esos datos. A partir de ese momento, el pase queda sujeto a la política de privacidad de Google.</p>
+    <p><strong>Google Wallet</strong> (solo en Android, solo con un plan de pago activo): al pulsar «Añadir a Google Wallet» desde Mi Perfil, tu nombre, tu empresa y el contenido de tu código QR principal se envían a una función de IDENTIFLY en Cloudflare que firma el pase y lo entrega a Google. IDENTIFLY no guarda esos datos en ningún servidor. Desde ese momento, el pase queda sujeto a la política de privacidad de Google.</p>
 
     <h2>7. Transferencias internacionales</h2>
     <p>Algunos de los proveedores anteriores pueden procesar datos fuera del Espacio Económico Europeo (Estados Unidos). En esos casos, el proveedor cuenta con mecanismos de garantía reconocidos por el RGPD, como las Cláusulas Contractuales Tipo de la Comisión Europea.</p>

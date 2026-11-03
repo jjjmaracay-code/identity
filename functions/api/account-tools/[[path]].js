@@ -1,6 +1,6 @@
 // Fixed upstream and allowlist: this is not a general HTTP proxy. Credentials
 // stay out of URLs, caches and logs. The backend verifies Identity independently.
-const allowed=new Set(['passkeys/list','passkeys/register/options','passkeys/register/verify','passkeys/login/options','passkeys/login/verify','passkeys/remove','wallet/status','wallet/apple','wallet/google']);
+const allowed=new Set(['passkeys/list','passkeys/register/options','passkeys/register/verify','passkeys/login/options','passkeys/login/verify','passkeys/remove']);
 export async function onRequestPost({request,params}) {
  const path=Array.isArray(params.path)?params.path.join('/'):String(params.path||'');
  if(!allowed.has(path))return new Response(null,{status:404});
