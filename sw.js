@@ -503,7 +503,8 @@
 // account-wallet.js (que ya no existe) hasta la próxima limpieza de
 // caché, sin romper nada pero dejando una petición 404 silenciosa en el
 // install.
-const APP_VERSION = '70';
+// v71: actualiza la pantalla principal y su menú de acciones.
+const APP_VERSION = '71';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
