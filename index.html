@@ -332,6 +332,9 @@
   }
 
   #main-menu {
+    position: fixed;
+    inset: 0;
+    margin: auto;
     box-sizing: border-box;
     width: min(380px, calc(100% - 32px));
     max-height: calc(100% - 32px);
@@ -381,7 +384,7 @@
   /* CARD con flip */
   .card-container {
     perspective: 1000px;
-    width: min(320px, 90vw);
+    width: min(380px, 100%);
     aspect-ratio: 3/4;
     cursor: pointer;
     flex-shrink: 0;
@@ -3694,7 +3697,7 @@
              clip-path/mask hasta el próximo repintado forzado (coincide
              con que "Ampliar QR" sí lo muestra: es un clon fuera de ese
              contexto 3D). Pendiente de confirmar en el iPhone real. -->
-        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:100%;max-width:280px;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:zoom-in;flex-shrink:0;transform:translateZ(0);-webkit-transform:translateZ(0);"></div>
+        <div id="qr-container" style="border-radius:10px;overflow:hidden;width:100%;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center;cursor:zoom-in;flex-shrink:0;transform:translateZ(0);-webkit-transform:translateZ(0);"></div>
         <div class="card-back-name" id="qr-name">—</div>
         <div class="card-back-sub" data-i18n="index.main.card_back_sub">IDENTIFLY · Tarjeta Digital</div>
         <!-- Reutiliza openQrZoom() (misma función que al tocar el QR, ver
@@ -6488,9 +6491,7 @@ function fitCardBackQrSquare() {
   const altoDisponible = back.clientHeight - paddingV - otrosAltura - huecos;
   const anchoDisponible = back.clientWidth - paddingH;
 
-  // Máximo histórico de 280px: conserva el tamaño habitual en tarjetas
-  // grandes en vez de estirar el QR sin límite si sobrara mucho alto.
-  const lado = Math.max(0, Math.min(anchoDisponible, altoDisponible, 280));
+  const lado = Math.max(0, Math.min(anchoDisponible, altoDisponible));
 
   container.style.width = lado + 'px';
   container.style.height = lado + 'px';

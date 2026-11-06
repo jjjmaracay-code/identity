@@ -504,7 +504,8 @@
 // caché, sin romper nada pero dejando una petición 404 silenciosa en el
 // install.
 // v71: actualiza la pantalla principal y su menú de acciones.
-const APP_VERSION = '71';
+// v72: amplía la tarjeta principal y centra su menú.
+const APP_VERSION = '72';
 const CACHE_NAME = 'identity-v' + APP_VERSION;
 // Rutas canónicas tal como las sirve Cloudflare Pages (sin redirección).
 const CACHE_URLS = [
